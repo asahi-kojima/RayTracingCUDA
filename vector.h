@@ -50,7 +50,7 @@ public:
 	__device__ __host__ static inline vec3 zero() { return vec3(0.0f, 0.0f, 0.0f); };
 	__device__ __host__ static inline vec3 one() { return vec3(1.0f, 1.0f, 1.0f); };
 
-	__device__ void print() const;
+	__device__ __host__ void print() const;
 
 private:
 	f32 mElements[3];

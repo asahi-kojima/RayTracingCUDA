@@ -9,33 +9,33 @@ class Material
 {
 public:
 	/// <summary>
-	/// Šî–{“I‚Étrue‚ª•Ô‚éB
-	/// — ‘¤‚©‚ç‚Ì“üË‚ğ‹–‚³‚È‚¢ê‡‚Í“üË•ûŒü‚É‚æ‚Á‚Äfalse‚Ìê‡‚à‹N‚«‚é
+	/// ï¿½ï¿½{ï¿½Iï¿½ï¿½trueï¿½ï¿½ï¿½Ô‚ï¿½B
+	/// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ì“ï¿½ï¿½Ë‚ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½È‚ï¿½ï¿½ê‡ï¿½Í“ï¿½ï¿½Ë•ï¿½ï¿½ï¿½ï¿½É‚ï¿½ï¿½ï¿½ï¿½falseï¿½Ìê‡ï¿½ï¿½ï¿½Nï¿½ï¿½ï¿½ï¿½
 	/// </summary>
 	/// <returns></returns>
-	__device__ __host__ virtual bool scatter(const Ray& ray_in, const HitRecord& record, Color& attenuation, Ray& ray_scattered) = 0;
+	__device__ virtual bool scatter(const Ray& ray_in, const HitRecord& record, Color& attenuation, Ray& ray_scattered) = 0;
 };
 
-//class Lambertian : public Material
-//{
-//public:
-//	Lambertian(const std::shared_ptr<Texture>& texture) : mTexture(texture) {}
-//	virtual bool scatter(const Ray& ray_in, const HitRecord& record, Color& attenuation, Ray& ray_scattered) override;
-//
-//
-//private:
-//	std::shared_ptr<Texture> mTexture;
-//};
-//
+class Lambertian : public Material
+{
+public:
+	__device__ Lambertian(const std::shared_ptr<Texture>& texture) : mTexture(texture) {}
+	__device__ virtual bool scatter(const Ray& ray_in, const HitRecord& record, Color& attenuation, Ray& ray_scattered) override;
+
+
+private:
+	std::shared_ptr<Texture> mTexture;
+};
+
 
 
 class Metal : public Material
 {
 public:
-	__device__ __host__ Metal(const Color& albedo, f32 fuzz = 0.0f) : albedo(albedo), fuzz(fuzz < 1 ? fuzz : 1) {}
+	__device__ Metal(const Color& albedo, f32 fuzz = 0.0f) : albedo(albedo), fuzz(fuzz <= 1.0f ? fuzz : 1) {}
 
 private:
-	__device__ __host__ virtual bool scatter(const Ray& ray_in, const HitRecord& record, Color& attenuation, Ray& ray_scattered) override;
+	__device__ virtual bool scatter(const Ray& ray_in, const HitRecord& record, Color& attenuation, Ray& ray_scattered) override;
 
 
 	Color albedo;
@@ -43,112 +43,112 @@ private:
 };
 
 
-//class Dielectric : public Material
-//{
-//public:
-//	Dielectric(float ref) : refIdx(ref) {}
-//
-//private:
-//	virtual bool scatter(const Ray& ray_in, const HitRecord& record, Color& attenuation, Ray& ray_scattered) override;
-//
-//	static bool isRefract(const vec3& v, const vec3& n, float niOverNt, vec3& refracted);
-//
-//	static f32 schlick(float cosine, float refIdx);
-//
-//
-//	f32 refIdx;
-//};
-//
-//class Retroreflective : public Material
-//{
-//public:
-//	Retroreflective(const Color& albedo) : albedo(albedo) {}
-//
-//private:
-//	virtual bool scatter(const Ray& ray_in, const HitRecord& record, Color& attenuation, Ray& ray_scattered) override;
-//
-//	Color albedo;
-//};
-//
-//class SunLight : public Material
-//{
-//public:
-//	SunLight() {}
-//
-//private:
-//	virtual bool scatter(const Ray& ray_in, const HitRecord& record, Color& attenuation, Ray& ray_scattered) override;
-//};
-//
-//
-//class GravitationalField : public Material
-//{
-//public:
-//	GravitationalField(f32 gravityScale, vec3 center) :mGravityScale(gravityScale), mCenter(center) {}
-//
-//	virtual bool scatter(const Ray& ray_in, const HitRecord& record, Color& attenuation, Ray& ray_scattered) override;
-//
-//
-//private:
-//	f32 mGravityScale;
-//	constexpr static f32 G = 1.0f;
-//	vec3 mCenter;
-//};
-//
-//class QuasiGravitationalField : public Material
-//{
-//public:
-//	QuasiGravitationalField(f32 gravityScale, vec3 center) :mGravityScale(gravityScale), mCenter(center) {}
-//
-//	virtual bool scatter(const Ray& ray_in, const HitRecord& record, Color& attenuation, Ray& ray_scattered) override;
-//
-//
-//private:
-//	f32 mGravityScale;
-//	constexpr static f32 G = 1.0f;
-//	vec3 mCenter;
-//};
-//
-//
-//class QuasiGravitationalField2 : public Material
-//{
-//public:
-//	QuasiGravitationalField2(f32 gravityScale, vec3 center) :mGravityScale(gravityScale), mCenter(center) {}
-//
-//	virtual bool scatter(const Ray& ray_in, const HitRecord& record, Color& attenuation, Ray& ray_scattered) override;
-//
-//
-//private:
-//	f32 mGravityScale;
-//	constexpr static f32 G = 1.0f;
-//	vec3 mCenter;
-//};
-//
-//
-//class Rutherford : public Material
-//{
-//public:
-//	Rutherford(f32 gravityScale, vec3 center) :mGravityScale(gravityScale), mCenter(center) {}
-//
-//	virtual bool scatter(const Ray& ray_in, const HitRecord& record, Color& attenuation, Ray& ray_scattered) override;
-//
-//
-//private:
-//	f32 mGravityScale;
-//	constexpr static f32 G = 1.0f;
-//	vec3 mCenter;
-//};
-//
-//
-//class QuasiRutherford : public Material
-//{
-//public:
-//	QuasiRutherford(f32 gravityScale, vec3 center) :mGravityScale(gravityScale), mCenter(center) {}
-//
-//	virtual bool scatter(const Ray& ray_in, const HitRecord& record, Color& attenuation, Ray& ray_scattered) override;
-//
-//
-//private:
-//	f32 mGravityScale;
-//	constexpr static f32 G = 1.0f;
-//	vec3 mCenter;
-//};
+class Dielectric : public Material
+{
+public:
+	__device__ Dielectric(float ref) : refIdx(ref) {}
+
+private:
+	__device__ virtual bool scatter(const Ray& ray_in, const HitRecord& record, Color& attenuation, Ray& ray_scattered) override;
+
+	__device__ static bool isRefract(const vec3& v, const vec3& n, float niOverNt, vec3& refracted);
+
+	__device__ static f32 schlick(float cosine, float refIdx);
+
+
+	f32 refIdx;
+};
+
+class Retroreflective : public Material
+{
+public:
+	__device__ Retroreflective(const Color& albedo) : albedo(albedo) {}
+
+private:
+	__device__ virtual bool scatter(const Ray& ray_in, const HitRecord& record, Color& attenuation, Ray& ray_scattered) override;
+
+	Color albedo;
+};
+
+class SunLight : public Material
+{
+public:
+	__device__ SunLight() {}
+
+private:
+	__device__ virtual bool scatter(const Ray& ray_in, const HitRecord& record, Color& attenuation, Ray& ray_scattered) override;
+};
+
+
+class GravitationalField : public Material
+{
+public:
+	__device__ GravitationalField(f32 gravityScale, vec3 center) :mGravityScale(gravityScale), mCenter(center) {}
+
+	__device__ virtual bool scatter(const Ray& ray_in, const HitRecord& record, Color& attenuation, Ray& ray_scattered) override;
+
+
+private:
+	f32 mGravityScale;
+	constexpr static f32 G = 1.0f;
+	vec3 mCenter;
+};
+
+class QuasiGravitationalField : public Material
+{
+public:
+	__device__ QuasiGravitationalField(f32 gravityScale, vec3 center) :mGravityScale(gravityScale), mCenter(center) {}
+
+	__device__ virtual bool scatter(const Ray& ray_in, const HitRecord& record, Color& attenuation, Ray& ray_scattered) override;
+
+
+private:
+	f32 mGravityScale;
+	constexpr static f32 G = 1.0f;
+	vec3 mCenter;
+};
+
+
+class QuasiGravitationalField2 : public Material
+{
+public:
+	__device__ QuasiGravitationalField2(f32 gravityScale, vec3 center) :mGravityScale(gravityScale), mCenter(center) {}
+
+	__device__ virtual bool scatter(const Ray& ray_in, const HitRecord& record, Color& attenuation, Ray& ray_scattered) override;
+
+
+private:
+	f32 mGravityScale;
+	constexpr static f32 G = 1.0f;
+	vec3 mCenter;
+};
+
+
+class Rutherford : public Material
+{
+public:
+	__device__ Rutherford(f32 gravityScale, vec3 center) :mGravityScale(gravityScale), mCenter(center) {}
+
+	__device__ virtual bool scatter(const Ray& ray_in, const HitRecord& record, Color& attenuation, Ray& ray_scattered) override;
+
+
+private:
+	f32 mGravityScale;
+	constexpr static f32 G = 1.0f;
+	vec3 mCenter;
+};
+
+
+class QuasiRutherford : public Material
+{
+public:
+	__device__ QuasiRutherford(f32 gravityScale, vec3 center) :mGravityScale(gravityScale), mCenter(center) {}
+
+	__device__ virtual bool scatter(const Ray& ray_in, const HitRecord& record, Color& attenuation, Ray& ray_scattered) override;
+
+
+private:
+	f32 mGravityScale;
+	constexpr static f32 G = 1.0f;
+	vec3 mCenter;
+};

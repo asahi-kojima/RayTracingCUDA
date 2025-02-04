@@ -23,9 +23,9 @@ __device__ bool getColorFromRay(Node* worldNode,Ray& current_ray, const u32 dept
 	else
 	{
 		vec3 unitDirection = normalize(current_ray.direction());
-		f32 t = 0.5f * (unitDirection.getY() + 1.0f);
-		color = Color(0xFFFFFF) * (1.0f - t) + Color(0x0000FF) * t;
 
+		f32 t = 0.5f * (unitDirection.getY() + 1.0f);
+		color = Color(0xFFFFFF) * (1.0f - t) + Color(0xF0FFFF) * t;
 		return true;
 	}
 }

@@ -16,7 +16,7 @@ public:
 		, mPixelSize(resolutionHeight* resolutionWidth)
 	{
 		CHECK(cudaMallocManaged((void**)&mPixels, sizeof(Color) * mPixelSize));
-		printf("ClearColor = %f, %f, %f\n", clearColor.r(), clearColor.g(), clearColor.b());
+		
 		for (u32 i = 0; i < mPixelSize; i++)
 		{
 			mPixels[i] = clearColor;
@@ -54,7 +54,6 @@ public:
 			{
 				Color color = mPixels[calcIndex(i, j)];
 				color = Color(sqrt(color[0]), sqrt(color[1]), sqrt(color[2]));
-				color.printColor();
 				color[0] = static_cast<f32>(static_cast<s32>(255.99 * color[0]));
 				color[1] = static_cast<f32>(static_cast<s32>(255.99 * color[1]));
 				color[2] = static_cast<f32>(static_cast<s32>(255.99 * color[2]));
