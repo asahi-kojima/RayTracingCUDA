@@ -2,7 +2,7 @@
 #include <math.h>
 #include <random>
 #include "vector.h"
-
+#include "util.h"
 
 f32& vec3::operator[](size_t i)
 {
@@ -254,12 +254,12 @@ vec3 reflect(const vec3& v, const vec3& n)
 
 vec3 random_in_unit_sphere()
 {
-	//vec3 p;
-	//do
-	//{
-	//	p = vec3(RandomGenerator::signed_uniform_real(), RandomGenerator::signed_uniform_real(), RandomGenerator::signed_uniform_real());
-	//} while (p.lengthSquared() >= 1.0f);
-	//return p;
+	vec3 p;
+	do
+	{
+		p = vec3(RandomGeneratorGPU::signed_uniform_real(), RandomGeneratorGPU::signed_uniform_real(), RandomGeneratorGPU::signed_uniform_real());
+	} while (p.lengthSquared() >= 1.0f);
+	return p;
 
 	return vec3::zero();
 }

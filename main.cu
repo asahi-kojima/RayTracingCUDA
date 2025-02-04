@@ -3,6 +3,7 @@
 #include <memory>
 #include <vector>
 #include <string>
+#include <curand_kernel.h>
 #include "vector.h"
 #include "color.h"
 #include "ray.h"
@@ -12,18 +13,27 @@
 #include "texture.h"
 #include "engine.h"
 
+__device__ curandState s[32];
 
+__global__ void setup_gpu()
+{
+	for (u32 i = 0; i < 32; i++)
+	{
+		curand_init(static_cast<unsigned long long>(i), 0, 0, &s[i]);
+	}
+}
 
 int main()
 {
 	cudaDeviceSetLimit(cudaLimitMallocHeapSize, 1024 * 1024);
 	cudaDeviceSetLimit(cudaLimitStackSize, 1024 * 30);
+	setup_gpu<<<1,1>>>();
 	//=================================================================
 	// オブジェクトの準備
 	//=================================================================
 	std::vector<Hittable*> world;
 	{
-#if 0
+#if 1
 		constexpr f32 Range = 25;
 		constexpr u32 Dense = 25;
 		constexpr f32 Interval = 2 * Range / Dense;
@@ -57,9 +67,9 @@ int main()
 		world.push_back(make_object<Sphere>(vec3(-4, 1, 0), 1.0f, make_material<Dielectric>(1.5f)));
 		world.push_back(make_object<Sphere>(vec3(-4, 1, 0), -0.9f, make_material<Dielectric>(1.5f)));
 		world.push_back(make_object<Sphere>(vec3(0, 1, 0), 1.0f, make_material<Metal>(Color::Gold, 0)));
-		world.push_back(make_object<Sphere>(vec3(4, 1, 1), 1.0f, make_material<Rutherford>(1.0f, vec3(4, 1, 1))));
+		world.push_back(make_object<Sphere>(vec3(4, 1, 0), 1.0f, make_material<Rutherford>(1.0f, vec3(4, 1, 1))));
 		world.push_back(make_object<Sphere>(vec3(8, 1, 0), 1.0f, make_material<Metal>(Color::Bronze, 1)));
-		world.push_back(make_object<Sphere>(vec3(0, 1, -2), 1.0f, make_material<Metal>(Color(0x000FA0), 0.3)));
+		world.push_back(make_object<Sphere>(vec3(0, 1, -4), 1.0f, make_material<Metal>(Color(0x000FA0), 0.3)));
 
 #else
 		constexpr s32 Range = 10;
@@ -100,8 +110,8 @@ int main()
 	const u32 resolutionY = static_cast<u32>(1080 * BaseResolution);
 
 	vec3 lookAt(0, 0, 0);
-	//vec3 lookFrom(13, 2, 5);
-	vec3 lookFrom(0,0,2.0f);
+	vec3 lookFrom(13, 2, 5);
+	//vec3 lookFrom(0,0,2.0f);
 
 
 	Camera camera = Camera(lookFrom, lookAt, vec3(0, 1, 0), 20, f32(resolutionX) / f32(resolutionY), 0.0, (lookFrom - lookAt).length());

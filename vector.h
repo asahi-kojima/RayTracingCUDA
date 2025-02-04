@@ -63,4 +63,4 @@ __device__ __host__ vec3 cross(const vec3& v0, const vec3& v1);
 __device__ __host__ f32 dot(const vec3& v0, const vec3& v1);
 __device__ __host__ vec3 reflect(const vec3& v, const vec3& n);
 
-__device__ __host__ vec3 random_in_unit_sphere();
+__device__ vec3 random_in_unit_sphere();

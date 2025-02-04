@@ -72,10 +72,10 @@ __global__ void castRayToWorld(Node* worldNode, Color* pixels, CameraCore* camer
 	Color resultColor = Color(0x000000);
 	for (u32 s = 0; s < sampleSize; s++)
 	{
-		// const f32 u = static_cast<f32>(i + RandomGenerator::signed_uniform_real() * 0.1f) * inv_coeff_width;
-		// const f32 v = static_cast<f32>(j + RandomGenerator::signed_uniform_real() * 0.1f) * inv_coeff_heigth;
-		const f32 u = static_cast<f32>(id_w) * inv_screenSizeW;
-		const f32 v = static_cast<f32>(id_h) * inv_screenSizeH;
+		const f32 u = static_cast<f32>(id_w + RandomGeneratorGPU::signed_uniform_real() * 0.1f) * inv_screenSizeW;
+		const f32 v = static_cast<f32>(id_h + RandomGeneratorGPU::signed_uniform_real() * 0.1f) * inv_screenSizeH;
+		// const f32 u = static_cast<f32>(id_w) * inv_screenSizeW;
+		// const f32 v = static_cast<f32>(id_h) * inv_screenSizeH;
 		Ray ray = camera->getRay(u, v);
 
 		SecondaryInfoByRay additinalRayInfo;
