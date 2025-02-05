@@ -13,6 +13,8 @@
 #include "texture.h"
 #include "engine.h"
 
+// /usr/local/cuda/bin/nvcc -std=c++20 -rdc=true -O3 -DNDEBUG -w *.cu && ./a.out && convert ./build/result.ppm ./build/rayTracingDemo.png
+
 __device__ curandState s[32];
 
 __global__ void setup_gpu()
@@ -25,7 +27,7 @@ __global__ void setup_gpu()
 
 int main()
 {
-	cudaDeviceSetLimit(cudaLimitMallocHeapSize, 1024 * 1024);
+	cudaDeviceSetLimit(cudaLimitMallocHeapSize, 1024 * 1024 * 100);
 	cudaDeviceSetLimit(cudaLimitStackSize, 1024 * 30);
 	setup_gpu<<<1,1>>>();
 	//=================================================================
@@ -33,7 +35,7 @@ int main()
 	//=================================================================
 	std::vector<Hittable*> world;
 	{
-#if 1
+#if 0
 		constexpr f32 Range = 25;
 		constexpr u32 Dense = 25;
 		constexpr f32 Interval = 2 * Range / Dense;
@@ -60,14 +62,14 @@ int main()
 
 
 		// world.push_back(make_object<Sphere>(vec3(0, -3000, 0), 3000.0f, make_material<Lambertian>(make_object<CheckerTexture>(std::make_unique<ConstantTexture>(Color::Green), std::make_unique<ConstantTexture>(Color::Azure)))));
-		world.push_back(make_object<Sphere>(vec3(0, -3000, 0), 3000.0f, make_material<Metal>(Color::Gray, 0.9f)));
+		world.push_back(make_object<Sphere>(vec3(0, -3000, 0), 3000.0f, make_material<Metal>(Color::Gray, 0.3f)));
 
 		world.push_back(make_object<Sphere>(vec3(-12, 1, 2), 1.0f, make_material<QuasiGravitationalField>(10.0f, vec3(-12, 1, 2))));
 		world.push_back(make_object<Sphere>(vec3(-8, 1, 0), 1.0f, make_material<Metal>(Color(1, 1, 0.2), 0)));
-		world.push_back(make_object<Sphere>(vec3(-4, 1, 0), 1.0f, make_material<Dielectric>(1.5f)));
-		world.push_back(make_object<Sphere>(vec3(-4, 1, 0), -0.9f, make_material<Dielectric>(1.5f)));
+		world.push_back(make_object<Sphere>(vec3(-4, 1, 0), 1.0f, make_material<Rutherford>(1.0f, vec3(-4, 1, 0))));
 		world.push_back(make_object<Sphere>(vec3(0, 1, 0), 1.0f, make_material<Metal>(Color::Gold, 0)));
-		world.push_back(make_object<Sphere>(vec3(4, 1, 0), 1.0f, make_material<Rutherford>(1.0f, vec3(4, 1, 1))));
+		world.push_back(make_object<Sphere>(vec3(4, 1, 0), 1.0f, make_material<Dielectric>(1.5f)));
+		world.push_back(make_object<Sphere>(vec3(4, 1, 0), -0.9f, make_material<Dielectric>(1.5f)));
 		world.push_back(make_object<Sphere>(vec3(8, 1, 0), 1.0f, make_material<Metal>(Color::Bronze, 1)));
 		world.push_back(make_object<Sphere>(vec3(0, 1, -4), 1.0f, make_material<Metal>(Color(0x000FA0), 0.3)));
 
@@ -77,7 +79,7 @@ int main()
 		{
 			for (s32 h = -Range; h <= Range; h+=1)
 			{
-				for (s32 z = 0; z < 10; z++)
+				for (s32 z = -10; z <= 10; z++)
 				{
 					f32 which = RandomGenerator::uniform_real();
 					vec3 pos(w, h, -z);
@@ -89,7 +91,8 @@ int main()
 					}
 					else
 					{
-						material = make_material<GravitationalField>(RandomGenerator::uniform_real(1.0f, 5.0f), pos);
+						material = make_material<GravitationalField>(3.0f, pos);
+						// material = make_material<GravitationalField>(RandomGenerator::uniform_real(1.0f, 5.0f), pos);
 					}
 					world.push_back(make_object<Sphere>(pos, 0.25f, std::move(material)));
 
@@ -105,13 +108,13 @@ int main()
 	//=================================================================
 	// カメラの準備
 	//=================================================================
-	constexpr f32 BaseResolution = 1.0f * 2.0f / 1;
+	constexpr f32 BaseResolution = 1.0f * 2.0f / 4;
 	const u32 resolutionX = static_cast<u32>(1920 * BaseResolution);
 	const u32 resolutionY = static_cast<u32>(1080 * BaseResolution);
 
 	vec3 lookAt(0, 0, 0);
-	vec3 lookFrom(13, 2, 5);
-	//vec3 lookFrom(0,0,2.0f);
+	//vec3 lookFrom(13, 2, 5);
+	vec3 lookFrom(0,0,2.0f);
 
 
 	Camera camera = Camera(lookFrom, lookAt, vec3(0, 1, 0), 20, f32(resolutionX) / f32(resolutionY), 0.0, (lookFrom - lookAt).length());
@@ -119,7 +122,7 @@ int main()
 	//=================================================================
 	// レンダーターゲットの準備
 	//=================================================================
-	RenderTarget renderTarget(resolutionX, resolutionY);
+	RenderTarget renderTarget[3] = {RenderTarget(resolutionX, resolutionY),RenderTarget(resolutionX, resolutionY),RenderTarget(resolutionX, resolutionY) };
 
 	//=================================================================
 	// オブジェクトの準備
@@ -127,9 +130,22 @@ int main()
 	RayTracingEngine engine;
 
 	engine.setObjects(world);
-	engine.setCamera(camera);
-	engine.setRenderTarget(renderTarget);
-	engine.render();
+	engine.setRenderTarget(renderTarget[0]);
 
-	engine.saveRenderResult("./build/result.ppm");
+	for (u32 i = 0, maxI = 100; i < maxI; i++)
+	{
+		printf("%d : times\n", i);
+		f32 phi = i *  (2 * M_PI) / maxI;
+		vec3 lookAt(0, 0, 0);
+		vec3 lookFrom(0.5f * sin(phi), 0, 0.5f * cos(phi));
+		// vec3 lookFrom(14 * cos(phi), 2, 14 * sin(phi));
+		camera = Camera(lookFrom, lookAt, vec3(0, 1, 0), 20, f32(resolutionX) / f32(resolutionY), 0.0, (lookFrom - lookAt).length());
+		engine.setCamera(camera);
+		engine.render();
+
+		std::string s = "./build/result";
+		s += std::to_string(i);
+		s += ".ppm";
+		engine.saveRenderResult(s);
+	}
 }

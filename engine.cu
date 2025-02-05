@@ -54,7 +54,7 @@ __device__ Color castRayAndCalcColor(Node* worldNode, const Ray& ray, const u32 
 }
 
 
-__global__ void castRayToWorld(Node* worldNode, Color* pixels, CameraCore* camera, const u32 screenSizeW, const u32 screenSizeH, const u32 sampleSize, const u32 maxDepth)
+__global__ void castRayToWorld(Node* worldNode, Color* pixels, Camera* camera, const u32 screenSizeW, const u32 screenSizeH, const u32 sampleSize, const u32 maxDepth)
 {
 	const u32 id_w = blockIdx.x * blockDim.x + threadIdx.x;
 	const u32 id_h = blockIdx.y * blockDim.y + threadIdx.y;
@@ -91,11 +91,13 @@ __global__ void castRayToWorld(Node* worldNode, Color* pixels, CameraCore* camer
 
 RayTracingEngine::RayTracingEngine()
 {
+	cudaMalloc(&mCamera, sizeof(Camera));
 }
 
 RayTracingEngine::~RayTracingEngine()
 {
 	cudaDeviceSynchronize();
+	cudaFree(mCamera);
 }
 
 __global__ void make_node(Node* node, Hittable** world, size_t objectNum)
@@ -112,7 +114,8 @@ void RayTracingEngine::setObjects(const std::vector<Hittable*>& world)
 	}
 
 	Hittable** hittableList;
-	CHECK(cudaMallocManaged(&hittableList, sizeof(Hittable*) * sizeof(world.size())));
+
+	CHECK(cudaMallocManaged(&hittableList, sizeof(Hittable*) * world.size()));
 	for (u32 i = 0, end = world.size(); i < end; i++)
 	{
 		hittableList[i] = world[i];
@@ -128,7 +131,7 @@ void RayTracingEngine::setObjects(const std::vector<Hittable*>& world)
 
 void RayTracingEngine::setCamera(const Camera& camera)
 {
-	mCamera = camera.pCore;
+	cudaMemcpy(mCamera, &camera, sizeof(Camera), cudaMemcpyHostToDevice);
 }
 
 void RayTracingEngine::setRenderTarget(RenderTarget& target)

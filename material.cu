@@ -3,7 +3,7 @@
 #include "util.h"
 
 //======================================================
-// �����o�[�g
+// ランバート
 //======================================================
 bool Lambertian::scatter(const Ray& ray_in, const HitRecord& record, Color& attenuation, Ray& ray_scattered)
 {
@@ -15,17 +15,14 @@ bool Lambertian::scatter(const Ray& ray_in, const HitRecord& record, Color& atte
 }
 
 //======================================================
-// ����
+// 金属
 //======================================================
 bool Metal::scatter(const Ray& ray_in, const HitRecord& record, Color& attenuation, Ray& ray_scattered)
 {
-	//�V���ȃ��C���Z�b�g
 	vec3 reflected_ray = reflect(ray_in.direction(), record.normal);
 
-	//�Ō��0.1f�ɂ��Ă�reflected_ray�̒������P�����A����Ɠ����I�[�_�[�ɂ���Ƌ��E�Ŗ������˂��N����̂ŁA�����h�����߁B
 	ray_scattered = Ray(record.pos, reflected_ray + fuzz * random_in_unit_sphere() * 0.1f);
 
-	//�\�ʐF���Z�b�g
 	attenuation = albedo;
 
 	return (dot(ray_scattered.direction(), record.normal) > 0);
@@ -33,7 +30,7 @@ bool Metal::scatter(const Ray& ray_in, const HitRecord& record, Color& attenuati
 
 
 //======================================================
-// �U�d��
+// 誘電体
 //======================================================
 bool Dielectric::scatter(const Ray& ray_in, const HitRecord& record, Color& attenuation, Ray& ray_scattered)
 {
@@ -46,14 +43,14 @@ bool Dielectric::scatter(const Ray& ray_in, const HitRecord& record, Color& atte
 	f32 cosine;
 	f32 reflectProb;
 
-	// ��������o�Ă��悤�Ƃ��Ă��鎞
+	// 内部から出てこようとしている時
 	if (dot(ray_in.direction(), record.normal) > 0)
 	{
 		outwardNormal = record.normal;
 		niOverNt = refIdx;
 		cosine = dot(ray_in.direction(), record.normal) / ray_in.direction().length();
 	}
-	// �O��������ł��Ă��鎞
+	// 外部から飛んできている時
 	else
 	{
 		outwardNormal = -record.normal;
@@ -87,17 +84,17 @@ bool Dielectric::isRefract(const vec3& v, const vec3& n, f32 niOverNt, vec3& ref
 	vec3 uv = normalize(v);
 	f32 dt = dot(uv, n);
 
-	// �X�l�����������Ă�BD��cos^2Theta�ɑ������A���Ȃ��������B
+	// スネル則を解いてる。Dはcos^2Thetaに相当し、正なら解がある。
 	f32 D = 1.0 - niOverNt * niOverNt * (1 - dt * dt);
 
-	// ��������ꍇ�B���܌����Z�o����B
+	// 解がある場合。屈折光を算出する。
 	if (D > 0)
 	{
 		refracted = niOverNt * (uv - n * dt) + n * sqrt(D);
 		return true;
 	}
 
-	// �S���˂̏ꍇ
+	// 全反射の場合
 	return false;
 }
 
@@ -110,7 +107,7 @@ f32 Dielectric::schlick(f32 cosine, f32 refIdx)
 
 
 //======================================================
-// �ċA�����ˑf��
+// 再帰性反射素材
 //======================================================
 bool Retroreflective::scatter(const Ray& ray_in, const HitRecord& record, Color& attenuation, Ray& ray_scattered)
 {
@@ -124,7 +121,7 @@ bool Retroreflective::scatter(const Ray& ray_in, const HitRecord& record, Color&
 
 
 //======================================================
-// ����
+// 光源
 //======================================================
 
 bool SunLight::scatter(const Ray& ray_in, const HitRecord& record, Color& attenuation, Ray& ray_scattered)
@@ -136,7 +133,7 @@ bool SunLight::scatter(const Ray& ray_in, const HitRecord& record, Color& attenu
 
 
 //======================================================
-// �d�͏�
+// 重力場
 //======================================================
 bool GravitationalField::scatter(const Ray& ray_in, const HitRecord& record, Color& attenuation, Ray& ray_scattered)
 {
@@ -154,9 +151,9 @@ bool GravitationalField::scatter(const Ray& ray_in, const HitRecord& record, Col
 	const f32 E = 0.5f * m * v * v - G * M * m / R;
 	const f32 L = m * v * ray_center_dist;
 	const f32 R0 = L * L / (G * M);
-	const f32 typical_E = L * L / (2 * R0 * R0);//�T�^�I�ȃG�l���M�[�X�P�[�����Ӗ����Ă���A���ۂ̃G�l���M�[�Ƃ͕�
+	const f32 typical_E = L * L / (2 * R0 * R0);//典型的なエネルギースケールを意味しており、実際のエネルギーとは別
 
-	//���S��
+	//離心率
 	const f32 e = sqrtf(1.0f + E / typical_E);
 	if (e < 1.0f)
 	{
@@ -194,7 +191,7 @@ bool GravitationalField::scatter(const Ray& ray_in, const HitRecord& record, Col
 
 
 //======================================================
-// �^���d�͏�i�����Čv�Z�~�X�����Ă���j
+// 疑似重力場（敢えて計算ミスを入れている）
 //======================================================
 bool QuasiGravitationalField::scatter(const Ray& ray_in, const HitRecord& record, Color& attenuation, Ray& ray_scattered)
 {
@@ -212,9 +209,9 @@ bool QuasiGravitationalField::scatter(const Ray& ray_in, const HitRecord& record
 	const f32 E = 0.5f * m * v * v - G * M * m / R;
 	const f32 L = m * v * ray_center_dist;
 	const f32 R0 = L * L / (G * M);
-	const f32 typical_E = L * L / (2 * R0 * R0);//�T�^�I�ȃG�l���M�[�X�P�[�����Ӗ����Ă���A���ۂ̃G�l���M�[�Ƃ͕�
+	const f32 typical_E = L * L / (2 * R0 * R0);//典型的なエネルギースケールを意味しており、実際のエネルギーとは別
 
-	//���S��
+	//離心率
 	const f32 e = sqrtf(1.0f + E / typical_E);
 	if (e < 1.0f)
 	{
@@ -251,7 +248,7 @@ bool QuasiGravitationalField::scatter(const Ray& ray_in, const HitRecord& record
 }
 
 //======================================================
-// �^���d�͏�2�i�����Čv�Z�~�X�����Ă���j
+// 疑似重力場2（敢えて計算ミスを入れている）
 //======================================================
 bool QuasiGravitationalField2::scatter(const Ray& ray_in, const HitRecord& record, Color& attenuation, Ray& ray_scattered)
 {
@@ -269,9 +266,9 @@ bool QuasiGravitationalField2::scatter(const Ray& ray_in, const HitRecord& recor
 	const f32 E = 0.5f * m * v * v - G * M * m / R;
 	const f32 L = m * v * ray_center_dist;
 	const f32 R0 = L * L / (G * M);
-	const f32 typical_E = L * L / (2 * R0 * R0);//�T�^�I�ȃG�l���M�[�X�P�[�����Ӗ����Ă���A���ۂ̃G�l���M�[�Ƃ͕�
+	const f32 typical_E = L * L / (2 * R0 * R0);//典型的なエネルギースケールを意味しており、実際のエネルギーとは別
 
-	//���S��
+	//離心率
 	const f32 e = sqrtf(1.0f + E / typical_E);
 	if (e < 1.0f)
 	{
@@ -310,7 +307,7 @@ bool QuasiGravitationalField2::scatter(const Ray& ray_in, const HitRecord& recor
 
 
 //======================================================
-// ���U�t�H�[�h�U��
+// ラザフォード散乱
 //======================================================
 bool Rutherford::scatter(const Ray& ray_in, const HitRecord& record, Color& attenuation, Ray& ray_scattered)
 {
@@ -328,9 +325,9 @@ bool Rutherford::scatter(const Ray& ray_in, const HitRecord& record, Color& atte
 	const f32 E = 0.5f * m * v * v + G * M * m / R;
 	const f32 L = m * v * ray_center_dist;
 	const f32 R0 = L * L / (G * M);
-	const f32 typical_E = L * L / (2 * R0 * R0);//�T�^�I�ȃG�l���M�[�X�P�[�����Ӗ����Ă���A���ۂ̃G�l���M�[�Ƃ͕�
+	const f32 typical_E = L * L / (2 * R0 * R0);//典型的なエネルギースケールを意味しており、実際のエネルギーとは別
 
-	//���S��
+	//離心率
 	const f32 e = sqrtf(1.0f + E / typical_E);
 
 	attenuation = Color(0xFFFFFF);
@@ -360,7 +357,7 @@ bool Rutherford::scatter(const Ray& ray_in, const HitRecord& record, Color& atte
 }
 
 //======================================================
-// �^�����U�t�H�[�h�U��
+// 疑似ラザフォード散乱
 //======================================================
 bool QuasiRutherford::scatter(const Ray& ray_in, const HitRecord& record, Color& attenuation, Ray& ray_scattered)
 {
@@ -378,9 +375,9 @@ bool QuasiRutherford::scatter(const Ray& ray_in, const HitRecord& record, Color&
 	const f32 E = 0.5f * m * v * v + G * M * m / R;
 	const f32 L = m * v * ray_center_dist;
 	const f32 R0 = L * L / (G * M);
-	const f32 typical_E = L * L / (2 * R0 * R0);//�T�^�I�ȃG�l���M�[�X�P�[�����Ӗ����Ă���A���ۂ̃G�l���M�[�Ƃ͕�
+	const f32 typical_E = L * L / (2 * R0 * R0);//典型的なエネルギースケールを意味しており、実際のエネルギーとは別
 
-	//���S��
+	//離心率
 	const f32 e = sqrtf(1.0f + E / typical_E);
 
 	attenuation = Color(0xFFFFFF);

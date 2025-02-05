@@ -5,12 +5,12 @@
 #include "vector.h"
 #include "util.h"
 
-class CameraCore/* : public Managed*/
+class Camera
 {
 	friend class Camera;
 public:
-	__device__ __host__ CameraCore() = default;
-	__device__ __host__ CameraCore(vec3 lookFrom, vec3 lookAt, vec3 vUp, f32 vfov, f32 aspect, f32 aperture = 0, f32 focusDist = 1)
+	__device__ __host__ Camera() = default;
+	__device__ __host__ Camera(vec3 lookFrom, vec3 lookAt, vec3 vUp, f32 vfov, f32 aspect, f32 aperture = 0, f32 focusDist = 1)
 	{
 		lensRadius = aperture / 2;
 		focusDistance = focusDist;
@@ -82,32 +82,3 @@ private:
 	//}
 };
 
-
-class Camera
-{
-public:
-	Camera(vec3 lookFrom, vec3 lookAt, vec3 vUp, f32 vfov, f32 aspect, f32 aperture = 0, f32 focusDist = 1)
-	{
-		cudaMallocManaged(&pCore, sizeof(Camera));
-
-
-		pCore->lensRadius = aperture / 2;
-		pCore->focusDistance = focusDist;
-
-		f32 theta = vfov * M_PI / 180.0f;
-		f32 halfHeight = tan(theta / 2);
-		f32 halfWidth = aspect * halfHeight;
-
-		pCore->mEyeOrigin = lookFrom;
-		pCore->mCameraZ = normalize(lookFrom - lookAt);//z
-		pCore->mCameraX = normalize(cross(vUp, pCore->mCameraZ));//x
-		pCore->mCameraY = cross(pCore->mCameraZ, pCore->mCameraX);//y
-
-		pCore->mScreenOrigin = pCore->mEyeOrigin - focusDist * pCore->mCameraZ - focusDist * halfWidth * pCore->mCameraX - focusDist * halfHeight * pCore->mCameraY;
-		pCore->horizontal = focusDist * 2 * halfWidth * pCore->mCameraX;
-		pCore->vertical = focusDist * 2 * halfHeight *pCore->mCameraY;
-	}
-
-
-	CameraCore* pCore;
-};

@@ -8,8 +8,10 @@ Node::Node(Hittable** hittableList, size_t hittableNum)
 	//リストに１つしかない場合、葉となる。
 	if (hittableNum == 1)
 	{
+		//printf("%d must be 1\n", hittableNum);
 		isLeaf = true;
 		object = new Object(hittableList[0]);
+		//printf("OK\n");
 
 		aabb = object->getAABB();
 	}

@@ -41,7 +41,7 @@ public:
 	//void drawTrajectory(u32 i, u32 j);
 
 private:
-	CameraCore* mCamera;
+	Camera* mCamera;
 	RenderTarget mRenderTarget;
 	Node* mRootNode = nullptr;
 

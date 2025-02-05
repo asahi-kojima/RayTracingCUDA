@@ -109,6 +109,13 @@ Color& Color::operator+=(const Color& rhs)
 	return *this;
 }
 
+Color& Color::operator+=(const f32 rhs)
+{
+	this->mRGB += rhs;
+	this->mAlpha += rhs;
+	return *this;
+}
+
 Color& Color::operator*=(const Color& rhs)
 {
 	this->mRGB *= rhs.mRGB;
