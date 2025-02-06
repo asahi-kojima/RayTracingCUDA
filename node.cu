@@ -2,27 +2,21 @@
 #include "node.h"
 
 
-Node::Node(Hittable** hittableList, size_t hittableNum)
+Node::Node(Hittable** hittableList, u32 *newOrderedIndexList, u32 start, u32 end)
 	:aabb{}
 {
 	//リストに１つしかない場合、葉となる。
-	if (hittableNum == 1)
+	if (end - start == 1)
 	{
-		//printf("%d must be 1\n", hittableNum);
 		isLeaf = true;
-		object = new Object(hittableList[0]);
-		//printf("OK\n");
-
+		object = new Object(hittableList[newOrderedIndexList[start]]);
 		aabb = object->getAABB();
 	}
 	//２つ以上オブジェクトがある場合、まだ分割を行う。
 	else
 	{
-		Hittable** lhs_hittables = hittableList;
-		lhs_node = new Node(lhs_hittables, hittableNum / 2);
-
-		Hittable** rhs_hittables = hittableList + hittableNum / 2;
-		rhs_node = new Node(rhs_hittables, (hittableNum + 1) / 2);
+		lhs_node = new Node(hittableList, newOrderedIndexList, start, start + (end - start) / 2);
+		rhs_node = new Node(hittableList, newOrderedIndexList, start + (end - start) / 2, end);
 
 		const AABB lhs_node_aabb = lhs_node->aabb;
 		const AABB rhs_node_aabb = rhs_node->aabb;

@@ -35,7 +35,7 @@ int main()
 	//=================================================================
 	std::vector<Hittable*> world;
 	{
-#if 1
+#if 0
 		constexpr f32 Range = 25;
 		constexpr u32 Dense = 25;
 		constexpr f32 Interval = 2 * Range / Dense;

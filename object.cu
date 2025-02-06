@@ -149,7 +149,7 @@ bool AABB::isIntersecting(const Ray& ray, f32 t_min, f32 t_max) const
 
 		if (inv < 0.0f)
 		{
-			swap(t0, t1);
+			aoba::swap(t0, t1);
 		}
 
 		t_min = (t0 > t_min ? t0 : t_min);

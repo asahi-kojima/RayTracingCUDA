@@ -95,11 +95,13 @@ public:
 	}
 };
 
-
-template<class T>
-__host__ __device__ void swap(T& a, T& b)
+namespace aoba
 {
-	T c = a;
-	a = b;
-	b = c;
+	template<class T>
+	__host__ __device__ void swap(T& a, T& b)
+	{
+		T c = a;
+		a = b;
+		b = c;
+	}
 }

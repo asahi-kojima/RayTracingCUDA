@@ -40,7 +40,7 @@ public:
 		return (minPos + maxPos) / 2.0f;
 	}
 
-	__device__ void printSize() const
+	__device__ void print() const
 	{
 		printf("maxPos = %f, %f, %f\n", maxPos[0], maxPos[1], maxPos[2]);		
 		printf("minPos = %f, %f, %f\n", minPos[0], minPos[1], minPos[2]);		

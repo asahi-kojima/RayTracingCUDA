@@ -1,5 +1,5 @@
+#include <algorithm>
 #include "engine.h"
-
 
 __device__ bool getColorFromRay(const Node* worldNode,Ray& current_ray, const u32 depth, const u32 maxDepth, Color& color)
 {
@@ -101,10 +101,7 @@ RayTracingEngine::~RayTracingEngine()
 	cudaFree(mCamera);
 }
 
-__global__ void make_node(Node* node, Hittable** world, size_t objectNum)
-{
-	new (node) Node(world, objectNum);
-}
+
 
 __global__ void getCenters(Hittable** world, size_t objectNum, vec3* centerList)
 {
@@ -114,29 +111,26 @@ __global__ void getCenters(Hittable** world, size_t objectNum, vec3* centerList)
 	}
 }
 
-__global__ void sortObjectsOnGPU(Hittable** world, size_t objectNum, u32* sortOrderTable)
+
+void sort_along_axis(std::vector<std::pair<vec3, u32>>& pairs, const u32 start, u32 end, u32 depth = 0)
 {
-	Hittable** tmpWorld = new Hittable*[objectNum];
-
-	for (u32 i = 0; i < objectNum; i++)
+	if (end - start == 1)
 	{
-		u32 newOrder = sortOrderTable[i];
-		tmpWorld[newOrder] = world[i];
-	} 
-
-	for (u32 i = 0; i < objectNum; i++)
-	{
-		world[i] = tmpWorld[i];
+		return;
 	}
 
-	delete[] tmpWorld;
+	std::sort(pairs.begin() + start, pairs.begin() + end, [depth](std::pair<vec3, u32>& pair0, std::pair<vec3, u32> pair1) {const u32 axis_of_sort = depth % 3; return pair0.first[axis_of_sort] < pair1.first[axis_of_sort]; });
+
+	sort_along_axis(pairs, start, start + (end - start) / 2, depth + 1);
+	sort_along_axis(pairs, start + (end - start) / 2, end, depth + 1);
 }
 
 
-void sortObjects(Hittable** world, size_t objectNum)
+void sortObjects(Hittable** world, size_t objectNum, u32* indexList)
 {
 	printf("Sort of World object start\n");
-
+	
+	//collect center info of objects;
 	vec3 *centerList;
 	CHECK(cudaMallocManaged(&centerList, sizeof(vec3) * objectNum));
 
@@ -144,29 +138,29 @@ void sortObjects(Hittable** world, size_t objectNum)
 	GPU_ERROR_CHECKER(cudaPeekAtLastError());
 	CHECK(cudaDeviceSynchronize());
 
-	std::vector<std::pair<f32, u32> > pairs;
+	//sort
+	std::vector<std::pair<vec3, u32> > pairs;
 	for (u32 i = 0; i < objectNum; i++)
 	{
-		pairs.push_back({centerList[i][1], i});
+		pairs.push_back({centerList[i], i});
 	}
 
-	std::sort(pairs.begin(), pairs.end());
-
-	u32 *indexList;
-	CHECK(cudaMallocManaged(&indexList, sizeof(u32) * objectNum));
+	//std::sort(pairs.begin(), pairs.end());
+	sort_along_axis(pairs,0, objectNum);
 
 	for (u32 i = 0; i < objectNum; i++)
 	{
-		indexList[pairs[i].second] = i;
+		indexList[i] = pairs[i].second;
 	}
 
-	sortObjectsOnGPU<<<1,1>>>(world, objectNum, indexList);
-	GPU_ERROR_CHECKER(cudaPeekAtLastError());
-	CHECK(cudaDeviceSynchronize());
 
 	cudaFree(centerList);
-	cudaFree(indexList);
 	printf("Sort of World object finish\n");
+}
+
+__global__ void make_node(Node* node, Hittable** world, size_t objectNum, u32* newOrderedIndexList)
+{
+	new (node) Node(world, newOrderedIndexList, 0, objectNum);
 }
 
 void RayTracingEngine::setObjects(const std::vector<Hittable*>& world)
@@ -185,13 +179,19 @@ void RayTracingEngine::setObjects(const std::vector<Hittable*>& world)
 		hittableList[i] = world[i];
 	}
 
-	sortObjects(hittableList, world.size());
+	u32 *newOrderedIndexList;
+	CHECK(cudaMallocManaged(&newOrderedIndexList, sizeof(u32) * world.size()));
+
+	sortObjects(hittableList, world.size(),newOrderedIndexList);
 
 	CHECK(cudaMalloc(&mRootNode, sizeof(Node)));
-
-	make_node << <1, 1 >> > (mRootNode, hittableList, world.size());
+	make_node << <1, 1 >> > (mRootNode, hittableList, world.size(), newOrderedIndexList);
 	CHECK(cudaDeviceSynchronize());
 	GPU_ERROR_CHECKER(cudaPeekAtLastError());
+
+
+
+	CHECK(cudaFree(newOrderedIndexList));
 }
 
 void RayTracingEngine::setCamera(const Camera& camera)

@@ -25,15 +25,15 @@ struct Node
 	__device__ Node(const Node&) = default;
 	__device__ Node(Node&&) = default;
 	//__device__ __host__  Node(std::vector<std::unique_ptr<Object> >&& objectList);
-	__device__ Node(Hittable** hittableList, size_t hittableNum);
+	__device__ Node(Hittable** hittableList,  u32* newOrderedIndexList, u32 start, u32 end);
 
 
 	__device__ bool hit(const Ray& r, const f32 t_min, const f32 t_max, HitRecord& record, u32& bvh_depth) const;
 
+
 private:
 	bool isLeaf = false;
 	AABB aabb;
-	//AABB* aabb2;
 	Object* object = nullptr;
 
 	Node* lhs_node = nullptr;

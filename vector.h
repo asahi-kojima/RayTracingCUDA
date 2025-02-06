@@ -9,7 +9,6 @@ public:
 	__device__ __host__ vec3(f32 x, f32 y, f32 z) : mElements{ x, y, z } {}
 	__device__ __host__ vec3(const vec3& v) : mElements{v[0], v[1], v[2]} {}
 
-
 	__device__ __host__  f32 getX() const { return mElements[0]; }
 	__device__ __host__  f32 getY() const { return mElements[1]; }
 	__device__ __host__  f32 getZ() const { return mElements[2]; }
