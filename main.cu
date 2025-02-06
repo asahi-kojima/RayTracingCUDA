@@ -27,15 +27,15 @@ __global__ void setup_gpu()
 
 int main()
 {
-	cudaDeviceSetLimit(cudaLimitMallocHeapSize, 1024 * 1024 * 100);
-	cudaDeviceSetLimit(cudaLimitStackSize, 1024 * 30);
+	cudaDeviceSetLimit(cudaLimitMallocHeapSize, 1024 * 1024 * 1024);
+	cudaDeviceSetLimit(cudaLimitStackSize, 1024*4);
 	setup_gpu<<<1,1>>>();
 	//=================================================================
 	// オブジェクトの準備
 	//=================================================================
 	std::vector<Hittable*> world;
 	{
-#if 0
+#if 1
 		constexpr f32 Range = 25;
 		constexpr u32 Dense = 25;
 		constexpr f32 Interval = 2 * Range / Dense;
@@ -79,7 +79,7 @@ int main()
 		{
 			for (s32 h = -Range; h <= Range; h+=1)
 			{
-				for (s32 z = -10; z <= 10; z++)
+				for (s32 z = -Range; z <= Range; z++)
 				{
 					f32 which = RandomGenerator::uniform_real();
 					vec3 pos(w, h, -z);
@@ -91,10 +91,11 @@ int main()
 					}
 					else
 					{
-						material = make_material<GravitationalField>(3.0f, pos);
+						material = make_material<QuasiGravitationalField>(3.5f, pos);
 						// material = make_material<GravitationalField>(RandomGenerator::uniform_real(1.0f, 5.0f), pos);
 					}
-					world.push_back(make_object<Sphere>(pos, 0.25f, std::move(material)));
+					// world.push_back(make_object<Sphere>(pos, 0.25f, material));
+					world.push_back(make_object<Sphere>(pos, 0.1f, material));
 
 				}
 			}
@@ -108,7 +109,7 @@ int main()
 	//=================================================================
 	// カメラの準備
 	//=================================================================
-	constexpr f32 BaseResolution = 1.0f * 2.0f / 4;
+	constexpr f32 BaseResolution = 1.0f * 2.0f / 1;
 	const u32 resolutionX = static_cast<u32>(1920 * BaseResolution);
 	const u32 resolutionY = static_cast<u32>(1080 * BaseResolution);
 
@@ -132,7 +133,7 @@ int main()
 	engine.setObjects(world);
 	engine.setRenderTarget(renderTarget[0]);
 
-	for (u32 i = 0, maxI = 100; i < maxI; i++)
+	for (u32 i = 0, maxI = 400; i < maxI; i++)
 	{
 		printf("%d : times\n", i);
 		f32 phi = i *  (2 * M_PI) / maxI;
@@ -141,7 +142,7 @@ int main()
 		// vec3 lookFrom(14 * cos(phi), 2, 14 * sin(phi));
 		camera = Camera(lookFrom, lookAt, vec3(0, 1, 0), 20, f32(resolutionX) / f32(resolutionY), 0.0, (lookFrom - lookAt).length());
 		engine.setCamera(camera);
-		engine.render();
+		engine.render(5, 10);
 
 		std::string s = "./build/result";
 		s += std::to_string(i);

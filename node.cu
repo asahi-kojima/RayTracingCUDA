@@ -31,14 +31,15 @@ Node::Node(Hittable** hittableList, size_t hittableNum)
 	}
 }
 
-bool Node::hit(const Ray& r, const f32 t_min, const f32 t_max, HitRecord& record)
+bool Node::hit(const Ray& r, const f32 t_min, const f32 t_max, HitRecord& record, u32& bvh_depth) const
 {
 	//AABBと接触があるか確認する。
-	if (!isIntersecting(this->aabb, r, t_min, t_max))
+	if (!aabb.isIntersecting(r, t_min, t_max))
 	{
 		return false;
 	}
 
+	bvh_depth++;
 
 	//接触があれば、その内部とも交差している可能性があるので、
 	//内部のノードにアクセスしにいく。
@@ -50,9 +51,9 @@ bool Node::hit(const Ray& r, const f32 t_min, const f32 t_max, HitRecord& record
 	else
 	{
 		HitRecord lhsRecord;
-		bool isHitLhs = lhs_node->hit(r, t_min, t_max, lhsRecord);
+		bool isHitLhs = lhs_node->hit(r, t_min, t_max, lhsRecord, bvh_depth);
 		HitRecord rhsRecord;
-		bool isHitRhs = rhs_node->hit(r, t_min, t_max, rhsRecord);
+		bool isHitRhs = rhs_node->hit(r, t_min, t_max, rhsRecord, bvh_depth);
 
 
 		if (isHitLhs && isHitRhs)

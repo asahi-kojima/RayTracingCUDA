@@ -146,12 +146,12 @@ bool GravitationalField::scatter(const Ray& ray_in, const HitRecord& record, Col
 
 	const vec3 OC = mCenter - ray_in.origin();
 	const vec3 D = ray_in.direction();
-	const f32 ray_center_dist = (D * (dot(OC, D) / D.lengthSquared()) - OC).length();
+	const f32 ray_center_dist_squared = (D * (dot(OC, D) / D.lengthSquared()) - OC).lengthSquared();
 
 	const f32 E = 0.5f * m * v * v - G * M * m / R;
-	const f32 L = m * v * ray_center_dist;
-	const f32 R0 = L * L / (G * M);
-	const f32 typical_E = L * L / (2 * R0 * R0);//典型的なエネルギースケールを意味しており、実際のエネルギーとは別
+	const f32 L_squared = m * m * v * v * ray_center_dist_squared;
+	const f32 R0 = L_squared / (G * M);
+	const f32 typical_E = L_squared / (2 * R0 * R0);//典型的なエネルギースケールを意味しており、実際のエネルギーとは別
 
 	//離心率
 	const f32 e = sqrtf(1.0f + E / typical_E);
@@ -167,7 +167,7 @@ bool GravitationalField::scatter(const Ray& ray_in, const HitRecord& record, Col
 		const vec3 ux = -normalize(D);
 		const vec3 uz = normalize(cross(ux, CP));
 		const vec3 uy = cross(uz, ux);
-		const f32 h = ray_center_dist;
+		const f32 h = sqrtf(ray_center_dist_squared);
 		const f32 theta = asinf(h / R);
 
 		const f32 phi = -(acosf(((R0 / OC.length()) - 1) / e) - theta);// assert(phi < 0);
@@ -341,14 +341,22 @@ bool Rutherford::scatter(const Ray& ray_in, const HitRecord& record, Color& atte
 
 		const f32 phi = 2 * atan(G * M / (h * v * v));
 
+		const f32 cosTheta = cos(theta);
+		const f32 sinTheta = sin(theta);
+		const f32 cosPhi = cos(phi);
+		const f32 sinPhi = sin(phi);
 
-		const f32 x = R * cos(theta);
-		const f32 y = R * sin(theta);
+		const f32 x = R * cosTheta;
+		const f32 y = R * sinTheta;
 
-		const f32 outgoing_x = -cos(phi + theta) * x - sin(phi + theta) * y;//-cos(phi + theta) * x + sin(phi + theta) * y;
-		const f32 outgoing_y = sin(phi + theta) * x - cos(phi + theta) * y;//-sin(phi + theta) * x - cos(phi + theta) * y;
+		const f32 cosPhiTheta = cosPhi * cosTheta - sinPhi * sinTheta;//cos(phi + theta);
+		const f32 sinPhiTheta = sinPhi * cosTheta + cosPhi * sinTheta;//sin(phi + theta);
+
+
+		const f32 outgoing_x = -cosPhiTheta * x - sinPhiTheta * y;//-cos(phi + theta) * x + sin(phi + theta) * y;
+		const f32 outgoing_y = sinPhiTheta * x - cosPhiTheta * y;//-sin(phi + theta) * x - cos(phi + theta) * y;
 		const vec3 outgoing_pos = outgoing_x * ux + outgoing_y * uy + mCenter;
-		const vec3 outgoing_dir = -cos(phi) * ux + sin(phi) * uy;
+		const vec3 outgoing_dir = -cosPhi * ux + sinPhi * uy;
 
 		ray_scattered.direction() = outgoing_dir;
 		ray_scattered.origin() = outgoing_pos;

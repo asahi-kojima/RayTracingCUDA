@@ -28,7 +28,7 @@ struct Node
 	__device__ Node(Hittable** hittableList, size_t hittableNum);
 
 
-	__device__ bool hit(const Ray& r, const f32 t_min, const f32 t_max, HitRecord& record);
+	__device__ bool hit(const Ray& r, const f32 t_min, const f32 t_max, HitRecord& record, u32& bvh_depth) const;
 
 private:
 	bool isLeaf = false;

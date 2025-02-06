@@ -94,3 +94,12 @@ public:
 		cudaFree(p);
 	}
 };
+
+
+template<class T>
+__host__ __device__ void swap(T& a, T& b)
+{
+	T c = a;
+	a = b;
+	b = c;
+}
