@@ -61,7 +61,6 @@ int main()
 
 
 
-		// world.push_back(make_object<Sphere>(vec3(0, -3000, 0), 3000.0f, make_material<Lambertian>(make_object<CheckerTexture>(std::make_unique<ConstantTexture>(Color::Green), std::make_unique<ConstantTexture>(Color::Azure)))));
 		world.push_back(make_object<Sphere>(vec3(0, -3000, 0), 3000.0f, make_material<Metal>(Color::Gray, 0.3f)));
 
 		world.push_back(make_object<Sphere>(vec3(-12, 1, 2), 1.0f, make_material<QuasiGravitationalField>(10.0f, vec3(-12, 1, 2))));
@@ -72,6 +71,7 @@ int main()
 		world.push_back(make_object<Sphere>(vec3(4, 1, 0), -0.9f, make_material<Dielectric>(1.5f)));
 		world.push_back(make_object<Sphere>(vec3(8, 1, 0), 1.0f, make_material<Metal>(Color::Bronze, 1)));
 		world.push_back(make_object<Sphere>(vec3(0, 1, -4), 1.0f, make_material<Metal>(Color(0x000FA0), 0.3)));
+
 
 #else
 		constexpr s32 Range = 10;
@@ -85,17 +85,23 @@ int main()
 					vec3 pos(w, h, -z);
 
 					Material* material;
-					if (which < 0.95 && !(w == 0 && h == 0 && z == 0))
+					// if (which < 0.95 && !(w == 0 && h == 0 && z == 0))
+					// {
+					// 	material = make_material<Metal>(RandomGenerator::uniform_int(0, 0xFFFFFF),1.0f);
+					// }
+					// else
+					// {
+					// 	material = make_material<Rutherford>(3.5f, pos);
+					// }
+					if ((w + h + z) % 2 != 0)
 					{
-						material = make_material<Metal>(RandomGenerator::uniform_int(0, 0xFFFFFF), 0.0f);
+						material = make_material<Metal>(RandomGenerator::uniform_int(0, 0xFFFFFF),0.0f);
 					}
 					else
 					{
-						material = make_material<QuasiGravitationalField>(3.5f, pos);
-						// material = make_material<GravitationalField>(RandomGenerator::uniform_real(1.0f, 5.0f), pos);
+						material = make_material<Rutherford>(3.5f, pos);
 					}
-					// world.push_back(make_object<Sphere>(pos, 0.25f, material));
-					world.push_back(make_object<Sphere>(pos, 0.1f, material));
+					world.push_back(make_object<Sphere>(pos, 0.125f, material));
 
 				}
 			}
@@ -142,7 +148,7 @@ int main()
 		// vec3 lookFrom(14 * cos(phi), 2, 14 * sin(phi));
 		camera = Camera(lookFrom, lookAt, vec3(0, 1, 0), 20, f32(resolutionX) / f32(resolutionY), 0.0, (lookFrom - lookAt).length());
 		engine.setCamera(camera);
-		engine.render(5, 10);
+		engine.render(30, 30);
 
 		std::string s = "./build/result";
 		s += std::to_string(i);

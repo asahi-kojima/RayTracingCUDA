@@ -136,7 +136,7 @@ AABB wraping(AABB lhs, AABB rhs)
 }
 
 
-bool AABB::isIntersecting(const Ray& ray, f32 t_min, f32 t_max) const
+bool AABB::isIntersecting(const Ray& ray, f32 t_min, f32 t_max, f32& t_min_if_hit, f32& t_max_if_hit) const
 {
 #if 1
 	const vec3& origin = ray.origin();	
@@ -160,6 +160,8 @@ bool AABB::isIntersecting(const Ray& ray, f32 t_min, f32 t_max) const
 		}
 	}
 
+	t_min_if_hit = t_min;
+	t_max_if_hit = t_max;
 	return true;
 #else
 	const vec3& min_pos = minPos;

@@ -10,7 +10,7 @@ bool Lambertian::scatter(const Ray& ray_in, const HitRecord& record, Color& atte
 	const vec3 target = record.pos + record.normal + random_in_unit_sphere();
 	ray_scattered.direction() = target - record.pos;
 	ray_scattered.origin() = record.pos;
-	attenuation = mTexture->color(0, 0, record.pos);
+	attenuation = albedo;
 	return true;
 }
 
@@ -54,7 +54,7 @@ bool Dielectric::scatter(const Ray& ray_in, const HitRecord& record, Color& atte
 	else
 	{
 		outwardNormal = -record.normal;
-		niOverNt = 1.0 / refIdx;
+		niOverNt = 1.0f / refIdx;
 		cosine = -dot(ray_in.direction(), record.normal) / ray_in.direction().length();
 	}
 
@@ -85,7 +85,7 @@ bool Dielectric::isRefract(const vec3& v, const vec3& n, f32 niOverNt, vec3& ref
 	f32 dt = dot(uv, n);
 
 	// スネル則を解いてる。Dはcos^2Thetaに相当し、正なら解がある。
-	f32 D = 1.0 - niOverNt * niOverNt * (1 - dt * dt);
+	f32 D = 1.0f - niOverNt * niOverNt * (1.0f - dt * dt);
 
 	// 解がある場合。屈折光を算出する。
 	if (D > 0)
@@ -100,9 +100,9 @@ bool Dielectric::isRefract(const vec3& v, const vec3& n, f32 niOverNt, vec3& ref
 
 f32 Dielectric::schlick(f32 cosine, f32 refIdx)
 {
-	f32 r0 = (1 - refIdx) / (1 + refIdx);
+	f32 r0 = (1.0f - refIdx) / (1.0f + refIdx);
 	r0 = r0 * r0;
-	return r0 + (1 - r0) * pow((1 - cosine), 5);
+	return r0 + (1.0f - r0) * pow((1.0f - cosine), 5);
 }
 
 
@@ -151,7 +151,7 @@ bool GravitationalField::scatter(const Ray& ray_in, const HitRecord& record, Col
 	const f32 E = 0.5f * m * v * v - G * M * m / R;
 	const f32 L_squared = m * m * v * v * ray_center_dist_squared;
 	const f32 R0 = L_squared / (G * M);
-	const f32 typical_E = L_squared / (2 * R0 * R0);//典型的なエネルギースケールを意味しており、実際のエネルギーとは別
+	const f32 typical_E = L_squared / (2.0f * R0 * R0);//典型的なエネルギースケールを意味しており、実際のエネルギーとは別
 
 	//離心率
 	const f32 e = sqrtf(1.0f + E / typical_E);
@@ -170,8 +170,8 @@ bool GravitationalField::scatter(const Ray& ray_in, const HitRecord& record, Col
 		const f32 h = sqrtf(ray_center_dist_squared);
 		const f32 theta = asinf(h / R);
 
-		const f32 phi = -(acosf(((R0 / OC.length()) - 1) / e) - theta);// assert(phi < 0);
-		const f32 phi2 = 2 * phi;
+		const f32 phi = -(acosf(((R0 / OC.length()) - 1.0f) / e) - theta);// assert(phi < 0);
+		const f32 phi2 = 2.0f * phi;
 
 		const f32 x = R * cos(theta);
 		const f32 y = R * sin(theta);
@@ -209,7 +209,7 @@ bool QuasiGravitationalField::scatter(const Ray& ray_in, const HitRecord& record
 	const f32 E = 0.5f * m * v * v - G * M * m / R;
 	const f32 L = m * v * ray_center_dist;
 	const f32 R0 = L * L / (G * M);
-	const f32 typical_E = L * L / (2 * R0 * R0);//典型的なエネルギースケールを意味しており、実際のエネルギーとは別
+	const f32 typical_E = L * L / (2.0f * R0 * R0);//典型的なエネルギースケールを意味しており、実際のエネルギーとは別
 
 	//離心率
 	const f32 e = sqrtf(1.0f + E / typical_E);
@@ -228,8 +228,8 @@ bool QuasiGravitationalField::scatter(const Ray& ray_in, const HitRecord& record
 		const f32 h = abs(dot(ux, CP));
 		const f32 theta = asinf(h / R);
 
-		const f32 phi = -(acosf(((R0 / OC.length()) - 1) / e) - theta);
-		const f32 phi2 = 2 * phi;
+		const f32 phi = -(acosf(((R0 / OC.length()) - 1.0f) / e) - theta);
+		const f32 phi2 = 2.0f * phi;
 
 		const f32 x = R * cos(theta);
 		const f32 y = R * sin(theta);
@@ -266,7 +266,7 @@ bool QuasiGravitationalField2::scatter(const Ray& ray_in, const HitRecord& recor
 	const f32 E = 0.5f * m * v * v - G * M * m / R;
 	const f32 L = m * v * ray_center_dist;
 	const f32 R0 = L * L / (G * M);
-	const f32 typical_E = L * L / (2 * R0 * R0);//典型的なエネルギースケールを意味しており、実際のエネルギーとは別
+	const f32 typical_E = L * L / (2.0f * R0 * R0);//典型的なエネルギースケールを意味しており、実際のエネルギーとは別
 
 	//離心率
 	const f32 e = sqrtf(1.0f + E / typical_E);
@@ -285,8 +285,8 @@ bool QuasiGravitationalField2::scatter(const Ray& ray_in, const HitRecord& recor
 		const f32 h = abs(dot(uz, CP));
 		const f32 theta = asinf(h / R);
 
-		const f32 phi = -(acosf(((R0 / OC.length()) - 1) / e) - theta);
-		const f32 phi2 = 2 * phi;
+		const f32 phi = -(acosf(((R0 / OC.length()) - 1.0f) / e) - theta);
+		const f32 phi2 = 2.0f * phi;
 
 		const f32 x = R * cos(theta);
 		const f32 y = R * sin(theta);
@@ -325,7 +325,7 @@ bool Rutherford::scatter(const Ray& ray_in, const HitRecord& record, Color& atte
 	const f32 E = 0.5f * m * v * v + G * M * m / R;
 	const f32 L = m * v * ray_center_dist;
 	const f32 R0 = L * L / (G * M);
-	const f32 typical_E = L * L / (2 * R0 * R0);//典型的なエネルギースケールを意味しており、実際のエネルギーとは別
+	const f32 typical_E = L * L / (2.0f * R0 * R0);//典型的なエネルギースケールを意味しており、実際のエネルギーとは別
 
 	//離心率
 	const f32 e = sqrtf(1.0f + E / typical_E);
@@ -339,7 +339,7 @@ bool Rutherford::scatter(const Ray& ray_in, const HitRecord& record, Color& atte
 		const f32 h = ray_center_dist;
 		const f32 theta = asinf(h / R);
 
-		const f32 phi = 2 * atan(G * M / (h * v * v));
+		const f32 phi = 2.0f * atan(G * M / (h * v * v));
 
 		const f32 cosTheta = cos(theta);
 		const f32 sinTheta = sin(theta);
@@ -383,7 +383,7 @@ bool QuasiRutherford::scatter(const Ray& ray_in, const HitRecord& record, Color&
 	const f32 E = 0.5f * m * v * v + G * M * m / R;
 	const f32 L = m * v * ray_center_dist;
 	const f32 R0 = L * L / (G * M);
-	const f32 typical_E = L * L / (2 * R0 * R0);//典型的なエネルギースケールを意味しており、実際のエネルギーとは別
+	const f32 typical_E = L * L / (2.0f * R0 * R0);//典型的なエネルギースケールを意味しており、実際のエネルギーとは別
 
 	//離心率
 	const f32 e = sqrtf(1.0f + E / typical_E);
@@ -397,7 +397,7 @@ bool QuasiRutherford::scatter(const Ray& ray_in, const HitRecord& record, Color&
 		const f32 h = ray_center_dist;
 		const f32 theta = asinf(h / R);
 
-		const f32 phi = 2 * atan(G * M / (h * v * v));
+		const f32 phi = 2.0f * atan(G * M / (h * v * v));
 
 
 		const f32 x = R * cos(theta);

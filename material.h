@@ -19,12 +19,12 @@ public:
 class Lambertian : public Material
 {
 public:
-	__device__ Lambertian(const std::shared_ptr<Texture>& texture) : mTexture(texture) {}
+	__device__ Lambertian(Color albedo) : albedo(albedo) {}
 	__device__ virtual bool scatter(const Ray& ray_in, const HitRecord& record, Color& attenuation, Ray& ray_scattered) override;
 
 
 private:
-	std::shared_ptr<Texture> mTexture;
+	Color albedo;
 };
 
 

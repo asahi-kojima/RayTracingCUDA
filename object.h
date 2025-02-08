@@ -46,7 +46,7 @@ public:
 		printf("minPos = %f, %f, %f\n", minPos[0], minPos[1], minPos[2]);		
 	}
 
-	__device__  bool isIntersecting(const Ray& ray, f32 t_min, f32 t_max) const;
+	__device__  bool isIntersecting(const Ray& ray, f32 t_min, f32 t_max, f32& t_min_if_hit, f32& t_max_if_hit) const;
 
 private:
 	__device__ virtual bool hit(const Ray& r, const f32 t_min, const f32 t_max, HitRecord& record) override;
