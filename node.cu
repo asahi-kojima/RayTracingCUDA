@@ -36,18 +36,17 @@ bool Node::hit(const Ray &r, const f32 t_min, const f32 t_max, HitRecord &record
 	}
 	else
 	{
-		f32 current_tmin = MAXFLOAT;
-		f32 current_tmax = -MAXFLOAT;
 		// AABB‚ÆÚG‚ª‚ ‚é‚©Šm”F‚·‚éB
-		if (!aabb.isIntersecting(r, t_min, t_max,current_tmin, current_tmax))
+		if (!aabb.isIntersecting(r, t_min, t_max))
 		{
 			return false;
 		}
 		bvh_depth++;
-
+		
+		f32 current_tmax = t_max;
 
 		HitRecord lhsRecord;
-		bool isHitLhs = lhs_node->hit(r, current_tmin, current_tmax, lhsRecord, bvh_depth);
+		bool isHitLhs = lhs_node->hit(r, t_min, current_tmax, lhsRecord, bvh_depth);
 		if (isHitLhs)
 		{
 			current_tmax = lhsRecord.t;
@@ -55,7 +54,7 @@ bool Node::hit(const Ray &r, const f32 t_min, const f32 t_max, HitRecord &record
 		}
 
 		HitRecord rhsRecord;
-		bool isHitRhs = rhs_node->hit(r, current_tmin, current_tmax, rhsRecord, bvh_depth);
+		bool isHitRhs = rhs_node->hit(r, t_min, current_tmax, rhsRecord, bvh_depth);
 		if (isHitRhs)
 		{
 			current_tmax = rhsRecord.t;
