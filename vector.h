@@ -39,7 +39,7 @@ public:
 	__device__ __host__ vec3 operator/(const f32) const;
 	__device__ __host__ vec3& operator/=(const f32);
 
-	__device__ __host__ vec3 normalize();
+	__device__ __host__ vec3 normalize() const;
 	__device__ __host__ f32 length() const;
 	__device__ __host__ static f32 length(const vec3&);
 	__device__ __host__ f32 lengthSquared() const;

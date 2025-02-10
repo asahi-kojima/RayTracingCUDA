@@ -104,4 +104,11 @@ namespace aoba
 		a = b;
 		b = c;
 	}
+
+	template<class T>
+	__host__ __device__ T clamp(T v, T min_v, T max_v)
+	{
+		T clamp_for_min = (v < min_v ? min_v : v);
+		return (clamp_for_min > max_v ? max_v : clamp_for_min);
+	}
 }

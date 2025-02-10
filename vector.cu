@@ -137,7 +137,7 @@ vec3& vec3::operator/=(const f32 value)
 	return *this;
 }
 
-vec3 vec3::normalize()
+vec3 vec3::normalize() const
 {
 	const f32 length = this->length();
 	if (length == 0.0)
@@ -260,6 +260,4 @@ vec3 random_in_unit_sphere()
 		p = vec3(RandomGeneratorGPU::signed_uniform_real(), RandomGeneratorGPU::signed_uniform_real(), RandomGeneratorGPU::signed_uniform_real());
 	} while (p.lengthSquared() >= 1.0f);
 	return p;
-
-	return vec3::zero();
 }

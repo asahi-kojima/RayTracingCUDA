@@ -134,8 +134,7 @@ __device__ Color castRayAndCalcColor(Node* worldNode, const Ray& ray, const u32 
 	for (u32 depth = 0; depth < maxDepth; depth++)
 	{
 		HitRecord rec;
-		u32 bvh_depth = 0;
-		if (worldNode->hit(current_ray, 0.01, MAXFLOAT, rec, bvh_depth))
+		if (worldNode->hit(current_ray, 0.001f, MAXFLOAT, rec))
 		{
 			Ray scattered;
 			Color attenuation;
@@ -188,9 +187,10 @@ __global__ void castRayToWorld(Node* worldNode, Color* pixels, Camera* camera, c
 	Color resultColor = Color(0x000000);
 	for (u32 s = 0; s < sampleSize; s++)
 	{
-		const f32 u = static_cast<f32>(id_w + RandomGeneratorGPU::signed_uniform_real() * 0.1f) * inv_screenSizeW;
-		const f32 v = static_cast<f32>(id_h + RandomGeneratorGPU::signed_uniform_real() * 0.1f) * inv_screenSizeH;
-		assert(RandomGeneratorGPU::signed_uniform_real() != RandomGeneratorGPU::signed_uniform_real());
+		const f32 samplingRange = 0.01f;
+		const f32 u = static_cast<f32>(id_w + RandomGeneratorGPU::signed_uniform_real() * samplingRange) * inv_screenSizeW;
+		const f32 v = static_cast<f32>(id_h + RandomGeneratorGPU::signed_uniform_real() * samplingRange) * inv_screenSizeH;
+		
 		Ray ray = camera->getRay(u, v);
 
 		SecondaryInfoByRay additinalRayInfo;

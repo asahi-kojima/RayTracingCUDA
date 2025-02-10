@@ -46,7 +46,7 @@ public:
 		printf("minPos = %f, %f, %f\n", minPos[0], minPos[1], minPos[2]);		
 	}
 
-	__device__  bool isIntersecting(const Ray& ray, f32 t_min, f32 t_max) const;
+	__device__  bool isIntersecting(const Ray& ray,  f32 t_min,  f32 t_max) const;
 
 private:
 	__device__ virtual bool hit(const Ray& r, const f32 t_min, const f32 t_max, HitRecord& record) override;
@@ -57,7 +57,6 @@ private:
 	vec3 maxPos;
 };
 
-__device__ AABB wraping(AABB lhs, AABB rhs);
 
 class Sphere : public Hittable
 {

@@ -51,9 +51,9 @@ public:
 private:
 	__device__ virtual bool scatter(const Ray& ray_in, const HitRecord& record, Color& attenuation, Ray& ray_scattered) override;
 
-	__device__ static bool isRefract(const vec3& v, const vec3& n, float niOverNt, vec3& refracted);
+	__device__ static bool canRefract(const vec3& in_direction, const vec3& normal, f32 cos_between_normal_and_direction , f32 niOverNt, vec3& refract_direction);
 
-	__device__ static f32 schlick(float cosine, float refIdx);
+	__device__ static f32 reflect_probability(float cosine, float refIdx);
 
 
 	f32 refIdx;

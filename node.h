@@ -28,7 +28,7 @@ struct Node
 	__device__ Node(Hittable** hittableList,  u32* newOrderedIndexList, u32 start, u32 end);
 
 
-	__device__ bool hit(const Ray& r, const f32 t_min, const f32 t_max, HitRecord& record, u32& bvh_depth) const;
+	__device__ bool hit(const Ray& r,  f32 t_min,  f32 t_max, HitRecord& record) const;
 
 
 private:

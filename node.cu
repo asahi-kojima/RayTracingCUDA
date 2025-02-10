@@ -24,7 +24,7 @@ Node::Node(Hittable **hittableList, u32 *newOrderedIndexList, u32 start, u32 end
 	}
 }
 
-bool Node::hit(const Ray &r, const f32 t_min, const f32 t_max, HitRecord &record, u32 &bvh_depth) const
+bool Node::hit(const Ray &r, const f32 t_min, const f32 t_max, HitRecord &record) const
 {
 
 	// ÚG‚ª‚ ‚ê‚ÎA‚»‚Ì“à•”‚Æ‚àŒð·‚µ‚Ä‚¢‚é‰Â”\«‚ª‚ ‚é‚Ì‚ÅA
@@ -41,12 +41,12 @@ bool Node::hit(const Ray &r, const f32 t_min, const f32 t_max, HitRecord &record
 		{
 			return false;
 		}
-		bvh_depth++;
-		
+
+
 		f32 current_tmax = t_max;
 
 		HitRecord lhsRecord;
-		bool isHitLhs = lhs_node->hit(r, t_min, current_tmax, lhsRecord, bvh_depth);
+		bool isHitLhs = lhs_node->hit(r, t_min, current_tmax, lhsRecord);
 		if (isHitLhs)
 		{
 			current_tmax = lhsRecord.t;
@@ -54,10 +54,9 @@ bool Node::hit(const Ray &r, const f32 t_min, const f32 t_max, HitRecord &record
 		}
 
 		HitRecord rhsRecord;
-		bool isHitRhs = rhs_node->hit(r, t_min, current_tmax, rhsRecord, bvh_depth);
+		bool isHitRhs = rhs_node->hit(r, t_min, current_tmax, rhsRecord);
 		if (isHitRhs)
 		{
-			current_tmax = rhsRecord.t;
 			record = rhsRecord;
 		}
 
