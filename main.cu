@@ -13,7 +13,7 @@
 #include "texture.h"
 #include "engine.h"
 
-// /usr/local/cuda/bin/nvcc -std=c++20 -rdc=true -O3 -DNDEBUG -w *.cu && ./a.out && convert ./build/result.ppm ./build/rayTracingDemo.png
+// /usr/local/cuda/bin/nvcc --generate-code arch=compute_86,code=sm_86 -std=c++17 -rdc=true -O3 -DNDEBUG -w *.cu && ./a.out && convert ./build/result.ppm ./build/rayTracingDemo.png
 
 __device__ curandState s[32];
 
@@ -28,7 +28,7 @@ __global__ void setup_gpu()
 int main()
 {
 	cudaDeviceSetLimit(cudaLimitMallocHeapSize, 1024 * 1024 * 1024);
-	cudaDeviceSetLimit(cudaLimitStackSize, 1024*4);
+	cudaDeviceSetLimit(cudaLimitStackSize, 1024*100);
 	setup_gpu<<<1,1>>>();
 	//=================================================================
 	// オブジェクトの準備
@@ -66,11 +66,12 @@ int main()
 		
 		world.push_back(make_object<Sphere>(vec3(-12, 1, 2), 1.0f, make_material<QuasiGravitationalField>(10.0f, vec3(-12, 1, 2))));
 		world.push_back(make_object<Sphere>(vec3(-8, 1, 0), 1.0f, make_material<Metal>(Color(1, 1, 0.2), 0)));
-		world.push_back(make_object<Sphere>(vec3(-4, 1, 0), 1.0f, make_material<Rutherford>(10.0f, vec3(-4, 1, 0))));
+		world.push_back(make_object<Sphere>(vec3(-4, 1, 0), 1.0f, make_material<Rutherford>(4.0f, vec3(-4, 1, 0))));
 		world.push_back(make_object<Sphere>(vec3(0, 1.0, 0), 1.0f, make_material<Dielectric>(1.1f)));
 		world.push_back(make_object<Sphere>(vec3(0, 1.0, 0), -0.95f, make_material<Dielectric>(1.5f)));
 		world.push_back(make_object<Sphere>(vec3(4, 1, 0), 1.0f, make_material<Metal>(Color::Gold, 0)));
-		world.push_back(make_object<Sphere>(vec3(8, 1, 0), 1.0f, make_material<Dielectric>(2)));
+		world.push_back(make_object<Sphere>(vec3(8, 1, 0), -1.0f, make_material<Dielectric>(2)));
+		world.push_back(make_object<Sphere>(vec3(-5, 1, 4), 1.0f, make_material<Metal>(Color::Lime, 0)));
 		world.push_back(make_object<Sphere>(vec3(0, 1, -4), 1.0f, make_material<Metal>(Color::Bronze, 1)));
 		
 
@@ -108,10 +109,11 @@ int main()
 		{
 			for (s32 h = -Range; h <= Range; h+=1)
 			{
-				for (s32 z = -Range; z <= Range; z++)
+				for (s32 z = 0; z <= Range; z++)
 				{
 					f32 which = RandomGenerator::uniform_real();
-					vec3 pos(w, h, -z);
+					const f32 scale = 1.0f;
+					const vec3 pos = vec3(w, h, -z) * scale;
 
 					Material* material;
 					// if (which < 0.95 && !(w == 0 && h == 0 && z == 0))
@@ -122,15 +124,21 @@ int main()
 					// {
 					// 	material = make_material<Rutherford>(3.5f, pos);
 					// }
-					if ((w + h + z) % 2 != 0)
+					if (h == 0 && w == 0 && z == 0)
 					{
-						material = make_material<Metal>(RandomGenerator::uniform_int(0, 0xFFFFFF),0.0f);
+						material = make_material<Dielectric>(1.5);
+						world.push_back(make_object<Sphere>(pos, 0.25f, material));
+					}
+					else if (h == 0 && w == 0 && z == 1)
+					{
+						material = make_material<Rutherford>(10.5, pos);
+						world.push_back(make_object<Sphere>(pos, 0.25f, material));
 					}
 					else
 					{
-						material = make_material<Rutherford>(3.5f, pos);
+						material = make_material<Metal>(RandomGenerator::uniform_int(0, 0xFFFFFF),0.0f);
+						world.push_back(make_object<Sphere>(pos, 0.25f, material));
 					}
-					world.push_back(make_object<Sphere>(pos, 0.125f, material));
 
 				}
 			}
@@ -144,13 +152,13 @@ int main()
 	//=================================================================
 	// カメラの準備
 	//=================================================================
-	constexpr f32 BaseResolution = 1.0f * 2.0f / 2;
+	constexpr f32 BaseResolution = 1.0f * 2.0f / 1;
 	const u32 resolutionX = static_cast<u32>(1920 * BaseResolution);
 	const u32 resolutionY = static_cast<u32>(1080 * BaseResolution);
 
 	vec3 lookAt(0, 0, 0);
-	vec3 lookFrom(13, 2, 5);
-	//vec3 lookFrom(0,0,2.0f);
+	//vec3 lookFrom(13, 2, 5);
+	vec3 lookFrom(0,0,2.0f);
 
 
 	Camera camera = Camera(lookFrom, lookAt, vec3(0, 1, 0), 20, f32(resolutionX) / f32(resolutionY), 0.0, (lookFrom - lookAt).length());
@@ -172,11 +180,11 @@ int main()
 	{
 		printf("%d : times\n", i);
 		f32 phi = i *  (2 * M_PI) / maxI;
-		vec3 lookAt(0, 0, 0);
-		vec3 lookFrom(0.5f * sin(phi), 0, 0.5f * cos(phi));
+		//vec3 lookAt(0, 0, 0);
+		//vec3 lookFrom(0.5f * sin(phi), 0, 0.5f * cos(phi));
 		//vec3 lookFrom(14 * sin(phi), 2, 14 * cos(phi));
 		//vec3 lookFrom(13, 2 + i, 5);
-		camera = Camera(lookFrom, lookAt, vec3(0, 1, 0), 20, f32(resolutionX) / f32(resolutionY), 0.0, (lookFrom - lookAt).length());
+		camera = Camera(lookFrom, lookAt, vec3(0, 1, 0), 20, f32(resolutionX) / f32(resolutionY), 0.1, (lookFrom - lookAt).length());
 		engine.setCamera(camera);
 		engine.render(30, 50);
 
