@@ -48,16 +48,16 @@ int main()
 
 					Material* material = nullptr;
 
-					if (h == 0 && w == 0 && z == 0)
+					if (h == 0 && w == 0)
 					{
-						material = make_material<QuasiGravitationalField2>(1.2, pos);
-						world.push_back(make_object<AABB>(vec3(-0.1, -0.1, -0.1),vec3(0.1, 0.1, 0.1), material));
+						// material = make_material<Dielectric>(1.2);
+						// world.push_back(make_object<AABB>(vec3(-0.1, -0.1, -0.1),vec3(0.1, 0.1, 0.1), material));
 						continue;
 					}
-					else if (h == 0 && w == 0)
-					{
-						material = make_material<Rutherford>(10.5, pos);
-					}
+					// else if (h == 0 && w == 0)
+					// {
+					// 	material = make_material<Rutherford>(10.5, pos);
+					// }
 					else
 					{
 						// material = make_material<Metal>(RandomGenerator::uniform_int(0, 0xFFFFFF),0.8f);
