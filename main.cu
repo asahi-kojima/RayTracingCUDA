@@ -40,7 +40,7 @@ int main()
 		{
 			for (s32 h = -Range; h <= Range; h+=1)
 			{
-				for (s32 z = 0; z <= Range; z++)
+				for (s32 z = -Range; z <= Range; z++)
 				{
 					f32 which = RandomGenerator::uniform_real();
 					const f32 scale = 1.0f;
@@ -48,10 +48,14 @@ int main()
 
 					Material* material = nullptr;
 
-					if (h == 0 && w == 0)
+					if (h == 0 && w == 0 && z == 0)
 					{
-						// material = make_material<Dielectric>(1.2);
-						// world.push_back(make_object<AABB>(vec3(-0.1, -0.1, -0.1),vec3(0.1, 0.1, 0.1), material));
+						//material = make_material<GravitationalField>(1.2, pos);
+						//world.push_back(make_object<AABB>(vec3(-0.1, -0.1, -0.1),vec3(0.1, 0.1, 0.1), material));
+						continue;
+					}
+					else if (h == 0 && w == 0)
+					{
 						continue;
 					}
 					// else if (h == 0 && w == 0)
@@ -62,11 +66,14 @@ int main()
 					{
 						// material = make_material<Metal>(RandomGenerator::uniform_int(0, 0xFFFFFF),0.8f);
 						material = make_material<Metal>(RandomGenerator::uniform_int(0, 0xFFFFFF));
-						world.push_back(make_object<AABB>(pos + vec3(-0.1, -0.1, -0.1)*2,pos + vec3(0.1, 0.1, 0.1)*2, material));
+						vec3 diff_x(RandomGenerator::signed_uniform_real(),RandomGenerator::signed_uniform_real(),RandomGenerator::signed_uniform_real());
+						vec3 diff_y(RandomGenerator::signed_uniform_real(),RandomGenerator::signed_uniform_real(),RandomGenerator::signed_uniform_real());
+						f32 diff_scale = 0.1f;
+						world.push_back(make_object<AABB>(pos + vec3(-0.1, -0.1, -0.1)*2 + diff_x * diff_scale,pos + vec3(0.1, 0.1, 0.1)*2 + diff_y * diff_scale, material));
 						continue;
 					}
 					
-					world.push_back(make_object<Sphere>(pos, 0.25f, material));
+					world.push_back(make_object<Sphere>(pos, 0.1f, material));
 				}
 			}
 		}
@@ -74,11 +81,15 @@ int main()
 
 	}
 
+	const vec3 pos = vec3(0 , 0  , -40);
+	Material* material = make_material<Metal>(Color::Azure);
+	f32 scale = 300;
+	world.push_back(make_object<AABB>(pos + vec3(-0.1, -0.1, -0.1) * scale,pos + vec3(0.1, 0.1, 0.1) * scale, material));
 
 	//=================================================================
 	// カメラの準備
 	//=================================================================
-	constexpr f32 BaseResolution = 1.0f * 1.0f / 2;
+	constexpr f32 BaseResolution = 1.0f * 2.0f / 1;
 	const u32 resolutionX = static_cast<u32>(1920 * BaseResolution);
 	const u32 resolutionY = static_cast<u32>(1080 * BaseResolution);
 

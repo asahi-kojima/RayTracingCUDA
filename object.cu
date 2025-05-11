@@ -32,10 +32,36 @@ bool AABB::hit(const Ray &ray, const f32 t_min, const f32 t_max, HitRecord &reco
 	vec3 center = (minPos + maxPos) / 2;
 	vec3 normal_tmp = record.pos - center;
 	vec3 normal = vec3(0,0,0);
-	normal[abs(normal_tmp.maxElementIndex()) - 1] = (normal_tmp.maxElementIndex() > 0 ? 1 : -1);
+	{
+		vec3 pos = record.pos;
+		f32 ep = 0.0001;
+		if (abs(pos.getX() - maxPos.getX()) < ep)
+		{
+			normal.setX(1.0f);
+		}
+		else if (abs(pos.getY() - maxPos.getY()) < ep)
+		{
+			normal.setY(1.0f);
+		}
+		else if (abs(pos.getZ() - maxPos.getZ()) < ep)
+		{
+			normal.setZ(1.0f);
+		}
+		else if (abs(pos.getX() - minPos.getX()) < ep)
+		{
+			normal.setX(-1.0f);
+		}
+		else if (abs(pos.getY() - minPos.getY()) < ep)
+		{
+			normal.setY(-1.0f);
+		}
+		else
+		{
+			normal.setZ(-1.0f);
+		}
+	}
+	//normal[abs(normal_tmp.maxElementIndex()) - 1] = (normal_tmp.maxElementIndex() > 0 ? 1 : -1);
 	record.normal = normal;
-	//printf("%d :", abs(normal_tmp.maxElementIndex()) - 1);
-	//printf("%f, %f, %f\n", normal.getX(), normal.getY(), normal.getZ());
 	record.material = this->material;
 	return true;
 }
