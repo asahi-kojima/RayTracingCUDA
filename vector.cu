@@ -198,6 +198,23 @@ void vec3::print() const
 	printf("vector = (%f, %f, %f)\n", mElements[0], mElements[1], mElements[2]);
 }
 
+s32 vec3::maxElementIndex() const
+{
+	f32 x = abs(mElements[0]);
+	f32 y = abs(mElements[1]);
+	f32 z = abs(mElements[2]);
+
+	if (x > y && x > z)
+	{
+		return ((mElements[0]) > 0 ? 1 : -1);
+	}
+	else if (y > z)
+	{
+		return ((mElements[1]) > 0 ? 1 : -1) * 2;
+	}
+	return  ((mElements[2]) > 0 ? 1 : -1) * 3;
+}
+
 //=================================================
 // ��������N���X�O�֐�
 //=================================================

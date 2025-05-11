@@ -51,6 +51,8 @@ public:
 
 	__device__ __host__ void print() const;
 
+	__device__ __host__ s32 maxElementIndex() const;
+
 private:
 	f32 mElements[3];
 };
@@ -63,3 +65,12 @@ __device__ __host__ f32 dot(const vec3& v0, const vec3& v1);
 __device__ __host__ vec3 reflect(const vec3& v, const vec3& n);
 
 __device__ vec3 random_in_unit_sphere();
+
+
+class vec4
+{
+public:	
+
+
+private:
+};

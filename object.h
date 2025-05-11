@@ -12,8 +12,8 @@ class AABB : public Hittable
 {
 public:
 	__device__ AABB() : minPos(0, 0, 0), maxPos(0, 0, 0) {}
-	__device__ AABB(vec3 minPos, vec3 maxPos)
-		: minPos(minPos), maxPos(maxPos) {}
+	__device__ AABB(vec3 minPos, vec3 maxPos, Material* material = nullptr)
+		: minPos(minPos), maxPos(maxPos), material(material) {}
 
 	__device__ const vec3& getMinPos() const { return minPos; }
 	__device__ const vec3& getMaxPos() const { return maxPos; }
@@ -55,6 +55,8 @@ private:
 
 	vec3 minPos;
 	vec3 maxPos;
+	Material* material;
+
 };
 
 

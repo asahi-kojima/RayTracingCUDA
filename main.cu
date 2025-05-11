@@ -35,75 +35,6 @@ int main()
 	//=================================================================
 	std::vector<Hittable*> world;
 	{
-#if 0
-		constexpr f32 Range = 25;
-		constexpr u32 Dense = 25;
-		constexpr f32 Interval = 2 * Range / Dense;
-		constexpr f32 Radius = 0.1 * Interval;
-		for (f32 x = -Range; x < Range; x += Interval)
-		{
-			for (f32 z = -Range; z < Range; z += Interval)
-			{
-				vec3 center(x + 0.3f * RandomGenerator::signed_uniform_real(), Radius, z + 0.3 * RandomGenerator::signed_uniform_real());
-
-				world.push_back(make_object<Sphere>(
-					center,
-					Radius,
-					make_material<Metal>(
-						Color(
-							RandomGenerator::uniform_real(),
-							RandomGenerator::uniform_real(),
-							RandomGenerator::uniform_real()),
-						0)));
-
-			}
-		}
-
-
-
-
-		world.push_back(make_object<Sphere>(vec3(0, -1000, 0), 1000.0f, make_material<Lambertian>(Color::Gray)));
-		
-		world.push_back(make_object<Sphere>(vec3(-12, 1, 2), 1.0f, make_material<QuasiGravitationalField>(10.0f, vec3(-12, 1, 2))));
-		world.push_back(make_object<Sphere>(vec3(-8, 1, 0), 1.0f, make_material<Metal>(Color(1, 1, 0.2), 0)));
-		world.push_back(make_object<Sphere>(vec3(-4, 1, 0), 1.0f, make_material<Rutherford>(4.0f, vec3(-4, 1, 0))));
-		world.push_back(make_object<Sphere>(vec3(0, 1.0, 0), 1.0f, make_material<Dielectric>(1.1f)));
-		world.push_back(make_object<Sphere>(vec3(0, 1.0, 0), -0.95f, make_material<Dielectric>(1.5f)));
-		world.push_back(make_object<Sphere>(vec3(4, 1, 0), 1.0f, make_material<Metal>(Color::Gold, 0)));
-		world.push_back(make_object<Sphere>(vec3(8, 1, 0), -1.0f, make_material<Dielectric>(2)));
-		world.push_back(make_object<Sphere>(vec3(-5, 1, 4), 1.0f, make_material<Metal>(Color::Lime, 0)));
-		world.push_back(make_object<Sphere>(vec3(0, 1, -4), 1.0f, make_material<Metal>(Color::Bronze, 1)));
-		
-
-
-		// world.push_back(make_object<Sphere>(vec3(0, -1000, 0), 1000.0f, make_material<Lambertian>(Color(0.5f, 0.5f, 0.5f))));
-		// for (s32 a = -11; a < 11; a++)
-		// {
-		// 	for (s32 b = -11; b < 11; b++)
-		// 	{
-		// 		f32 choose_mat = RandomGenerator::uniform_real();
-		// 		vec3 center(a + 0.9 * RandomGenerator::uniform_real(), 0.2, b + 0.9 * RandomGenerator::uniform_real());
-		// 		if ((center - vec3(4, 0.2, 0)).length() > 0.9)
-		// 		{
-		// 			Material* material;
-		// 			if (choose_mat < 0.8)
-		// 			{
-		// 				material = make_material<Metal>(RandomGenerator::uniform_int(0, 0xFFFFFF),0.0f);
-		// 			}
-		// 			else
-		// 			{
-		// 				material = make_material<Dielectric>(1.5f);
-		// 			}
-		// 			world.push_back(make_object<Sphere>(center, 0.2f, material));
-		// 		}
-		// 	}
-		// }
-
-		// world.push_back(make_object<Sphere>(vec3(0, 1, 0), 1.0f, make_material<Dielectric>(1.5f)));
-		// world.push_back(make_object<Sphere>(vec3(-4, 1, 0), 1.0f, make_material<Lambertian>(Color(0.4, 0.2, 0.1f))));
-		// world.push_back(make_object<Sphere>(vec3(4, 1, 0), 1.0f, make_material<Metal>(Color(0.7f, 0.6f, 0.5f), 0)));
-
-#else
 		constexpr s32 Range = 10;
 		for (s32 w = -Range; w <= Range; w+= 1)
 		{
@@ -113,46 +44,41 @@ int main()
 				{
 					f32 which = RandomGenerator::uniform_real();
 					const f32 scale = 1.0f;
-					const vec3 pos = vec3(w, h, -z) * scale;
+					const vec3 pos = vec3(w , h  , -z) * scale;
 
-					Material* material;
-					// if (which < 0.95 && !(w == 0 && h == 0 && z == 0))
-					// {
-					// 	material = make_material<Metal>(RandomGenerator::uniform_int(0, 0xFFFFFF),1.0f);
-					// }
-					// else
-					// {
-					// 	material = make_material<Rutherford>(3.5f, pos);
-					// }
+					Material* material = nullptr;
+
 					if (h == 0 && w == 0 && z == 0)
 					{
-						material = make_material<Dielectric>(1.5);
-						world.push_back(make_object<Sphere>(pos, 0.25f, material));
+						material = make_material<QuasiGravitationalField2>(1.2, pos);
+						world.push_back(make_object<AABB>(vec3(-0.1, -0.1, -0.1),vec3(0.1, 0.1, 0.1), material));
+						continue;
 					}
-					else if (h == 0 && w == 0 && z == 1)
+					else if (h == 0 && w == 0)
 					{
 						material = make_material<Rutherford>(10.5, pos);
-						world.push_back(make_object<Sphere>(pos, 0.25f, material));
 					}
 					else
 					{
-						material = make_material<Metal>(RandomGenerator::uniform_int(0, 0xFFFFFF),0.0f);
-						world.push_back(make_object<Sphere>(pos, 0.25f, material));
+						// material = make_material<Metal>(RandomGenerator::uniform_int(0, 0xFFFFFF),0.8f);
+						material = make_material<Metal>(RandomGenerator::uniform_int(0, 0xFFFFFF));
+						world.push_back(make_object<AABB>(pos + vec3(-0.1, -0.1, -0.1)*2,pos + vec3(0.1, 0.1, 0.1)*2, material));
+						continue;
 					}
-
+					
+					world.push_back(make_object<Sphere>(pos, 0.25f, material));
 				}
 			}
 		}
+		
 
-
-#endif
 	}
 
 
 	//=================================================================
 	// カメラの準備
 	//=================================================================
-	constexpr f32 BaseResolution = 1.0f * 2.0f / 1;
+	constexpr f32 BaseResolution = 1.0f * 1.0f / 2;
 	const u32 resolutionX = static_cast<u32>(1920 * BaseResolution);
 	const u32 resolutionY = static_cast<u32>(1080 * BaseResolution);
 
@@ -176,21 +102,12 @@ int main()
 	engine.setObjects(world);
 	engine.setRenderTarget(renderTarget[0]);
 
-	for (u32 i = 0, maxI = 10; i < maxI; i++)
-	{
-		printf("%d : times\n", i);
-		f32 phi = i *  (2 * M_PI) / maxI;
-		//vec3 lookAt(0, 0, 0);
-		//vec3 lookFrom(0.5f * sin(phi), 0, 0.5f * cos(phi));
-		//vec3 lookFrom(14 * sin(phi), 2, 14 * cos(phi));
-		//vec3 lookFrom(13, 2 + i, 5);
-		camera = Camera(lookFrom, lookAt, vec3(0, 1, 0), 20, f32(resolutionX) / f32(resolutionY), 0.1, (lookFrom - lookAt).length());
-		engine.setCamera(camera);
-		engine.render(30, 50);
+	camera = Camera(lookFrom, lookAt, vec3(0, 1, 0), 20, f32(resolutionX) / f32(resolutionY), 0.1, (lookFrom - lookAt).length());
+	engine.setCamera(camera);
+	engine.render(30, 50);
 
-		std::string s = "./build/result";
-		s += std::to_string(i);
-		s += ".ppm";
-		engine.saveRenderResult(s);
-	}
+	std::string s = "./build/result";
+	s += std::to_string(0);
+	s += ".ppm";
+	engine.saveRenderResult(s);
 }
