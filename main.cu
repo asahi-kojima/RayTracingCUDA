@@ -40,7 +40,7 @@ int main()
 		{
 			for (s32 h = -Range; h <= Range; h+=1)
 			{
-				for (s32 z = -Range; z <= Range; z++)
+				for (s32 z = -5; z <= 10; z++)
 				{
 					f32 which = RandomGenerator::uniform_real();
 					const f32 scale = 1.0f;
@@ -55,6 +55,10 @@ int main()
 						continue;
 					}
 					else if (h == 0 && w == 0)
+					{
+						continue;
+					}
+					else if (h == 0 || w == 0)
 					{
 						continue;
 					}
@@ -80,11 +84,21 @@ int main()
 		
 
 	}
+	// {
+	// 	const vec3 pos = vec3(0 , 0  , -40);
+	// 	Material* material = make_material<Dielectric>(1.2);
+	// 	f32 scale = 300;
+	// 	world.push_back(make_object<AABB>(pos + vec3(-1, -1, -0.1) * scale,pos + vec3(1, 1, 0.1) * scale, material));
+	// 	//world.push_back(make_object<Sphere>(pos, 30, material));
+	// }
+	{
+		const vec3 pos = vec3(0 , 0  , -115);
+		Material* material = make_material<Metal>(Color(0xFFFFFF));
+		f32 scale = 300;
+		//world.push_back(make_object<AABB>(pos + vec3(-0.1, -0.1, -0.1) * scale,pos + vec3(0.1, 0.1, 0.1) * scale, material));
+		world.push_back(make_object<Sphere>(pos, 100, material));
+	}
 
-	const vec3 pos = vec3(0 , 0  , -40);
-	Material* material = make_material<Metal>(Color::Azure);
-	f32 scale = 300;
-	world.push_back(make_object<AABB>(pos + vec3(-0.1, -0.1, -0.1) * scale,pos + vec3(0.1, 0.1, 0.1) * scale, material));
 
 	//=================================================================
 	// カメラの準備
