@@ -32,10 +32,10 @@ public:
 
 	__device__ Ray getRay(f32 s, f32 t)
 	{
-		// vec3 rd = lensRadius * random_in_unit_disk();
-		// vec3 offset = mCameraX * rd[0] + mCameraY * rd[1];
+		vec3 rd = lensRadius * random_in_unit_disk();
+		vec3 offset = mCameraX * rd[0] + mCameraY * rd[1];
 
-		vec3 rayOrigin = mEyeOrigin;// + offset;
+		vec3 rayOrigin = mEyeOrigin + offset;
 
 		return Ray(rayOrigin, normalize(mScreenOrigin + s * horizontal + t * vertical - rayOrigin));
 	}

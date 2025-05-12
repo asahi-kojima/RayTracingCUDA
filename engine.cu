@@ -154,9 +154,11 @@ __device__ Color castRayAndCalcColor(Node* worldNode, const Ray& ray, const u32 
 			vec3 direction = current_ray.direction();
 			f32 length2 = direction.lengthSquared();
 			f32 direction_y = direction[1];
-	
-			f32 t = 0.5f * (direction_y * direction_y / length2 + 1.0f);
-			resultColor *= Color(0xFFFFFF) * (1.0f - t) + Color(0xF0FFFF) * t;
+			
+			f32 t = 0.5f * (tanh(direction_y * 3) + 1.0f);
+			//t = tanh(t < 0 ? 0 : (t > 1 ? 1 : t));
+			//printf("%f : ", t);
+			resultColor *= (Color(0xFFFFFF) * t + Color(0x000000) * (1.0f - t));
 
 			secondaryInfoByRay.depth = depth;
 
