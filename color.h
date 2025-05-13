@@ -47,6 +47,7 @@ public:
 	static const Color Gold;
 	static const Color Bronze;
 	static const Color Azure;
+	static const Color Silver;
 
 private:
 	vec3 mRGB;

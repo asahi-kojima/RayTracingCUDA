@@ -160,3 +160,4 @@ const Color Color::Orange(0xFFA500);
 const Color Color::Gold(0xFFD700);
 const Color Color::Bronze(0xD99730);
 const Color Color::Azure(0xF0FFFF);
+const Color Color::Silver(0x808080);

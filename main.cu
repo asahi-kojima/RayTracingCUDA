@@ -36,13 +36,13 @@ int main()
 	std::vector<Hittable*> world;
 	{
 		const vec3 center_of_all(0, 0, 0);
-		for (u32 i = 0; i < 100000; i++)
+		for (u32 i = 0; i < 10000; i++)
 		{
 			const f32 max_radius = 0.3;
 
 			const f32 theta = RandomGenerator::uniform_real() * M_PI;
 			const f32 phi = RandomGenerator::uniform_real() * M_PI * 2;
-			const f32 r = RandomGenerator::uniform_real() * max_radius;
+			const f32 r =  RandomGenerator::uniform_real(0.0, 1) * max_radius;
 			const f32 x = r * sin(theta) * cos(phi);
 			const f32 y = r * sin(theta) * sin(phi);
 			const f32 z = r * cos(theta);
@@ -54,24 +54,19 @@ int main()
 			const vec3 max_pos = vec3(RandomGenerator::uniform_real(),RandomGenerator::uniform_real(),RandomGenerator::uniform_real()) * extension_scale;
 			const vec3 min_pos = vec3(RandomGenerator::uniform_real(),RandomGenerator::uniform_real(),RandomGenerator::uniform_real()) * -extension_scale;
 
-			Material* material = make_material<Metal>(Color(RandomGenerator::uniform_int(0, 0xFFFFFF)));
+			Material* material = make_material<Metal>(Color::Bronze);
+			if (RandomGenerator::uniform_real() < 0.3f)
+			{
+				material = make_material<Metal>(Color::Red);
+			}
 			world.push_back(make_object<AABB>(center + min_pos, center + max_pos, material));
 		}
 	}
-	// {
-	// 	const vec3 pos = vec3(0 , 0  , -40);
-	// 	Material* material = make_material<Dielectric>(1.2);
-	// 	f32 scale = 300;
-	// 	world.push_back(make_object<AABB>(pos + vec3(-1, -1, -0.1) * scale,pos + vec3(1, 1, 0.1) * scale, material));
-	// 	//world.push_back(make_object<Sphere>(pos, 30, material));
-	// }
-	// {
-	// 	const vec3 pos = vec3(0 , 0  , -115);
-	// 	Material* material = make_material<Metal>(Color(0xFFFFFF));
-	// 	f32 scale = 300;
-	// 	//world.push_back(make_object<AABB>(pos + vec3(-0.1, -0.1, -0.1) * scale,pos + vec3(0.1, 0.1, 0.1) * scale, material));
-	// 	world.push_back(make_object<Sphere>(pos, 100, material));
-	// }
+
+
+	vec3 origin(0, 0, 0);
+	vec3 extension(0.1, 0.1, 0.1);
+	world.push_back(make_object<AABB>(origin - extension, origin + extension,make_material<Metal>(Color::Gold)));
 
 
 	//=================================================================
