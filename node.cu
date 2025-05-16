@@ -4,14 +4,14 @@
 Node::Node(Hittable **hittableList, u32 *newOrderedIndexList, u32 start, u32 end)
 	: aabb{}
 {
-	// ƒŠƒXƒg‚É‚P‚Â‚µ‚©‚È‚¢ê‡A—t‚Æ‚È‚éB
+	// ï¿½ï¿½ï¿½Xï¿½gï¿½É‚Pï¿½Â‚ï¿½ï¿½ï¿½ï¿½È‚ï¿½ï¿½ê‡ï¿½Aï¿½tï¿½Æ‚È‚ï¿½B
 	if (end - start == 1)
 	{
 		isLeaf = true;
 		object = new Object(hittableList[newOrderedIndexList[start]]);
 		aabb = object->getAABB();
 	}
-	// ‚Q‚ÂˆÈãƒIƒuƒWƒFƒNƒg‚ª‚ ‚éê‡A‚Ü‚¾•ªŠ„‚ğs‚¤B
+	// ï¿½Qï¿½ÂˆÈï¿½Iï¿½uï¿½Wï¿½Fï¿½Nï¿½gï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ê‡ï¿½Aï¿½Ü‚ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½sï¿½ï¿½ï¿½B
 	else
 	{
 		lhs_node = new Node(hittableList, newOrderedIndexList, start, start + (end - start) / 2);
@@ -27,16 +27,28 @@ Node::Node(Hittable **hittableList, u32 *newOrderedIndexList, u32 start, u32 end
 bool Node::hit(const Ray &r, const f32 t_min, const f32 t_max, HitRecord &record) const
 {
 
-	// ÚG‚ª‚ ‚ê‚ÎA‚»‚Ì“à•”‚Æ‚àŒğ·‚µ‚Ä‚¢‚é‰Â”\«‚ª‚ ‚é‚Ì‚ÅA
-	// “à•”‚Ìƒm[ƒh‚ÉƒAƒNƒZƒX‚µ‚É‚¢‚­B
+	// ï¿½ÚGï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ÎAï¿½ï¿½ï¿½Ì“ï¿½ï¿½ï¿½ï¿½Æ‚ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ä‚ï¿½ï¿½ï¿½Â”\ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ì‚ÅA
+	// ï¿½ï¿½ï¿½ï¿½ï¿½Ìƒmï¿½[ï¿½hï¿½ÉƒAï¿½Nï¿½Zï¿½Xï¿½ï¿½ï¿½É‚ï¿½ï¿½ï¿½ï¿½B
 	if (isLeaf)
 	{
 		Hittable *pObject = object->getObject();
-		return pObject->hit(r, t_min, t_max, record);
+		bool isHit =  pObject->hit(r, t_min, t_max, record);
+		if (!isHit)
+		{
+			return false;
+		}
+
+		HitRecord record_for_confirmation;
+		if (pObject->hit(r, 0, record.t, record_for_confirmation))
+		{
+			record = record_for_confirmation;
+		}
+		
+		return true;
 	}
 	else
 	{
-		// AABB‚ÆÚG‚ª‚ ‚é‚©Šm”F‚·‚éB
+		// AABBï¿½ÆÚGï¿½ï¿½ï¿½ï¿½ï¿½é‚©ï¿½mï¿½Fï¿½ï¿½ï¿½ï¿½B
 		if (!aabb.isIntersecting(r, t_min, t_max))
 		{
 			return false;
