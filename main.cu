@@ -42,14 +42,14 @@ int main()
 
 			const f32 theta = RandomGenerator::uniform_real() * M_PI;
 			const f32 phi = RandomGenerator::uniform_real() * M_PI * 2;
-			const f32 r =  RandomGenerator::uniform_real(0.0, 1) * max_radius;
+			const f32 r =  RandomGenerator::uniform_real(0.95, 1.0) * max_radius;
 			const f32 x = r * sin(theta) * cos(phi);
 			const f32 y = r * sin(theta) * sin(phi);
 			const f32 z = r * cos(theta);
 
 			const vec3 center = center_of_all + vec3(x, y, z);
 
-			const f32 extension_scale = 0.03f;
+			const f32 extension_scale = 0.01f;
 
 			const vec3 max_pos = vec3(RandomGenerator::uniform_real(),RandomGenerator::uniform_real(),RandomGenerator::uniform_real()) * extension_scale;
 			const vec3 min_pos = vec3(RandomGenerator::uniform_real(),RandomGenerator::uniform_real(),RandomGenerator::uniform_real()) * -extension_scale;
@@ -64,13 +64,13 @@ int main()
 	}
 
 
-	// vec3 origin(0, 0, 0);
-	// vec3 extension(0.1, 0.1, 0.1);
-	// world.push_back(make_object<AABB>(origin - extension, origin + extension,make_material<Metal>(Color::Gold)));
+	vec3 origin(0, 0, 0);
+	vec3 extension(0.1, 0.1, 0.1);
+	world.push_back(make_object<Sphere>(origin, 0.1,make_material<Metal>(Color::Silver)));
 
 
-	vec3 origin(10, 10, 10);
-	vec3 extension(3, 3, 3);
+	// vec3 origin(10, 10, 10);
+	// vec3 extension(3, 3, 3);
 	//world.push_back(make_object<AABB>(origin - extension, origin + extension,make_material<SunLight>(10.0f)));
 
 	//=================================================================
@@ -83,7 +83,7 @@ int main()
 	vec3 lookAt(0, 0, 0);
 	//vec3 lookFrom(13, 2, 5);
 	vec3 lookFrom(1,1,2.0f);
-	//lookFrom *= (0.5 / lookFrom.length());
+	lookFrom *= (0.7 / lookFrom.length());
 
 
 	Camera camera = Camera(lookFrom, lookAt, vec3(0, 1, 0), 20, f32(resolutionX) / f32(resolutionY), 0.0, (lookFrom - lookAt).length());
