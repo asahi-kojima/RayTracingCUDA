@@ -69,8 +69,8 @@ int main()
 	// world.push_back(make_object<AABB>(origin - extension, origin + extension,make_material<Metal>(Color::Gold)));
 
 
-	vec3 origin(0, 10, 0);
-	vec3 extension(30, 3, 30);
+	vec3 origin(10, 10, 10);
+	vec3 extension(3, 3, 3);
 	world.push_back(make_object<AABB>(origin - extension, origin + extension,make_material<SunLight>(10.0f)));
 
 	//=================================================================
