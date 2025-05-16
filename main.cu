@@ -35,35 +35,39 @@ int main()
 	//=================================================================
 	std::vector<Hittable*> world;
 	{
-		const vec3 center_of_all(0, 0, 0);
-		const f32 max_radius = 0.3;
-		for (u32 i = 0; i < 6000; i++)
+		constexpr f32 Scale = 0.3; 
+
+		constexpr s32 Num = 10;
+		constexpr f32 Range = 1.0f;
+		constexpr f32 Diff = Range * Scale / Num; 
+		for (s32 xid = -Num; xid <= Num; xid++)
 		{
-
-			const f32 theta = RandomGenerator::uniform_real() * M_PI;
-			const f32 phi = RandomGenerator::uniform_real() * M_PI * 2;
-			const f32 r =  RandomGenerator::uniform_real(0.7, 1.0) * max_radius;
-			const f32 x = r * sin(theta) * cos(phi);
-			const f32 y = r * sin(theta) * sin(phi);
-			const f32 z = r * cos(theta);
-
-			const vec3 center = center_of_all + vec3(x, y, z);
-
-			const f32 extension_scale = 0.01f;
-
-			const vec3 max_pos = vec3(RandomGenerator::uniform_real(),RandomGenerator::uniform_real(),RandomGenerator::uniform_real()) * extension_scale;
-			const vec3 min_pos = vec3(RandomGenerator::uniform_real(),RandomGenerator::uniform_real(),RandomGenerator::uniform_real()) * -extension_scale;
-
-			Material* material = make_material<Metal>(Color::Bronze);
-			if (RandomGenerator::uniform_real() < 0.3f)
+			for (s32 yid = -Num; yid <= 0; yid++)
 			{
-				material = make_material<Metal>(Color::Blue);
+				for (s32 zid = -Num; zid <= Num; zid++)
+				{
+					const f32 x = Diff * xid;
+					const f32 y = Diff * yid;
+					const f32 z = Diff * zid;
+
+					const vec3 pos(x, y, z);
+
+					f32 scale = Diff * 0.5;
+					vec3 extension = vec3(RandomGenerator::uniform_real(), RandomGenerator::uniform_real(), RandomGenerator::uniform_real()) * scale;
+
+					
+					Material* material = make_material<Metal>(Color::Bronze);
+					if (RandomGenerator::uniform_real() < 0.3)
+					{
+						material = make_material<Metal>(Color::Blue);
+					}
+					world.push_back(make_object<AABB>(pos - extension, pos + extension,material));
+				}
 			}
-			world.push_back(make_object<AABB>(center + min_pos, center + max_pos, material));
 		}
 
-		vec3 origin(0, 0, 0);
-		world.push_back(make_object<Sphere>(origin, 0.2 * max_radius,make_material<QuasiGravitationalField2>(0.10, origin)));
+		// vec3 origin(0, 0, 0);
+		// world.push_back(make_object<Sphere>(origin, 0.2 * max_radius,make_material<QuasiGravitationalField2>(0.10, origin)));
 	}
 
 
@@ -82,7 +86,7 @@ int main()
 
 	vec3 lookAt(0, 0, 0);
 	//vec3 lookFrom(13, 2, 5);
-	vec3 lookFrom(1,1,0.0f);
+	vec3 lookFrom(1,1,2.0f);
 	lookFrom *= (0.15 / lookFrom.length());
 
 
@@ -103,7 +107,7 @@ int main()
 
 	camera = Camera(lookFrom, lookAt, vec3(0, 1, 0), 20, f32(resolutionX) / f32(resolutionY), 0.0, 2 * (lookFrom - lookAt).length());
 	engine.setCamera(camera);
-	engine.render(30, 50);
+	engine.render(1, 50);
 
 	std::string s = "./build/result";
 	s += std::to_string(0);
