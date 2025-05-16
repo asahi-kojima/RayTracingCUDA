@@ -57,10 +57,10 @@ int main()
 					extension += vec3(0, RandomGenerator::uniform_real() * Scale, 0);
 
 					
-					Material* material = make_material<Metal>(Color::Bronze);
+					Material* material = make_material<Metal>(Color::Azure);
 					if (RandomGenerator::uniform_real() < 0.3)
 					{
-						material = make_material<Metal>(Color::Blue);
+						material = make_material<Metal>(Color::Bronze);
 					}
 					world.push_back(make_object<AABB>(pos - extension, pos + extension,material));
 				}
