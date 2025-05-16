@@ -130,12 +130,16 @@ __device__ Color castRayAndCalcColor(Node* worldNode, const Ray& ray, const u32 
 {
 	Color resultColor(0xFFFFFF);
 	Ray current_ray = ray;
+
+	u32 hitCounter = 0;
 	
 	for (u32 depth = 0; depth < maxDepth; depth++)
 	{
 		HitRecord rec;
 		if (worldNode->hit(current_ray, 0.001f, MAXFLOAT, rec))
 		{
+			hitCounter++;
+
 			Ray scattered;
 			Color attenuation(0x000000);
 			if (rec.material->scatter(current_ray, rec, attenuation, scattered))
@@ -162,7 +166,7 @@ __device__ Color castRayAndCalcColor(Node* worldNode, const Ray& ray, const u32 
 
 			secondaryInfoByRay.depth = depth;
 
-			return resultColor;
+			return (hitCounter == 0 ? Color(0x000000) : resultColor);
 		}
 	}
 
