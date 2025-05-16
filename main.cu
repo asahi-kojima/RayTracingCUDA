@@ -42,7 +42,7 @@ int main()
 		constexpr f32 Diff = Range * Scale / Num; 
 		for (s32 xid = -Num; xid <= Num; xid++)
 		{
-			for (s32 yid = -10; yid <= 0; yid++)
+			for (s32 yid = -3; yid <= 0; yid++)
 			{
 				for (s32 zid = -Num; zid <= Num; zid++)
 				{
@@ -52,8 +52,9 @@ int main()
 
 					const vec3 pos(x, y, z);
 
-					f32 scale = Diff * 0.5;
-					vec3 extension = vec3(RandomGenerator::uniform_real(), RandomGenerator::uniform_real(), RandomGenerator::uniform_real()) * scale;
+					f32 scale = Diff * 0.3;
+					vec3 extension = vec3::one() * Diff / 2;
+					extension += vec3(0, RandomGenerator::uniform_real() * Scale, 0);
 
 					
 					Material* material = make_material<Metal>(Color::Bronze);
@@ -86,8 +87,8 @@ int main()
 
 	vec3 lookAt(0, 0, 0);
 	//vec3 lookFrom(13, 2, 5);
-	vec3 lookFrom(1,2,1.0f);
-	lookFrom *= (0.10 / lookFrom.length());
+	vec3 lookFrom(1,1,1.0f);
+	//lookFrom *= (1 / lookFrom.length());
 
 
 	Camera camera = Camera(lookFrom, lookAt, vec3(0, 1, 0), 20, f32(resolutionX) / f32(resolutionY), 0.0, (lookFrom - lookAt).length());
