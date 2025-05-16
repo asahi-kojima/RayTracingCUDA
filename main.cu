@@ -36,9 +36,9 @@ int main()
 	std::vector<Hittable*> world;
 	{
 		const vec3 center_of_all(0, 0, 0);
-		for (u32 i = 0; i < 2500; i++)
+		const f32 max_radius = 0.3;
+		for (u32 i = 0; i < 3000; i++)
 		{
-			const f32 max_radius = 0.3;
 
 			const f32 theta = RandomGenerator::uniform_real() * M_PI;
 			const f32 phi = RandomGenerator::uniform_real() * M_PI * 2;
@@ -61,12 +61,12 @@ int main()
 			}
 			world.push_back(make_object<AABB>(center + min_pos, center + max_pos, material));
 		}
+
+		vec3 origin(0, 0, 0);
+		world.push_back(make_object<Sphere>(origin, 0.2 * max_radius,make_material<GravitationalField>(1.5, origin)));
 	}
 
 
-	vec3 origin(0, 0, 0);
-	vec3 extension(0.1, 0.1, 0.1);
-	world.push_back(make_object<Sphere>(origin, 0.1,make_material<Metal>(Color::Silver)));
 
 
 	// vec3 origin(10, 10, 10);
@@ -83,7 +83,7 @@ int main()
 	vec3 lookAt(0, 0, 0);
 	//vec3 lookFrom(13, 2, 5);
 	vec3 lookFrom(1,1,0.0f);
-	lookFrom *= (0.25 / lookFrom.length());
+	lookFrom *= (0.15 / lookFrom.length());
 
 
 	Camera camera = Camera(lookFrom, lookAt, vec3(0, 1, 0), 20, f32(resolutionX) / f32(resolutionY), 0.0, (lookFrom - lookAt).length());
