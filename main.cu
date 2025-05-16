@@ -42,9 +42,9 @@ int main()
 		constexpr f32 Diff = Range * Scale / Num; 
 		for (s32 xid = -Num; xid <= Num; xid++)
 		{
-			for (s32 yid = -Num; yid <= 0; yid++)
+			for (s32 yid = -Num; yid <= Num; yid++)
 			{
-				for (s32 zid = -Num; zid <= Num; zid++)
+				for (s32 zid = -Num; zid <= 0; zid++)
 				{
 					const f32 x = Diff * xid;
 					const f32 y = Diff * yid;
