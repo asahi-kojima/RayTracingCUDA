@@ -37,7 +37,7 @@ int main()
 	{
 		constexpr f32 Scale = 0.3; 
 
-		constexpr s32 Num = 10;
+		constexpr s32 Num = 20;
 		constexpr f32 Range = 1.0f;
 		constexpr f32 Diff = Range * Scale / Num; 
 		for (s32 xid = -Num; xid <= Num; xid++)
@@ -85,10 +85,10 @@ int main()
 	const u32 resolutionX = static_cast<u32>(1920 * BaseResolution);
 	const u32 resolutionY = static_cast<u32>(1080 * BaseResolution);
 
-	vec3 lookAt(0, 0, 0);
+	vec3 lookAt(-1, -0.5, -1);
 	//vec3 lookFrom(13, 2, 5);
 	vec3 lookFrom(1,1,1.0f);
-	//lookFrom *= (1 / lookFrom.length());
+	lookFrom *= (0.8 / lookFrom.length());
 
 
 	Camera camera = Camera(lookFrom, lookAt, vec3(0, 1, 0), 20, f32(resolutionX) / f32(resolutionY), 0.0, (lookFrom - lookAt).length());
