@@ -42,9 +42,9 @@ int main()
 		constexpr f32 Diff = Range * Scale / Num; 
 		for (s32 xid = -Num; xid <= Num; xid++)
 		{
-			for (s32 yid = -Num; yid <= Num; yid++)
+			for (s32 yid = -10; yid <= 0; yid++)
 			{
-				for (s32 zid = -Num; zid <= 0; zid++)
+				for (s32 zid = -Num; zid <= Num; zid++)
 				{
 					const f32 x = Diff * xid;
 					const f32 y = Diff * yid;
@@ -86,7 +86,7 @@ int main()
 
 	vec3 lookAt(0, 0, 0);
 	//vec3 lookFrom(13, 2, 5);
-	vec3 lookFrom(1,1,2.0f);
+	vec3 lookFrom(1,2,1.0f);
 	lookFrom *= (0.10 / lookFrom.length());
 
 
