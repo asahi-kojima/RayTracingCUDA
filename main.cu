@@ -37,7 +37,7 @@ int main()
 	{
 		const vec3 center_of_all(0, 0, 0);
 		const f32 max_radius = 0.3;
-		for (u32 i = 0; i < 3000; i++)
+		for (u32 i = 0; i < 6000; i++)
 		{
 
 			const f32 theta = RandomGenerator::uniform_real() * M_PI;
@@ -63,7 +63,7 @@ int main()
 		}
 
 		vec3 origin(0, 0, 0);
-		world.push_back(make_object<Sphere>(origin, 0.2 * max_radius,make_material<QuasiGravitationalField2>(0.1, origin)));
+		world.push_back(make_object<Sphere>(origin, 0.2 * max_radius,make_material<QuasiGravitationalField2>(0.10, origin)));
 	}
 
 
@@ -83,7 +83,7 @@ int main()
 	vec3 lookAt(0, 0, 0);
 	//vec3 lookFrom(13, 2, 5);
 	vec3 lookFrom(1,1,0.0f);
-	lookFrom *= (0.1 / lookFrom.length());
+	lookFrom *= (0.15 / lookFrom.length());
 
 
 	Camera camera = Camera(lookFrom, lookAt, vec3(0, 1, 0), 20, f32(resolutionX) / f32(resolutionY), 0.0, (lookFrom - lookAt).length());
