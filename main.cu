@@ -42,7 +42,7 @@ int main()
 
 			const f32 theta = RandomGenerator::uniform_real() * M_PI;
 			const f32 phi = RandomGenerator::uniform_real() * M_PI * 2;
-			const f32 r =  RandomGenerator::uniform_real(0.95, 1.0) * max_radius;
+			const f32 r =  RandomGenerator::uniform_real(0.7, 1.0) * max_radius;
 			const f32 x = r * sin(theta) * cos(phi);
 			const f32 y = r * sin(theta) * sin(phi);
 			const f32 z = r * cos(theta);
@@ -82,8 +82,8 @@ int main()
 
 	vec3 lookAt(0, 0, 0);
 	//vec3 lookFrom(13, 2, 5);
-	vec3 lookFrom(1,1,2.0f);
-	lookFrom *= (0.7 / lookFrom.length());
+	vec3 lookFrom(1,1,0.0f);
+	lookFrom *= (0.25 / lookFrom.length());
 
 
 	Camera camera = Camera(lookFrom, lookAt, vec3(0, 1, 0), 20, f32(resolutionX) / f32(resolutionY), 0.0, (lookFrom - lookAt).length());
