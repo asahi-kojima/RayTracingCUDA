@@ -111,7 +111,7 @@ bool Retroreflective::scatter(const Ray &ray_in, const HitRecord &record, Color 
 
 bool SunLight::scatter(const Ray &ray_in, const HitRecord &record, Color &attenuation, Ray &ray_scattered)
 {
-	attenuation = Color(0xFFFFFF);
+	attenuation = Color(0xFFFFFF) * mIntensity;
 	return false;
 }
 

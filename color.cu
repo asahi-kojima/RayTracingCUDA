@@ -146,6 +146,16 @@ __device__ void Color::printColor() const
 }
 
 
+__device__ void Color::clamp()
+{
+	for (u32 i = 0; i < 3; i++)
+	{
+		const f32 tmp = mRGB[i];
+		mRGB[i] = (tmp > 1.0f ? 1.0f : tmp);
+	}
+}
+
+
 
 const Color Color::White(0xFFFFFF);
 const Color Color::Black(0x000000);

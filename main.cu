@@ -36,7 +36,7 @@ int main()
 	std::vector<Hittable*> world;
 	{
 		const vec3 center_of_all(0, 0, 0);
-		for (u32 i = 0; i < 10000; i++)
+		for (u32 i = 0; i < 2500; i++)
 		{
 			const f32 max_radius = 0.3;
 
@@ -57,17 +57,21 @@ int main()
 			Material* material = make_material<Metal>(Color::Bronze);
 			if (RandomGenerator::uniform_real() < 0.3f)
 			{
-				material = make_material<Metal>(Color::Red);
+				material = make_material<Metal>(Color::Blue);
 			}
 			world.push_back(make_object<AABB>(center + min_pos, center + max_pos, material));
 		}
 	}
 
 
-	vec3 origin(0, 0, 0);
-	vec3 extension(0.1, 0.1, 0.1);
-	world.push_back(make_object<AABB>(origin - extension, origin + extension,make_material<Metal>(Color::Gold)));
+	// vec3 origin(0, 0, 0);
+	// vec3 extension(0.1, 0.1, 0.1);
+	// world.push_back(make_object<AABB>(origin - extension, origin + extension,make_material<Metal>(Color::Gold)));
 
+
+	vec3 origin(0, 10, 0);
+	vec3 extension(30, 3, 30);
+	world.push_back(make_object<AABB>(origin - extension, origin + extension,make_material<SunLight>(10.0f)));
 
 	//=================================================================
 	// カメラの準備

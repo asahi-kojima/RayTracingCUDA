@@ -137,7 +137,7 @@ __device__ Color castRayAndCalcColor(Node* worldNode, const Ray& ray, const u32 
 		if (worldNode->hit(current_ray, 0.001f, MAXFLOAT, rec))
 		{
 			Ray scattered;
-			Color attenuation;
+			Color attenuation(0x000000);
 			if (rec.material->scatter(current_ray, rec, attenuation, scattered))
 			{
 				resultColor *= attenuation;
@@ -146,7 +146,7 @@ __device__ Color castRayAndCalcColor(Node* worldNode, const Ray& ray, const u32 
 			else
 			{
 				secondaryInfoByRay.depth = depth;
-				return Color(0x000000);
+				return attenuation;
 			}
 		}
 		else
@@ -200,6 +200,7 @@ __global__ void castRayToWorld(Node* worldNode, Color* pixels, Camera* camera, c
 	}
 	resultColor /= sampleSize;
 	
+	resultColor.clamp();
 
 	*(pixels + pixelIndex) = resultColor;
 }

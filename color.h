@@ -33,6 +33,8 @@ public:
 
 	__device__ __host__ void printColor() const;
 
+	__device__ __host__ void clamp();
+
 
 	static const Color White;
 	static const Color Black;
