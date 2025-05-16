@@ -63,7 +63,7 @@ int main()
 		}
 
 		vec3 origin(0, 0, 0);
-		world.push_back(make_object<Sphere>(origin, 0.2 * max_radius,make_material<GravitationalField>(1.5, origin)));
+		world.push_back(make_object<Sphere>(origin, 0.2 * max_radius,make_material<QuasiGravitationalField2>(0.1, origin)));
 	}
 
 
@@ -83,7 +83,7 @@ int main()
 	vec3 lookAt(0, 0, 0);
 	//vec3 lookFrom(13, 2, 5);
 	vec3 lookFrom(1,1,0.0f);
-	lookFrom *= (0.15 / lookFrom.length());
+	lookFrom *= (0.1 / lookFrom.length());
 
 
 	Camera camera = Camera(lookFrom, lookAt, vec3(0, 1, 0), 20, f32(resolutionX) / f32(resolutionY), 0.0, (lookFrom - lookAt).length());
