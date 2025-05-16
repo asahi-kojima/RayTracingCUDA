@@ -71,7 +71,7 @@ int main()
 
 	vec3 origin(10, 10, 10);
 	vec3 extension(3, 3, 3);
-	world.push_back(make_object<AABB>(origin - extension, origin + extension,make_material<SunLight>(10.0f)));
+	//world.push_back(make_object<AABB>(origin - extension, origin + extension,make_material<SunLight>(10.0f)));
 
 	//=================================================================
 	// カメラの準備
@@ -83,6 +83,7 @@ int main()
 	vec3 lookAt(0, 0, 0);
 	//vec3 lookFrom(13, 2, 5);
 	vec3 lookFrom(1,1,2.0f);
+	//lookFrom *= (0.5 / lookFrom.length());
 
 
 	Camera camera = Camera(lookFrom, lookAt, vec3(0, 1, 0), 20, f32(resolutionX) / f32(resolutionY), 0.0, (lookFrom - lookAt).length());
