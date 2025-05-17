@@ -100,7 +100,7 @@ int main()
 	lookAt *= (Range * Scale);
 	// vec3 lookFrom(13, 2, 5);
 	vec3 lookFrom(1, 1.5, 1.0f);
-	lookFrom *= (Range * Scale * 1.5);
+	lookFrom *= (Range * Scale * 1.2);
 	// lookFrom *= (0.9 / lookFrom.length());
 
 	Camera camera = Camera(lookFrom, lookAt, vec3(0, 1, 0), 20, f32(resolutionX) / f32(resolutionY), 0.0, (lookFrom - lookAt).length());
