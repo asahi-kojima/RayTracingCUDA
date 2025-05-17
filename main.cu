@@ -74,9 +74,9 @@ int main()
 
 
 
-	// vec3 origin(10, 10, 10);
-	// vec3 extension(3, 3, 3);
-	//world.push_back(make_object<AABB>(origin - extension, origin + extension,make_material<SunLight>(10.0f)));
+	vec3 origin(0, 10, 0);
+	vec3 extension(10, 1, 10);
+	world.push_back(make_object<AABB>(origin - extension, origin + extension,make_material<SunLight>(Color::Bronze, 1.0f)));
 
 	//=================================================================
 	// カメラの準備
@@ -108,7 +108,7 @@ int main()
 
 	camera = Camera(lookFrom, lookAt, vec3(0, 1, 0), 20, f32(resolutionX) / f32(resolutionY), 0.0, 2 * (lookFrom - lookAt).length());
 	engine.setCamera(camera);
-	engine.render(1, 50);
+	engine.render(10, 50);
 
 	std::string s = "./build/result";
 	s += std::to_string(0);

@@ -166,7 +166,7 @@ __device__ Color castRayAndCalcColor(Node* worldNode, const Ray& ray, const u32 
 
 			secondaryInfoByRay.depth = depth;
 
-			return (hitCounter == 0 ? Color(0x000000) : resultColor);
+			return (hitCounter == 0 ? Color(0xAAAAAA) : resultColor);
 		}
 	}
 

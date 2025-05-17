@@ -73,9 +73,10 @@ private:
 class SunLight : public Material
 {
 public:
-	__device__ SunLight(f32 intensity) : mIntensity(intensity) {}
+	__device__ SunLight(Color color, f32 intensity) :albedo(color), mIntensity(intensity) {}
 
 private:
+	Color albedo;
 	f32 mIntensity;
 	__device__ virtual bool scatter(const Ray& ray_in, const HitRecord& record, Color& attenuation, Ray& ray_scattered) override;
 };
