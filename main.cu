@@ -28,55 +28,66 @@ __global__ void setup_gpu()
 int main()
 {
 	cudaDeviceSetLimit(cudaLimitMallocHeapSize, 1024 * 1024 * 1024);
-	cudaDeviceSetLimit(cudaLimitStackSize, 1024*100);
-	setup_gpu<<<1,1>>>();
+	cudaDeviceSetLimit(cudaLimitStackSize, 1024 * 100);
+	setup_gpu<<<1, 1>>>();
 	//=================================================================
 	// オブジェクトの準備
 	//=================================================================
-	std::vector<Hittable*> world;
+	std::vector<Hittable *> world;
+
+	constexpr f32 Scale = 0.3;
+
+	constexpr s32 Num = 10;
+	constexpr f32 Range = 1.0f;
+	constexpr f32 Diff = Range * Scale / Num;
+	for (s32 xid = -Num; xid <= Num; xid++)
 	{
-		constexpr f32 Scale = 0.3; 
-
-		constexpr s32 Num = 20;
-		constexpr f32 Range = 1.0f;
-		constexpr f32 Diff = Range * Scale / Num; 
-		for (s32 xid = -Num; xid <= Num; xid++)
+		for (s32 yid = -3; yid <= 0; yid++)
 		{
-			for (s32 yid = -3; yid <= 0; yid++)
+			for (s32 zid = -Num; zid <= Num; zid++)
 			{
-				for (s32 zid = -Num; zid <= Num; zid++)
+				const f32 x = Diff * xid;
+				const f32 y = Diff * yid;
+				const f32 z = Diff * zid;
+
+				const vec3 pos(x, y, z);
+
+				f32 scale = Diff * 0.3;
+				vec3 extension = vec3::one() * Diff / 2;
+				extension += vec3(0, RandomGenerator::uniform_real() * Scale, 0);
+
+				Material *material = make_material<Metal>(Color::Bronze);
+				if (RandomGenerator::uniform_real() < 0.3)
 				{
-					const f32 x = Diff * xid;
-					const f32 y = Diff * yid;
-					const f32 z = Diff * zid;
-
-					const vec3 pos(x, y, z);
-
-					f32 scale = Diff * 0.3;
-					vec3 extension = vec3::one() * Diff / 2;
-					extension += vec3(0, RandomGenerator::uniform_real() * Scale, 0);
-
-					
-					Material* material = make_material<Metal>(Color::Azure);
-					if (RandomGenerator::uniform_real() < 0.3)
+					material = make_material<Metal>(Color::Blue);
+				}
+				if (RandomGenerator::uniform_real() < 0.2)
+				{
+					f32 dx[4] = {Diff / 4,Diff / 4,-Diff / 4,-Diff / 4};
+					f32 dz[4] = {Diff / 4,-Diff / 4,Diff / 4,-Diff / 4};
+					for (s32 i = 0; i < 4; i++)
 					{
-						material = make_material<Metal>(Color::Bronze);
+						const vec3 pos(x + dx[i], y, z + dz[i]);
+						vec3 extension = vec3::one() * Diff / 4;
+						extension += vec3(0, RandomGenerator::uniform_real() * Scale, 0);
+						material = make_material<Metal>(Color::Silver);
+						world.push_back(make_object<AABB>(pos - extension, pos + extension, material));
 					}
-					world.push_back(make_object<AABB>(pos - extension, pos + extension,material));
+				}
+				else
+				{	
+					world.push_back(make_object<AABB>(pos - extension, pos + extension, material));
 				}
 			}
 		}
-
-		// vec3 origin(0, 0, 0);
-		// world.push_back(make_object<Sphere>(origin, 0.2 * max_radius,make_material<QuasiGravitationalField2>(0.10, origin)));
 	}
 
+	// vec3 origin(0, 0, 0);
+	// world.push_back(make_object<Sphere>(origin, 0.2 * max_radius,make_material<QuasiGravitationalField2>(0.10, origin)));
 
-
-
-	vec3 origin(0, 10, 0);
-	vec3 extension(10, 1, 10);
-	world.push_back(make_object<AABB>(origin - extension, origin + extension,make_material<SunLight>(Color::Bronze, 1.0f)));
+	// vec3 origin(10, 10, 10);
+	// vec3 extension(3, 3, 3);
+	// world.push_back(make_object<AABB>(origin - extension, origin + extension,make_material<SunLight>(10.0f)));
 
 	//=================================================================
 	// カメラの準備
@@ -85,18 +96,19 @@ int main()
 	const u32 resolutionX = static_cast<u32>(1920 * BaseResolution);
 	const u32 resolutionY = static_cast<u32>(1080 * BaseResolution);
 
-	vec3 lookAt(-1, -0.5, -1);
-	//vec3 lookFrom(13, 2, 5);
-	vec3 lookFrom(1,1,1.0f);
-	lookFrom *= (0.8 / lookFrom.length());
-
+	vec3 lookAt(-1, 0, -1);
+	lookAt *= (Range * Scale);
+	// vec3 lookFrom(13, 2, 5);
+	vec3 lookFrom(1, 1.5, 1.0f);
+	lookFrom *= (Range * Scale * 1.5);
+	// lookFrom *= (0.9 / lookFrom.length());
 
 	Camera camera = Camera(lookFrom, lookAt, vec3(0, 1, 0), 20, f32(resolutionX) / f32(resolutionY), 0.0, (lookFrom - lookAt).length());
 
 	//=================================================================
 	// レンダーターゲットの準備
 	//=================================================================
-	RenderTarget renderTarget[3] = {RenderTarget(resolutionX, resolutionY),RenderTarget(resolutionX, resolutionY),RenderTarget(resolutionX, resolutionY) };
+	RenderTarget renderTarget[3] = {RenderTarget(resolutionX, resolutionY), RenderTarget(resolutionX, resolutionY), RenderTarget(resolutionX, resolutionY)};
 
 	//=================================================================
 	// オブジェクトの準備
