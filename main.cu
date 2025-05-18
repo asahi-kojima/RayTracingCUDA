@@ -61,7 +61,7 @@ int main()
 				{
 					material = make_material<Metal>(Color::Blue);
 				}
-				if (RandomGenerator::uniform_real() < 0.2)
+				if (RandomGenerator::uniform_real() < 0.1)
 				{
 					f32 dx[4] = {Diff / 4,Diff / 4,-Diff / 4,-Diff / 4};
 					f32 dz[4] = {Diff / 4,-Diff / 4,Diff / 4,-Diff / 4};
@@ -99,7 +99,7 @@ int main()
 	vec3 lookAt(-1, 0, -1);
 	lookAt *= (Range * Scale);
 	// vec3 lookFrom(13, 2, 5);
-	vec3 lookFrom(1, 1.5, 1.0f);
+	vec3 lookFrom(0.9, 1.5, 1.1f);
 	lookFrom *= (Range * Scale * 1.2);
 	// lookFrom *= (0.9 / lookFrom.length());
 
