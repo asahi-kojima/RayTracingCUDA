@@ -5,8 +5,7 @@
 class vec3
 {
 public:
-	__device__ __host__ vec3() = default;
-	__device__ __host__ vec3(f32 x, f32 y, f32 z) : mElements{ x, y, z } {}
+	__device__ __host__ vec3(f32 x = 0, f32 y = 0, f32 z = 0) : mElements{ x, y, z } {}
 	__device__ __host__ vec3(const vec3& v) : mElements{v[0], v[1], v[2]} {}
 
 	__device__ __host__  f32 getX() const { return mElements[0]; }
@@ -52,6 +51,8 @@ public:
 	__device__ __host__ void print() const;
 
 	__device__ __host__ s32 maxElementIndex() const;
+
+	__host__ static vec3 signed_uniform_real_vector();
 
 private:
 	f32 mElements[3];

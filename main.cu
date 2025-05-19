@@ -35,59 +35,26 @@ int main()
 	//=================================================================
 	std::vector<Hittable *> world;
 
-	constexpr f32 Scale = 0.3;
-
-	constexpr s32 Num = 10;
-	constexpr f32 Range = 1.0f;
-	constexpr f32 Diff = Range * Scale / Num;
-	for (s32 xid = -Num; xid <= Num; xid++)
+	const f32 Scale = 3;
+	const f32 TriangleScale = 1.1;
+	for (u32 i = 0; i < 1000; i++)
 	{
-		for (s32 yid = -3; yid <= 0; yid++)
-		{
-			for (s32 zid = -Num; zid <= Num; zid++)
-			{
-				const f32 x = Diff * xid;
-				const f32 y = Diff * yid;
-				const f32 z = Diff * zid;
-
-				const vec3 pos(x, y, z);
-
-				f32 scale = Diff * 0.3;
-				vec3 extension = vec3::one() * Diff / 2;
-				extension += vec3(0, RandomGenerator::uniform_real() * Scale, 0);
-
-				Material *material = make_material<Metal>(Color::Bronze);
-				if (RandomGenerator::uniform_real() < 0.3)
-				{
-					material = make_material<Metal>(Color::Blue);
-				}
-				if (RandomGenerator::uniform_real() < 0.1)
-				{
-					f32 dx[4] = {Diff / 4,Diff / 4,-Diff / 4,-Diff / 4};
-					f32 dz[4] = {Diff / 4,-Diff / 4,Diff / 4,-Diff / 4};
-					for (s32 i = 0; i < 4; i++)
-					{
-						const vec3 pos(x + dx[i], y, z + dz[i]);
-						vec3 extension = vec3::one() * Diff / 4;
-						extension += vec3(0, RandomGenerator::uniform_real() * Scale, 0);
-						material = make_material<Metal>(Color::Silver);
-						world.push_back(make_object<AABB>(pos - extension, pos + extension, material));
-					}
-				}
-				else
-				{	
-					world.push_back(make_object<AABB>(pos - extension, pos + extension, material));
-				}
-			}
-		}
+		vec3 center = vec3::signed_uniform_real_vector() * Scale;
+		const vec3 v0 = center + vec3::signed_uniform_real_vector() * TriangleScale;
+		const vec3 v1 = center + vec3::signed_uniform_real_vector() * TriangleScale;
+		const vec3 v2 = center + vec3::signed_uniform_real_vector() * TriangleScale;
+		world.push_back(make_object<Triangle>(v0, v1, v2, make_material<Metal>(Color(RandomGenerator::uniform_int(0, 0xFFFFFF))), false));
 	}
 
-	// vec3 origin(0, 0, 0);
-	// world.push_back(make_object<Sphere>(origin, 0.2 * max_radius,make_material<QuasiGravitationalField2>(0.10, origin)));
 
-	// vec3 origin(10, 10, 10);
-	// vec3 extension(3, 3, 3);
-	// world.push_back(make_object<AABB>(origin - extension, origin + extension,make_material<SunLight>(10.0f)));
+	// world.push_back(make_object<Sphere>(vec3(1,0, -1), 0.5, make_material<Metal>(Color::Blue)));
+	// world.push_back(make_object<Sphere>(vec3(-1, 0, -1), 0.5, make_material<Metal>(Color(0.8, 0.8, 0.8))));
+	// world.push_back(make_object<Sphere>(vec3(-1, 0, -1), 0.5, make_material<Metal>(Color(0.8, 0.8, 0.8))));
+	world.push_back(make_object<Sphere>(vec3(0, 0, 0), 0.4, make_material<Metal>(Color(0.8, 0.8, 0.8))));
+
+
+
+
 
 	//=================================================================
 	// カメラの準備
@@ -96,12 +63,8 @@ int main()
 	const u32 resolutionX = static_cast<u32>(1920 * BaseResolution);
 	const u32 resolutionY = static_cast<u32>(1080 * BaseResolution);
 
-	vec3 lookAt(-1, 0, -1);
-	lookAt *= (Range * Scale);
-	// vec3 lookFrom(13, 2, 5);
-	vec3 lookFrom(0.9, 1.5, 1.1f);
-	lookFrom *= (Range * Scale * 1.2);
-	// lookFrom *= (0.9 / lookFrom.length());
+	vec3 lookAt(0,0,0);
+	vec3 lookFrom(-0, 0, 10);
 
 	Camera camera = Camera(lookFrom, lookAt, vec3(0, 1, 0), 20, f32(resolutionX) / f32(resolutionY), 0.0, (lookFrom - lookAt).length());
 

@@ -20,12 +20,15 @@ bool Lambertian::scatter(const Ray &ray_in, const HitRecord &record, Color &atte
 bool Metal::scatter(const Ray &ray_in, const HitRecord &record, Color &attenuation, Ray &ray_scattered)
 {
 	vec3 reflected_ray = reflect(ray_in.direction(), record.normal);
-
 	ray_scattered = Ray(record.pos, reflected_ray + fuzz * random_in_unit_sphere() * 0.1f);
+	
+	if (dot(ray_scattered.direction(), record.normal) > 0)
+	{
+		attenuation = albedo;
+		return true;
+	}
 
-	attenuation = albedo;
-
-	return (dot(ray_scattered.direction(), record.normal) > 0);
+	return false;
 }
 
 //======================================================

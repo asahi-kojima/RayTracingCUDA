@@ -48,6 +48,18 @@ public:
 
 		stream << "P3\n" << mResolutionWidth << " " << mResolutionHeight << "\n255\n";
 
+		f32 maxIntensity = 0.0f;
+		for (s32 j = mResolutionHeight - 1; j >= 0; j--)
+		{
+			for (u32 i = 0; i < mResolutionWidth; i++)
+			{
+				Color color = mPixels[calcIndex(i, j)];
+				maxIntensity = max(maxIntensity, color.r());
+				maxIntensity = max(maxIntensity, color.g());
+				maxIntensity = max(maxIntensity, color.b());
+			}
+		}
+
 		for (s32 j = mResolutionHeight - 1; j >= 0; j--)
 		{
 			for (u32 i = 0; i < mResolutionWidth; i++)

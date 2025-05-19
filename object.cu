@@ -66,6 +66,51 @@ bool AABB::hit(const Ray &ray, const f32 t_min, const f32 t_max, HitRecord &reco
 	return true;
 }
 
+
+bool Triangle::hit(const Ray &ray, const f32 t_min, const f32 t_max, HitRecord &record)
+{
+
+
+	const vec3 p1 = mVertices[1] - mVertices[0];
+	const vec3 p2 = mVertices[2] - mVertices[0];
+	const vec3 v0ToO = ray.origin() - mVertices[0];
+
+	const vec3 a0 = -ray.direction();
+	const vec3 a1 = p1;
+	const vec3 a2 = p2;
+
+	const vec3 cross1x2 = vec3::cross(a1, a2);
+	const vec3 cross2x0 = vec3::cross(a2, a0);
+	const vec3 cross0x1 = vec3::cross(a0, a1);
+
+	const f32 det = dot(cross1x2, a0);
+	if (det == 0.0)
+	{
+		return false;
+	}
+
+	const f32 t = dot(cross1x2, v0ToO) / det;
+	const f32 alpha = dot(cross2x0, v0ToO) / det;
+	const f32 beta = dot(cross0x1, v0ToO) / det;
+
+	if (!(t > t_min && t < t_max && alpha + beta < 1 && alpha > 0 && beta > 0))
+	{
+		return false;
+	}
+
+
+	record.t = t;
+	record.pos = ray.pointAt(t);
+	record.normal = mNormal * (mIsCulling ? 1 : (dot(ray.direction(), mNormal) < 0) ? 1 : -1);
+	record.material = mMaterial;
+	return true;
+}
+
+AABB Triangle::calcAABB()
+{
+	return mAABB;
+}
+
 bool Sphere::hit(const Ray &r, const f32 t_min, const f32 t_max, HitRecord &record)
 {
 	const vec3 &direction = r.direction();

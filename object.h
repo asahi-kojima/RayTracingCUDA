@@ -56,9 +56,75 @@ private:
 	vec3 minPos;
 	vec3 maxPos;
 	Material* material;
-
 };
 
+class Triangle final : public Hittable
+{
+public:
+	__device__ Triangle(const vec3& v0, const vec3& v1, const vec3& v2, Material* material, bool isCulling = true)
+	: mVertices{v0, v1, v2}, mMaterial(material) ,mNormal(vec3::cross(v1 - v0, v2 - v0).normalize()), mIsCulling(isCulling)
+	{
+		const f32 dot0 = dot(v1 - v0, v2 - v0);
+		if (dot0 < 0)
+		{
+			const f32 radius = (v1 - v2).length() / 2.0f;
+			const vec3 center = (v1 + v2) / 2.0f;
+			mAABB = AABB(center - radius, center + radius);
+			return;
+		}
+
+		const f32 dot1 = dot(v0 - v1, v2 - v1);
+		if (dot1 < 0)
+		{
+			const f32 radius = (v0 - v2).length() / 2.0f;
+			const vec3 center = (v0 + v2) / 2.0f;
+			mAABB = AABB(center - radius, center + radius);
+			return;
+		}
+
+		const f32 dot2 = dot(v1 - v2, v0 - v2);
+		if (dot2 < 0)
+		{
+			const f32 radius = (v1 - v0).length() / 2.0f;
+			const vec3 center = (v1 + v0) / 2.0f;
+			mAABB = AABB(center - radius, center + radius);
+			return;
+		}
+
+
+		const vec3 c1 = (v1 + v0) / 2.0f;
+		const vec3 c2 = (v2 + v0) / 2.0f;
+
+		const vec3 n1 = vec3::cross(v1 - v0, mNormal);
+		const vec3 n2 = vec3::cross(v2 - v0, mNormal);
+
+		const f32 a = dot(n1, n1);
+		const f32 b = dot(n1, n2);
+		const f32 c = -dot(n2, n2);
+		const f32 e = dot(n1, c2- c1);
+		const f32 f = dot(n2, c2- c1);
+
+		const f32 det = a * c + b * b;
+		const f32 t = (c * e + b * f) / det;
+		//const f32 s = (-b * e + a * f) / det;
+
+		const vec3 circumcenter = c1 + t * n1;
+		const f32 radius = (circumcenter - v0).length();
+		mAABB = AABB(circumcenter - radius, circumcenter + radius);
+	}
+
+
+	
+private:
+	__device__ bool hit(const Ray& r, const f32 t_min, const f32 t_max, HitRecord& record) override;
+	__device__ AABB calcAABB() override;
+
+	vec3 mVertices[3];
+	vec3 mNormal;
+	Material* mMaterial;
+	AABB mAABB;
+	bool mIsCulling;
+};
 
 class Sphere : public Hittable
 {

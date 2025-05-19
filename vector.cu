@@ -215,6 +215,12 @@ s32 vec3::maxElementIndex() const
 	return  ((mElements[2]) > 0 ? 1 : -1) * 3;
 }
 
+
+vec3 vec3::signed_uniform_real_vector()
+{
+	return vec3(RandomGenerator::signed_uniform_real(), RandomGenerator::signed_uniform_real(), RandomGenerator::signed_uniform_real());
+}
+
 //=================================================
 // ��������N���X�O�֐�
 //=================================================

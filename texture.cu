@@ -1,9 +1,5 @@
 #include "texture.h"
 
-Color ConstantTexture::color(f32 u, f32 v, const vec3& p)
-{
-    return mColor;
-}
 
 //Color CheckerTexture::color(f32 u, f32 v, const vec3& p)
 //{

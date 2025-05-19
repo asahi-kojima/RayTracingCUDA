@@ -19,7 +19,7 @@ public:
 
 
 private:
-	__device__ __host__ virtual Color color(f32 u, f32 v, const vec3& p) override;
+	__device__ __host__ virtual Color color(f32 u, f32 v, const vec3& p) override {return mColor;}
 
 	Color mColor;
 };
