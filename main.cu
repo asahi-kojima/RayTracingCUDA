@@ -36,13 +36,15 @@ int main()
 	std::vector<Hittable *> world;
 
 	const f32 Scale = 3;
-	const f32 TriangleScale = 1.1;
+	const f32 TriangleScale = 0.5;
 	for (u32 i = 0; i < 1000; i++)
 	{
 		vec3 center = vec3::signed_uniform_real_vector() * Scale;
 		const vec3 v0 = center + vec3::signed_uniform_real_vector() * TriangleScale;
 		const vec3 v1 = center + vec3::signed_uniform_real_vector() * TriangleScale;
 		const vec3 v2 = center + vec3::signed_uniform_real_vector() * TriangleScale;
+		// Material* material = make_material<Metal>(Color(RandomGenerator::uniform_real(0.6, 1),RandomGenerator::uniform_real(0.6, 1),RandomGenerator::uniform_real(0.6, 1)));
+		// world.push_back(make_object<Triangle>(v0, v1, v2, material, false));
 		world.push_back(make_object<Triangle>(v0, v1, v2, make_material<Metal>(Color(RandomGenerator::uniform_int(0, 0xFFFFFF))), false));
 	}
 
@@ -50,10 +52,12 @@ int main()
 	// world.push_back(make_object<Sphere>(vec3(1,0, -1), 0.5, make_material<Metal>(Color::Blue)));
 	// world.push_back(make_object<Sphere>(vec3(-1, 0, -1), 0.5, make_material<Metal>(Color(0.8, 0.8, 0.8))));
 	// world.push_back(make_object<Sphere>(vec3(-1, 0, -1), 0.5, make_material<Metal>(Color(0.8, 0.8, 0.8))));
-	world.push_back(make_object<Sphere>(vec3(0, 0, 0), 0.4, make_material<Metal>(Color(0.8, 0.8, 0.8))));
+	//world.push_back(make_object<Sphere>(vec3(0, 0, 0), 0.4, make_material<Metal>(Color(0.8, 0.8, 0.8))));
 
 
-
+	vec3 center(5, 0, 5);
+	vec3 extention(1,1,1);
+	world.push_back(make_object<AABB>(center - extention, center + extention,make_material<SunLight>(Color::White, 30)));
 
 
 	//=================================================================
