@@ -11,9 +11,9 @@
 class AABB : public Hittable
 {
 public:
-	__device__ AABB() : minPos(0, 0, 0), maxPos(0, 0, 0) {}
+	__device__ AABB() : minPos(0, 0, 0), maxPos(0, 0, 0), mCenter(0, 0, 0) {}
 	__device__ AABB(vec3 minPos, vec3 maxPos, Material* material = nullptr)
-		: minPos(minPos), maxPos(maxPos), material(material) {}
+		: minPos(minPos), maxPos(maxPos), mCenter((minPos + maxPos) / 2),  material(material) {}
 
 	__device__ const vec3& getMinPos() const { return minPos; }
 	__device__ const vec3& getMaxPos() const { return maxPos; }
@@ -55,6 +55,7 @@ private:
 
 	vec3 minPos;
 	vec3 maxPos;
+	vec3 mCenter;
 	Material* material;
 };
 
@@ -115,7 +116,7 @@ public:
 
 
 	
-private:
+	private:
 	__device__ bool hit(const Ray& r, const f32 t_min, const f32 t_max, HitRecord& record) override;
 	__device__ AABB calcAABB() override;
 

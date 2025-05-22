@@ -40,33 +40,40 @@ bool Dielectric::scatter(const Ray &ray_in, const HitRecord &record, Color &atte
 
 	const vec3& pos = record.pos;
 	const vec3& normal = record.normal;
-	const vec3 &direction = ray_in.direction();
-	const vec3 normalized_direction = direction.normalize();
+	const vec3 direction = ray_in.direction().normalize();
 
-
-	const f32 cos_between_normal_and_direction = aoba::clamp(dot(normal, normalized_direction), -1.0f, 1.0f);//cos_between_normal_and_direction;
+	const f32 signed_cos_theta = aoba::clamp(dot(normal, direction), -1.0f, 1.0f);//cos_between_normal_and_direction;
+	const f32 cos_theta = fabsf(signed_cos_theta);
+	const f32 sin_theta = sqrt(1.0f - cos_theta * cos_theta + (1e-5));
+	
 
 	//cosの値が負の時は空気中から入射していることになる。
 	//逆に正の場合は媒質中から飛び出そうとしている状況
-	const bool isFromOutside = (cos_between_normal_and_direction < 0);
+	const bool isFromOutside = (signed_cos_theta < 0);
 
 	//相対屈折率
 	const f32 ni_over_nt = (isFromOutside ? 1.0f / refIdx : refIdx);
 
 
-	const vec3& effective_normal = normal * (isFromOutside ? 1 : -1);
-	const f32 effective_cos = cos_between_normal_and_direction * (isFromOutside ? 1 : -1);
+	
+	//本当の意味での法線
+	const vec3 outword_normal = normal * (isFromOutside ? 1 : -1);
 
-	if (vec3 refracted_direction; 
-		canRefract(normalized_direction, effective_normal, effective_cos, ni_over_nt, refracted_direction)
-		&&
-		!(RandomGeneratorGPU::uniform_real() < reflect_probability(abs(cos_between_normal_and_direction), ni_over_nt)))
+	// if (ni_over_nt * sin_theta > 1)
+	// 	printf("%f : ", sin_theta);
+	//全反射もしくは屈折出来るが反射が起きる場合は反射処理
+	if (ni_over_nt * sin_theta > 1 || (RandomGeneratorGPU::uniform_real() < reflect_probability(cos_theta, ni_over_nt)))
 	{
-		ray_scattered = Ray(pos, refracted_direction);
+		const vec3 reflected_ray_direction = reflect(direction, outword_normal);
+		ray_scattered = Ray(pos, reflected_ray_direction);
+		attenuation = Color(0x00FF00);
+		return false;
 	}
+	//屈折する場合
 	else
 	{
-		ray_scattered = Ray(pos, reflect(normalized_direction, normal));
+		const vec3 refracted_ray_direction = -sqrt(1 - ni_over_nt * ni_over_nt * sin_theta * sin_theta) * outword_normal + ni_over_nt * (direction + cos_theta * outword_normal);
+		ray_scattered = Ray(pos, refracted_ray_direction);
 	}
 
 

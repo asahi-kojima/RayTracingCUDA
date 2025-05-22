@@ -37,12 +37,6 @@ bool Node::hit(const Ray &r, const f32 t_min, const f32 t_max, HitRecord &record
 		{
 			return false;
 		}
-
-		HitRecord record_for_confirmation;
-		if (pObject->hit(r, 0, record.t, record_for_confirmation))
-		{
-			record = record_for_confirmation;
-		}
 		
 		return true;
 	}
