@@ -2,54 +2,53 @@
 
 bool AABB::hit(const Ray &ray, const f32 t_min, const f32 t_max, HitRecord &record)
 {
+#if 1
+	const vec3 center = (maxPos + minPos) * 0.5f;
+	const vec3 extention = (maxPos - minPos) * 0.5f;
+	const f32 extention_x = extention[0];
+	const f32 extention_y = extention[1];
+	const f32 extention_z = extention[2];
+	const vec3 vertex_list[4] = {
+		center + vec3(+extention_x, +extention_y, +extention_z),
+		center + vec3(-extention_x, +extention_y, +extention_z),
+		center + vec3(+extention_x, -extention_y, +extention_z),
+		center + vec3(+extention_x, +extention_y, -extention_z)};
+
+	const size_t index_list[4 * 3] = {0,1,2,3,   0,2,3,1,   0,3,1,2};
+
+	f32 current_min_t = MAXFLOAT;
+	vec3 normal;
+	u32 counter = 0;
+	bool isAnyHit = false;
+	for (u32 i = 0; i < 3; i++)
 	{
-		const vec3 center = (maxPos + minPos) * 0.5f;
-		const vec3 extention = (maxPos - minPos) * 0.5f;
-		const f32 x = extention[0];
-		const f32 y = extention[1];
-		const f32 z = extention[2];
-		const vec3 vertex_list[8] = {
-		center + vec3(+x, +y, +z),
-		center + vec3(-x, +y, +z),
-		center + vec3(+x, -y, +z),
-		center + vec3(-x, -y, +z),
-		center + vec3(+x, +y, -z),
-		center + vec3(-x, +y, -z),
-		center + vec3(+x, -y, -z),
-		center + vec3(-x, -y, -z)};
+		const u32 offset = 4 * i;
+		const vec3 positive_origin = vertex_list[index_list[offset + 0]];
+		const vec3 negative_origin = vertex_list[index_list[offset + 1]];
+		const vec3 other_vertex_for_edge1 = vertex_list[index_list[offset + 2]];
+		const vec3 other_vertex_for_edge2 = vertex_list[index_list[offset + 3]];
 
-		const size_t index_list[18] = {3,2,1,    2, 6, 0,   7, 3, 5,   6, 7, 4,   1, 0, 5,   7, 6, 3};
-		const vec3 normal_list[6] = {vec3(0, 0, 1), vec3(1, 0, 0), vec3(-1, 0, 0), vec3(0, 0, -1), vec3(0, 1, 0), vec3(0, -1, 0)};
+		const vec3 p1 = other_vertex_for_edge1 - positive_origin;
+		const vec3 p2 = other_vertex_for_edge2 - positive_origin;
+		const vec3 v0ToO_list[2] = {ray.origin() - positive_origin, ray.origin() - negative_origin};
 
-		f32 current_min_t = MAXFLOAT;
-		vec3 normal;
-		u32 counter = 0;
-		bool isAnyHit = false;
-		for (u32 i = 0; i < 6; i++)
+		const vec3 a0 = -ray.direction();
+		const vec3 a1 = p1;
+		const vec3 a2 = p2;
+
+		const vec3 cross1x2 = vec3::cross(a1, a2);
+		const vec3 cross2x0 = vec3::cross(a2, a0);
+		const vec3 cross0x1 = vec3::cross(a0, a1);
+
+		const f32 det = dot(cross1x2, a0);
+		if (det == 0.0)
 		{
-			const u32 offset = 3 * i;
-			const vec3 vertex0 = vertex_list[index_list[offset + 0]];
-			const vec3 vertex1 = vertex_list[index_list[offset + 1]];
-			const vec3 vertex2 = vertex_list[index_list[offset + 2]];
+			continue;
+		}
 
-			const vec3 p1 = vertex1 - vertex0;
-			const vec3 p2 = vertex2 - vertex0;
-			const vec3 v0ToO = ray.origin() - vertex0;
-
-			const vec3 a0 = -ray.direction();
-			const vec3 a1 = p1;
-			const vec3 a2 = p2;
-
-			const vec3 cross1x2 = vec3::cross(a1, a2);
-			const vec3 cross2x0 = vec3::cross(a2, a0);
-			const vec3 cross0x1 = vec3::cross(a0, a1);
-
-			const f32 det = dot(cross1x2, a0);
-			if (det == 0.0)
-			{
-				continue;
-			}
-
+		for (s32 j = 0; j < 2; j++)
+		{
+			const vec3& v0ToO = v0ToO_list[j]; 
 			const f32 t = dot(cross1x2, v0ToO) / det;
 			const f32 alpha = dot(cross2x0, v0ToO) / det;
 			const f32 beta = dot(cross0x1, v0ToO) / det;
@@ -64,22 +63,25 @@ bool AABB::hit(const Ray &ray, const f32 t_min, const f32 t_max, HitRecord &reco
 			if (t < current_min_t)
 			{
 				current_min_t = t;
-				normal = normal_list[i];
+				normal = vec3(0, 0, 0);
+				normal[i] = 1 - 2 * j;
 			}
-		}
-		if (!isAnyHit)
-		{
-			return false;
-		}
 
-		record.t = current_min_t;	
-		record.pos = ray.pointAt(current_min_t);
-		record.normal = normal;
-		record.material = this->material;
-		return true;
+		}
 	}
+	if (!isAnyHit)
+	{
+		return false;
+	}
+	
+	record.t = current_min_t;	
+	record.pos = ray.pointAt(current_min_t);
+	record.normal = normal;
+	record.material = this->material;
+	return true;
 
 
+#else
 
 
 	//========================================================
@@ -94,8 +96,7 @@ bool AABB::hit(const Ray &ray, const f32 t_min, const f32 t_max, HitRecord &reco
 	u32 min_t1_index = 0;
 	f32 max_t0_value = -MAXFLOAT;
 	f32 min_t1_value = MAXFLOAT;
-	// f32 t0_values_deb[3];
-	// f32 t1_values_deb[3];
+
 	for (u32 i = 0; i < 3; i++)
 	{
 		const f32 inv_direction = 1.0f / direction[i];
@@ -109,8 +110,6 @@ bool AABB::hit(const Ray &ray, const f32 t_min, const f32 t_max, HitRecord &reco
 		}
 
 
-		// t0_values_deb[i] = t0;
-		// t1_values_deb[i] = t1;
 		if (t0 > max_t0_value)
 		{
 			max_t0_value = t0;
@@ -158,48 +157,13 @@ bool AABB::hit(const Ray &ray, const f32 t_min, const f32 t_max, HitRecord &reco
 		}
 	}
 	
-	// //Debug
-	// {
-	// 	auto max_index = 0;
-	// 	auto max_value = abs(pos[0]);
-	// 	for (u32 i =1 ; i < 3;i++)
-	// 	{
-	// 		if (abs(pos[i]) > max_value)
-	// 		{
-	// 			max_value = abs(pos[i]);
-	// 			max_index = i;
-	// 		}
-	// 	}
-	// 	vec3 testNormal(0, 0, 0);
-	// 	testNormal[max_index] = (pos[max_index] > 0 ? 1 : -1);
-	// 	if ((normal - testNormal).lengthSquared() > 1e-3)
-	// 	{
-	// 		if (isRayOriginInThis)
-	// 		printf("(%f, %f, %f) != (%f, %f, %f)\n(%f, %f, %f)\n%d : [%f, %f, %f]\n", 
-	// 			normal[0],normal[1],normal[2],
-	// 			testNormal[0],testNormal[1],testNormal[2], 
-	// 			pos[0], pos[1], pos[2],
-	// 			(isRayOriginInThis?min_t1_index : -max_t0_index - 1),
-	// 			t1_values_deb[0], t1_values_deb[1], t1_values_deb[2]);
-	// 		else
-	// 		printf("(%f, %f, %f) != (%f, %f, %f)\npos(%f, %f, %f)\n%d : [%f, %f, %f]\n  : [%f, %f, %f]\nminPos{%f, %f, %f} - origin{%f, %f, %f} : {%f, %f, %f}\n", 
-	// 			normal[0],normal[1],normal[2],
-	// 			testNormal[0],testNormal[1],testNormal[2], 
-	// 			pos[0], pos[1], pos[2],
-	// 			(isRayOriginInThis?min_t1_index : -max_t0_index - 1),
-	// 			t0_values_deb[0], t0_values_deb[1], t0_values_deb[2],
-	// 			t1_values_deb[0], t1_values_deb[1], t1_values_deb[2],
-	// 		minPos[0],minPos[1],minPos[2], 
-	// 		origin[0], origin[1], origin[2],
-	// 		1.0f / direction[0], 1.0f / direction[1], 1.0f / direction[2]);
-	// 	}	
-	// }
-					
+		
 	record.t = t;	
 	record.pos = pos;
 	record.normal = normal;
 	record.material = this->material;
 	return true;
+#endif
 }
 
 

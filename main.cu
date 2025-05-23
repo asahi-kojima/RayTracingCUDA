@@ -173,7 +173,7 @@ int main()
 
 	camera = Camera(lookFrom, lookAt, vec3(0, 1, 0), 20, f32(resolutionX) / f32(resolutionY), 0.0, 2 * (lookFrom - lookAt).length());
 	engine.setCamera(camera);
-	engine.render(1, 50);
+	engine.render(20, 50);
 
 	std::string s = "./build/result";
 	s += std::to_string(0);

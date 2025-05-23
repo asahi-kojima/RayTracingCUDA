@@ -66,8 +66,6 @@ bool Dielectric::scatter(const Ray &ray_in, const HitRecord &record, Color &atte
 	{
 		const vec3 reflected_ray_direction = reflect(direction, outword_normal);
 		ray_scattered = Ray(pos, reflected_ray_direction);
-		attenuation = Color(0x00FF00);
-		return false;
 	}
 	//屈折する場合
 	else
