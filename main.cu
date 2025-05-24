@@ -35,9 +35,29 @@ int main(int argc, char** argv)
 	//=================================================================
 	std::vector<Hittable *> world;
 
+	const f32 world_scale = 10.0f;
+	const vec3 object_center = vec3::zero();
+	//まずは箱を作る
+	{
+		const f32 extention_x = world_scale / 2;
+		const f32 extention_y = world_scale / 2;
+		const f32 extention_z = world_scale / 2;
+		const vec3 vertex_list[8] = {
+		object_center + vec3(+extention_x, +extention_y, +extention_z),
+		object_center + vec3(-extention_x, +extention_y, +extention_z),
+		object_center + vec3(+extention_x, -extention_y, +extention_z),
+		object_center + vec3(-extention_x, -extention_y, +extention_z),
+		object_center + vec3(+extention_x, +extention_y, -extention_z),
+		object_center + vec3(-extention_x, +extention_y, -extention_z),
+		object_center + vec3(+extention_x, -extention_y, -extention_z),
+		object_center + vec3(-extention_x, -extention_y, -extention_z)};
+
+		
+	}
+
 	constexpr s32 Range = 10;
 	const vec3 center_of_all(0, 0, 0);
-	for (u32 i = 0; i < 4000; i++)
+	for (u32 i = 0; i < 2000; i++)
 	{
 		const f32 max_radius = 0.3;
 
@@ -55,16 +75,34 @@ int main(int argc, char** argv)
 		const vec3 max_pos = vec3(RandomGenerator::uniform_real(),RandomGenerator::uniform_real(),RandomGenerator::uniform_real()) * extension_scale;
 		const vec3 min_pos = vec3(RandomGenerator::uniform_real(),RandomGenerator::uniform_real(),RandomGenerator::uniform_real()) * -extension_scale;
 
-		Material* material = make_material<Metal>(Color(RandomGenerator::uniform_int(0, 0xFFFFFF)));
+		Material* material = make_material<Metal>(make_texture<ConstantTexture>(Color::Bronze));
+		if (RandomGenerator::uniform_real() < 0.3)
+		{
+			material = make_material<Metal>(make_texture<ConstantTexture>(Color::Blue));
+		}
 		world.push_back(make_object<AABB>(center + min_pos, center + max_pos, material));
 	}
 
 	{
 		vec3 center(0,100,0);
-		vec3 extention = vec3(1, 0, 1) * 10000;
-		world.push_back(make_object<AABB>(center - extention, center + extention,make_material<SunLight>(Color::Azure, 1)));
+		vec3 extention = vec3(1, 1, 1) * 10000;
+		world.push_back(make_object<AABB>(center - extention, center + extention,make_material<SunLight>(Color::Azure, 1.0)));
 	}
 
+	for (u32 i = 0; i < 100; i++)
+	{
+		const f32 scale = 4.0f;
+		vec3 vertices[3];
+		for (u32 k = 0; k < 3; k++)
+		{
+			const f32 x = RandomGenerator::signed_uniform_real() * scale;
+			const f32 y = RandomGenerator::signed_uniform_real() * scale;
+			const f32 z = RandomGenerator::signed_uniform_real() * 0.1;
+
+			vertices[k] = vec3(x, y, z);
+		}
+		world.push_back(make_object<Triangle>(vertices[0], vertices[1], vertices[2], make_material<Dielectric>(1.5f)));
+	}
 // 	{
 // 		Material* material = make_material<Dielectric>(1.5f);
 // 		//material = make_material<Lambertian>(Color::Bronze);
@@ -111,8 +149,7 @@ int main(int argc, char** argv)
 	vec3 lookAt(0,0,0);
 	// vec3 lookFrom(0.5,0.2, 1);
 	// vec3 lookFrom(0.9, 0.4, 1);
-	vec3 lookFrom(4.0, 1, 8);
-
+	vec3 lookFrom(0.0, 0, 8);
 	Camera camera = Camera(lookFrom, lookAt, vec3(0, 1, 0), 20, f32(resolutionX) / f32(resolutionY), 0.0, (lookFrom - lookAt).length());
 
 	//=================================================================
