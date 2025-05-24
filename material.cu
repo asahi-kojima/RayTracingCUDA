@@ -10,9 +10,10 @@ bool Lambertian::scatter(const Ray &ray_in, const HitRecord &record, Color &atte
 	const vec3 target = record.pos + record.normal + random_in_unit_sphere();
 	ray_scattered.direction() = target - record.pos;
 	ray_scattered.origin() = record.pos;
-	attenuation = albedo;
+	attenuation = mTexture->color(0, 0, record.pos);
 	return true;
 }
+
 
 //======================================================
 // 金属
@@ -24,7 +25,7 @@ bool Metal::scatter(const Ray &ray_in, const HitRecord &record, Color &attenuati
 	
 	if (dot(ray_scattered.direction(), record.normal) > 0)
 	{
-		attenuation = albedo;
+		attenuation = mTexture->color(0, 0, record.pos);
 		return true;
 	}
 
@@ -54,13 +55,9 @@ bool Dielectric::scatter(const Ray &ray_in, const HitRecord &record, Color &atte
 	//相対屈折率
 	const f32 ni_over_nt = (isFromOutside ? 1.0f / refIdx : refIdx);
 
-
-	
-	//本当の意味での法線
+	//レイに対する外向き法線
 	const vec3 outword_normal = normal * (isFromOutside ? 1 : -1);
 
-	// if (ni_over_nt * sin_theta > 1)
-	// 	printf("%f : ", sin_theta);
 	//全反射もしくは屈折出来るが反射が起きる場合は反射処理
 	if (ni_over_nt * sin_theta > 1 || (RandomGeneratorGPU::uniform_real() < reflect_probability(cos_theta, ni_over_nt)))
 	{

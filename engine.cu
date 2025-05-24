@@ -150,24 +150,12 @@ __device__ Color castRayAndCalcColor(Node* worldNode, const Ray& ray, const u32 
 			else
 			{
 				secondaryInfoByRay.depth = depth;
-				return attenuation; // * resultColor;
+				return attenuation * resultColor;
 			}
 		}
 		else
 		{
-			vec3 direction = current_ray.direction();
-			f32 length2 = direction.lengthSquared();
-			f32 direction_y = direction[1];
-			
-			f32 t = 0.5f * (tanh(direction_y * 3) + 1.0f);
-			//t = tanh(t < 0 ? 0 : (t > 1 ? 1 : t));
-			//printf("%f : ", t);
-			resultColor;// *= (Color(0xFFFFFF) * t + Color(0x444444) * (1.0f - t));
-			
-			secondaryInfoByRay.depth = depth;
-			
-
-			return (hitCounter == 0 ? Color(0x000000) : resultColor);
+			secondaryInfoByRay.depth = depth;	
 			return  Color(0x000000);
 		}
 	}

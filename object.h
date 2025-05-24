@@ -203,9 +203,6 @@ inline Hittable* make_object(Args...args)
 
 
 
-
-
-
 //class Mesh : public Hittable
 //{
 //public:

@@ -25,7 +25,7 @@ __global__ void setup_gpu()
 	}
 }
 
-int main()
+int main(int argc, char** argv)
 {
 	cudaDeviceSetLimit(cudaLimitMallocHeapSize, 1024 * 1024 * 1024);
 	cudaDeviceSetLimit(cudaLimitStackSize, 1024 * 100);
@@ -36,125 +36,82 @@ int main()
 	std::vector<Hittable *> world;
 
 	constexpr s32 Range = 10;
-	for (s32 w = -Range; w <= Range; w+= 1)
+	const vec3 center_of_all(0, 0, 0);
+	for (u32 i = 0; i < 4000; i++)
 	{
-		for (s32 h = -Range; h <= Range; h+=1)
-		{
-			for (s32 z = 2; z <= 15; z++)
-			{
-				f32 which = RandomGenerator::uniform_real();
-				const f32 scale = 1.0f;
-				const vec3 pos = vec3(w , h  , -z) * scale;
+		const f32 max_radius = 0.3;
 
-				Material* material = nullptr;
+		const f32 theta = RandomGenerator::uniform_real() * M_PI;
+		const f32 phi = RandomGenerator::uniform_real() * M_PI * 2;
+		const f32 r = RandomGenerator::uniform_real() * max_radius;
+		const f32 x = r * sin(theta) * cos(phi);
+		const f32 y = r * sin(theta) * sin(phi);
+		const f32 z = r * cos(theta);
 
-				// if (h == 0 && w == 0 && z == 0)
-				// {
-				// 	//material = make_material<GravitationalField>(1.2, pos);
-				// 	//world.push_back(make_object<AABB>(vec3(-0.1, -0.1, -0.1),vec3(0.1, 0.1, 0.1), material));
-				// 	continue;
-				// }
-				// else if (h == 0 && w == 0)
-				// {
-				// 	continue;
-				// }
-				// else if (h == 0 || w == 0)
-				// {
-				// 	continue;
-				// }
-				// // else if (h == 0 && w == 0)
-				// // {
-				// // 	material = make_material<Rutherford>(10.5, pos);
-				// // }
-				// else
-				{
-					
-					material = make_material<Metal>(Color(RandomGenerator::uniform_int(0, 0xFFFFFF)));
-					vec3 diff_x(RandomGenerator::uniform_real(),RandomGenerator::uniform_real(),RandomGenerator::uniform_real());
-					vec3 diff_y(RandomGenerator::uniform_real(),RandomGenerator::uniform_real(),RandomGenerator::uniform_real());
-					f32 diff_scale = 0.1f;
+		const vec3 center = center_of_all + vec3(x, y, z);
 
-					// world.push_back(make_object<AABB>(
-					// 	pos + vec3(-0.1, -0.1, -0.1)*2,
-					// 	pos + vec3(0.1, 0.1, 0.1)*2, 
-					// 	material));
-					world.push_back(make_object<Sphere>(pos,0.2, material));
+		const f32 extension_scale = 0.03f;
 
-					continue;
-				}
-				
-				world.push_back(make_object<Sphere>(pos, 0.1f, material));
-			}
-		}
+		const vec3 max_pos = vec3(RandomGenerator::uniform_real(),RandomGenerator::uniform_real(),RandomGenerator::uniform_real()) * extension_scale;
+		const vec3 min_pos = vec3(RandomGenerator::uniform_real(),RandomGenerator::uniform_real(),RandomGenerator::uniform_real()) * -extension_scale;
+
+		Material* material = make_material<Metal>(Color(RandomGenerator::uniform_int(0, 0xFFFFFF)));
+		world.push_back(make_object<AABB>(center + min_pos, center + max_pos, material));
 	}
 
 	{
-		vec3 center(0,0,2);
-		vec3 extention = vec3::one() * 0.1;
-		//world.push_back(make_object<AABB>(center - extention, center + extention,make_material<Metal>(Color::White)));
-	}
-	// world.push_back(make_object<Sphere>(vec3(1,0, -1), 0.5, make_material<Metal>(Color::Blue)));
-	// world.push_back(make_object<Sphere>(vec3(-1, 0, -1), 0.5, make_material<Metal>(Color(0.8, 0.8, 0.8))));
-	// world.push_back(make_object<Sphere>(vec3(-1, 0, -1), 0.5, make_material<Metal>(Color(0.8, 0.8, 0.8))));
-	//world.push_back(make_object<Sphere>(vec3(0, 0, 0), 1, make_material<Dielectric>(1.5)));
-	{
-		Material* material = make_material<Dielectric>(1.2f);
-		//material = make_material<Lambertian>(Color::Bronze);
-		vec3 center(0,0,0);
-		vec3 extention = vec3::one() * 1;
-#if 1
-		world.push_back(make_object<AABB>(center - extention, center + extention,material));
-#else
-		vec3 v0(+1, +1, +1);
-		vec3 v1(+1, -1, +1);
-		vec3 v2(-1, +1, +1);
-		vec3 v3(-1, -1, +1);
-		vec3 v4(+1, +1, -1);
-		vec3 v5(+1, -1, -1);
-		vec3 v6(-1, +1, -1);
-		vec3 v7(-1, -1, -1);
-		world.push_back(make_object<Triangle>(v3, v0, v2 , material));
-		world.push_back(make_object<Triangle>(v3, v1, v0 , material));
-
-		world.push_back(make_object<Triangle>(v1, v4, v0 , material));
-		world.push_back(make_object<Triangle>(v1, v5, v4 , material));
-
-		world.push_back(make_object<Triangle>(v7, v2, v6 , material));
-		world.push_back(make_object<Triangle>(v7, v3, v2 , material));
-
-		world.push_back(make_object<Triangle>(v5, v6, v4 , material));
-		world.push_back(make_object<Triangle>(v5, v7, v6 , material));
-
-		world.push_back(make_object<Triangle>(v2, v4, v6 , material));
-		world.push_back(make_object<Triangle>(v2, v0, v4 , material));
-
-		world.push_back(make_object<Triangle>(v7, v1, v3 , material));
-		world.push_back(make_object<Triangle>(v7, v5, v1 , material));
-#endif
-	}
-	{
-		vec3 v0(0, 0, 0);
-		vec3 v1(0.1, 0.1, 0);
-		vec3 v2(0, 0.1, 0);
-		//world.push_back(make_object<Triangle>(v0, v1, v2,make_material<Dielectric>(1.5)));
+		vec3 center(0,100,0);
+		vec3 extention = vec3(1, 0, 1) * 10000;
+		world.push_back(make_object<AABB>(center - extention, center + extention,make_material<SunLight>(Color::Azure, 1)));
 	}
 
-	// vec3 center(5, 0, 5);
-	// vec3 extention(1,1,1);
-	// world.push_back(make_object<AABB>(center - extention, center + extention,make_material<SunLight>(Color::White, 30)));
+// 	{
+// 		Material* material = make_material<Dielectric>(1.5f);
+// 		//material = make_material<Lambertian>(Color::Bronze);
+// 		vec3 center(0,0,0);
+// 		vec3 extention = vec3::one() * 1;
+// #if 1
+// 		world.push_back(make_object<AABB>(center - extention, center + extention,material));
+// #else
+// 		vec3 v0(+1, +1, +1);
+// 		vec3 v1(+1, -1, +1);
+// 		vec3 v2(-1, +1, +1);
+// 		vec3 v3(-1, -1, +1);
+// 		vec3 v4(+1, +1, -1);
+// 		vec3 v5(+1, -1, -1);
+// 		vec3 v6(-1, +1, -1);
+// 		vec3 v7(-1, -1, -1);
+// 		world.push_back(make_object<Triangle>(v3, v0, v2 , material));
+// 		world.push_back(make_object<Triangle>(v3, v1, v0 , material));
 
+// 		world.push_back(make_object<Triangle>(v1, v4, v0 , material));
+// 		world.push_back(make_object<Triangle>(v1, v5, v4 , material));
+
+// 		world.push_back(make_object<Triangle>(v7, v2, v6 , material));
+// 		world.push_back(make_object<Triangle>(v7, v3, v2 , material));
+
+// 		world.push_back(make_object<Triangle>(v5, v6, v4 , material));
+// 		world.push_back(make_object<Triangle>(v5, v7, v6 , material));
+
+// 		world.push_back(make_object<Triangle>(v2, v4, v6 , material));
+// 		world.push_back(make_object<Triangle>(v2, v0, v4 , material));
+
+// 		world.push_back(make_object<Triangle>(v7, v1, v3 , material));
+// 		world.push_back(make_object<Triangle>(v7, v5, v1 , material));
+// #endif
+// 	}
 
 	//=================================================================
 	// カメラの準備
 	//=================================================================
-	constexpr f32 BaseResolution = 1.0f * 2.0f / 4;
+	constexpr f32 BaseResolution = 1.0f * 2.0f / 2;
 	const u32 resolutionX = static_cast<u32>(1920 * BaseResolution);
 	const u32 resolutionY = static_cast<u32>(1080 * BaseResolution);
 
 	vec3 lookAt(0,0,0);
 	// vec3 lookFrom(0.5,0.2, 1);
 	// vec3 lookFrom(0.9, 0.4, 1);
-	vec3 lookFrom(8.0, 0.4, 8);
+	vec3 lookFrom(4.0, 1, 8);
 
 	Camera camera = Camera(lookFrom, lookAt, vec3(0, 1, 0), 20, f32(resolutionX) / f32(resolutionY), 0.0, (lookFrom - lookAt).length());
 
@@ -173,7 +130,7 @@ int main()
 
 	camera = Camera(lookFrom, lookAt, vec3(0, 1, 0), 20, f32(resolutionX) / f32(resolutionY), 0.0, 2 * (lookFrom - lookAt).length());
 	engine.setCamera(camera);
-	engine.render(20, 50);
+	engine.render(30, 50);
 
 	std::string s = "./build/result";
 	s += std::to_string(0);

@@ -19,12 +19,12 @@ public:
 class Lambertian : public Material
 {
 public:
-	__device__ Lambertian(Color albedo) : albedo(albedo) {}
+	__device__ Lambertian(Texture* texture) : mTexture(texture) {}
+	__device__ Lambertian(Color color) : mTexture(new ConstantTexture(color)) {}
 	__device__ virtual bool scatter(const Ray& ray_in, const HitRecord& record, Color& attenuation, Ray& ray_scattered) override;
 
-
 private:
-	Color albedo;
+	Texture* mTexture;
 };
 
 
@@ -32,13 +32,13 @@ private:
 class Metal : public Material
 {
 public:
-	__device__ Metal(const Color& albedo, f32 fuzz = 0.0f) : albedo(albedo), fuzz(fuzz <= 1.0f ? fuzz : 1) {}
+	__device__ Metal(Texture* texture, f32 fuzz = 0.0f) : mTexture(texture), fuzz(fuzz <= 1.0f ? fuzz : 1) {}
+	__device__ Metal(const Color& albedo, f32 fuzz = 0.0f) : mTexture(new ConstantTexture(albedo)), fuzz(fuzz <= 1.0f ? fuzz : 1) {}
 
 private:
 	__device__ virtual bool scatter(const Ray& ray_in, const HitRecord& record, Color& attenuation, Ray& ray_scattered) override;
 
-
-	Color albedo;
+	Texture* mTexture;
 	f32 fuzz;
 };
 
