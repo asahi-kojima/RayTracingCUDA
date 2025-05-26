@@ -57,6 +57,19 @@ private:
 	Color mGlassColor;
 };
 
+class BlackBody : public Material
+{
+public:
+	__device__ BlackBody(){}
+
+private:
+	__device__ virtual bool scatter(const Ray& ray_in, const HitRecord& record, Color& attenuation, Ray& ray_scattered) override
+	{
+		attenuation = Color(0x000000);
+		return false;
+	}
+};
+
 class Retroreflective : public Material
 {
 public:

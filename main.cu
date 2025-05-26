@@ -35,7 +35,7 @@ int main(int argc, char** argv)
 	//=================================================================
 	std::vector<Hittable *> world;
 
-	const f32 world_scale = 10.0f;
+	const f32 world_scale = 20.0f;
 	const f32 world_scale_x = world_scale;
 	const f32 world_scale_y = world_scale;
 	const f32 world_scale_z = world_scale;
@@ -72,20 +72,22 @@ int main(int argc, char** argv)
 			const vec3& v0 = vertex_list[index_list[offset + 0]];
 			const vec3& v1 = vertex_list[index_list[offset + 1]];
 			const vec3& v2 = vertex_list[index_list[offset + 2]];
-			world.push_back(make_object<Triangle>(v0, v1, v2, make_material<Lambertian>(make_texture<CheckerTexture>(Color(0xAAAAAA), Color::White, 0.5)), false));
+			world.push_back(make_object<Triangle>(v0, v1, v2, make_material<Lambertian>(make_texture<CheckerTexture>(Color(0xCCCCCC), Color::White, 0.5)), false));
 		}
 	}
 	//水面を作る
 	{
-		const s32 PolygonNum = 20;
+		const s32 PolygonNum = 70;
 		const f32 diff_x = world_scale_x / PolygonNum;
 		const f32 diff_z = world_scale_z / PolygonNum;
 
-		vec3 displacement[4] = {
-			vec3(+diff_x, 0, +diff_z),
+		vec3 displacement[4] = 
+		{
+			vec3(0, 0, 0),
 			vec3(0, 0, +diff_z),
 			vec3(+diff_x, 0, 0),
-			vec3(0, 0, 0)};
+			vec3(+diff_x, 0, +diff_z)
+		};
 
 		for (s32 ix = 0; ix < PolygonNum; ix++)
 		{
@@ -99,27 +101,26 @@ int main(int argc, char** argv)
 				{
 					const f32 x = v[0];
 					const f32 z = v[2];
-					v[1] = sin((x *cos(z)+ 5 * z) * 2 * M_PI) * 0.3;
-					//v[1] = sin(x);
+					v[1] = sin((x *cos(z)+ 5 * z) * 2 * M_PI) * 0.1;
 				};
 				vec3 v[4] = 
 				{
 					origin + displacement[0],origin + displacement[1],origin + displacement[2],origin + displacement[3]
 				};
-				for (u32 i = 0; i < 2; i++)
+				for (u32 jx = 0; jx < 2; jx++)
 				{
-					for (u32 j = 0; j < 2; j++)
+					for (u32 jz = 0; jz < 2; jz++)
 					{
-						// if (ix + i == 0 || iz + j == 0 || ix + i == PolygonNum || iz + j == PolygonNum)
-						// 	continue;
-						setHeightField(v[2 * i + j]);
+						if ((ix == 0 && jx == 0) || (ix == PolygonNum - 1 && jx == 1) || (iz == 0 && jz == 0) || (iz == PolygonNum - 1 && jz == 1))
+							continue;
+						setHeightField(v[2 * jx + jz]);
 					}
 				}
 				Color color = Color::Azure;
 				Material* material = make_material<Dielectric>(1.3, color);
 				// Material* material = make_material<Dielectric>(1.3, Color(RandomGenerator::uniform_int(0, 0xFFFFFF)));
-				world.push_back(make_object<Triangle>(v[3], v[0], v[2], material));
-				world.push_back(make_object<Triangle>(v[3], v[1], v[0], material));
+				world.push_back(make_object<Triangle>(v[0], v[3], v[2], material));
+				world.push_back(make_object<Triangle>(v[0], v[1], v[3], material));
 			}
 		}
 	}
@@ -127,7 +128,7 @@ int main(int argc, char** argv)
 	//オブジェクト
 	{
 		const s32 objectNumPerEdge = 10;
-		const f32 objectRange = world_scale * 0.8;
+		const f32 objectRange = world_scale * 0.9;
 		const f32 distanceBetweenObjects = objectRange / objectNumPerEdge;
 		const f32 objectExtentionScale = distanceBetweenObjects * 0.2;
 		const vec3 startingPoint(-objectRange / 2, -1, -objectRange / 2);
@@ -139,10 +140,10 @@ int main(int argc, char** argv)
 				const vec3 extention(objectExtentionScale, objectExtentionScale, objectExtentionScale);
 
 				Material* material = make_material<Metal>(make_texture<ConstantTexture>(Color::Bronze));
-				// if (RandomGenerator::uniform_real() < 0.3)
-				// {
-				// 	material = make_material<Metal>(make_texture<ConstantTexture>(Color::Blue));
-				// }
+				if ((i + j) % 2 == 0)
+				{
+					material = make_material<Metal>(make_texture<ConstantTexture>(Color::Blue));
+				}
 				world.push_back(make_object<AABB>(center - extention, center + extention, material));
 
 			}
@@ -168,7 +169,7 @@ int main(int argc, char** argv)
 	// vec3 lookFrom(0.5,0.2, 1);
 	// vec3 lookFrom(0.9, 0.4, 1);
 	vec3 lookFrom(1.0, 5, 3.0);
-	lookFrom *= (10 / lookFrom.length());
+	lookFrom *= (20 / lookFrom.length());
 	Camera camera = Camera(lookFrom, lookAt, vec3(0, 1, 0), 20, f32(resolutionX) / f32(resolutionY), 0.0, (lookFrom - lookAt).length());
 
 	//=================================================================
@@ -186,7 +187,7 @@ int main(int argc, char** argv)
 
 	camera = Camera(lookFrom, lookAt, vec3(0, 1, 0), 20, f32(resolutionX) / f32(resolutionY), 0.0, 2 * (lookFrom - lookAt).length());
 	engine.setCamera(camera);
-	engine.render(300, 50);
+	engine.render(30, 50);
 
 	std::string s = "./build/result";
 	s += std::to_string(0);
