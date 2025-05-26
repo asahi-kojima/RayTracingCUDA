@@ -46,17 +46,15 @@ private:
 class Dielectric : public Material
 {
 public:
-	__device__ Dielectric(float ref) : refIdx(ref) {}
+	__device__ Dielectric(f32 ref, Color color = Color(0xFFFFFF)) : refIdx(ref), mGlassColor(color) {}
 
 private:
 	__device__ virtual bool scatter(const Ray& ray_in, const HitRecord& record, Color& attenuation, Ray& ray_scattered) override;
-
-	__device__ static bool canRefract(const vec3& in_direction, const vec3& normal, f32 cos_between_normal_and_direction , f32 niOverNt, vec3& refract_direction);
-
 	__device__ static f32 reflect_probability(float cosine, float refIdx);
 
 
 	f32 refIdx;
+	Color mGlassColor;
 };
 
 class Retroreflective : public Material

@@ -36,120 +36,139 @@ int main(int argc, char** argv)
 	std::vector<Hittable *> world;
 
 	const f32 world_scale = 10.0f;
-	const vec3 object_center = vec3::zero();
+	const f32 world_scale_x = world_scale;
+	const f32 world_scale_y = world_scale;
+	const f32 world_scale_z = world_scale;
 	//まずは箱を作る
 	{
-		const f32 extention_x = world_scale / 2;
-		const f32 extention_y = world_scale / 2;
-		const f32 extention_z = world_scale / 2;
+		const f32 extention_x = world_scale_x / 2;
+		const f32 extention_y = world_scale_y / 2;
+		const f32 extention_z = world_scale_z / 2;
 		const vec3 vertex_list[8] = {
-		object_center + vec3(+extention_x, +extention_y, +extention_z),
-		object_center + vec3(-extention_x, +extention_y, +extention_z),
-		object_center + vec3(+extention_x, -extention_y, +extention_z),
-		object_center + vec3(-extention_x, -extention_y, +extention_z),
-		object_center + vec3(+extention_x, +extention_y, -extention_z),
-		object_center + vec3(-extention_x, +extention_y, -extention_z),
-		object_center + vec3(+extention_x, -extention_y, -extention_z),
-		object_center + vec3(-extention_x, -extention_y, -extention_z)};
+		vec3(+extention_x, +extention_y, +extention_z) - vec3(0, extention_y, 0),
+		vec3(-extention_x, +extention_y, +extention_z) - vec3(0, extention_y, 0),
+		vec3(+extention_x, -extention_y, +extention_z) - vec3(0, extention_y, 0),
+		vec3(-extention_x, -extention_y, +extention_z) - vec3(0, extention_y, 0),
+		vec3(+extention_x, +extention_y, -extention_z) - vec3(0, extention_y, 0),
+		vec3(-extention_x, +extention_y, -extention_z) - vec3(0, extention_y, 0),
+		vec3(+extention_x, -extention_y, -extention_z) - vec3(0, extention_y, 0),
+		vec3(-extention_x, -extention_y, -extention_z) - vec3(0, extention_y, 0)};
 
+		const size_t index_list[5 * 2 * 3] = {
+			1,0,3,
+			0,2,3,
+			0,4,2,
+			4,6,2,
+			5,1,7,
+			1,3,7,
+			4,5,6,
+			5,7,6,
+			3,2,7,
+			2,6,7};
 		
-	}
-
-	constexpr s32 Range = 10;
-	const vec3 center_of_all(0, 0, 0);
-	for (u32 i = 0; i < 2000; i++)
-	{
-		const f32 max_radius = 0.3;
-
-		const f32 theta = RandomGenerator::uniform_real() * M_PI;
-		const f32 phi = RandomGenerator::uniform_real() * M_PI * 2;
-		const f32 r = RandomGenerator::uniform_real() * max_radius;
-		const f32 x = r * sin(theta) * cos(phi);
-		const f32 y = r * sin(theta) * sin(phi);
-		const f32 z = r * cos(theta);
-
-		const vec3 center = center_of_all + vec3(x, y, z);
-
-		const f32 extension_scale = 0.03f;
-
-		const vec3 max_pos = vec3(RandomGenerator::uniform_real(),RandomGenerator::uniform_real(),RandomGenerator::uniform_real()) * extension_scale;
-		const vec3 min_pos = vec3(RandomGenerator::uniform_real(),RandomGenerator::uniform_real(),RandomGenerator::uniform_real()) * -extension_scale;
-
-		Material* material = make_material<Metal>(make_texture<ConstantTexture>(Color::Bronze));
-		if (RandomGenerator::uniform_real() < 0.3)
+		for (s32 i = 0; i < 10; i++)
 		{
-			material = make_material<Metal>(make_texture<ConstantTexture>(Color::Blue));
+			const s32 offset = 3 * i;
+			const vec3& v0 = vertex_list[index_list[offset + 0]];
+			const vec3& v1 = vertex_list[index_list[offset + 1]];
+			const vec3& v2 = vertex_list[index_list[offset + 2]];
+			world.push_back(make_object<Triangle>(v0, v1, v2, make_material<Lambertian>(make_texture<CheckerTexture>(Color(0xAAAAAA), Color::White, 0.5)), false));
 		}
-		world.push_back(make_object<AABB>(center + min_pos, center + max_pos, material));
+	}
+	//水面を作る
+	{
+		const s32 PolygonNum = 20;
+		const f32 diff_x = world_scale_x / PolygonNum;
+		const f32 diff_z = world_scale_z / PolygonNum;
+
+		vec3 displacement[4] = {
+			vec3(+diff_x, 0, +diff_z),
+			vec3(0, 0, +diff_z),
+			vec3(+diff_x, 0, 0),
+			vec3(0, 0, 0)};
+
+		for (s32 ix = 0; ix < PolygonNum; ix++)
+		{
+			for (s32 iz = 0; iz < PolygonNum; iz++)
+			{
+				const f32 offset_x = ix * diff_x - world_scale_x / 2;
+				const f32 offset_z = iz * diff_z - world_scale_z / 2;
+				const vec3 origin(offset_x, 0, offset_z);
+				
+				auto setHeightField = [](vec3& v) -> void 
+				{
+					const f32 x = v[0];
+					const f32 z = v[2];
+					v[1] = sin((x *cos(z)+ 5 * z) * 2 * M_PI) * 0.3;
+					//v[1] = sin(x);
+				};
+				vec3 v[4] = 
+				{
+					origin + displacement[0],origin + displacement[1],origin + displacement[2],origin + displacement[3]
+				};
+				for (u32 i = 0; i < 2; i++)
+				{
+					for (u32 j = 0; j < 2; j++)
+					{
+						// if (ix + i == 0 || iz + j == 0 || ix + i == PolygonNum || iz + j == PolygonNum)
+						// 	continue;
+						setHeightField(v[2 * i + j]);
+					}
+				}
+				Color color = Color::Azure;
+				Material* material = make_material<Dielectric>(1.3, color);
+				// Material* material = make_material<Dielectric>(1.3, Color(RandomGenerator::uniform_int(0, 0xFFFFFF)));
+				world.push_back(make_object<Triangle>(v[3], v[0], v[2], material));
+				world.push_back(make_object<Triangle>(v[3], v[1], v[0], material));
+			}
+		}
 	}
 
+	//オブジェクト
+	{
+		const s32 objectNumPerEdge = 10;
+		const f32 objectRange = world_scale * 0.8;
+		const f32 distanceBetweenObjects = objectRange / objectNumPerEdge;
+		const f32 objectExtentionScale = distanceBetweenObjects * 0.2;
+		const vec3 startingPoint(-objectRange / 2, -1, -objectRange / 2);
+		for (u32 i = 0; i < objectNumPerEdge; i++)
+		{
+			for (u32 j = 0; j < objectNumPerEdge; j++)
+			{
+				const vec3 center = startingPoint + vec3(distanceBetweenObjects * i, 0, distanceBetweenObjects * j);
+				const vec3 extention(objectExtentionScale, objectExtentionScale, objectExtentionScale);
+
+				Material* material = make_material<Metal>(make_texture<ConstantTexture>(Color::Bronze));
+				// if (RandomGenerator::uniform_real() < 0.3)
+				// {
+				// 	material = make_material<Metal>(make_texture<ConstantTexture>(Color::Blue));
+				// }
+				world.push_back(make_object<AABB>(center - extention, center + extention, material));
+
+			}
+		}
+	}
+
+	//照明
 	{
 		vec3 center(0,100,0);
 		vec3 extention = vec3(1, 1, 1) * 10000;
-		world.push_back(make_object<AABB>(center - extention, center + extention,make_material<SunLight>(Color::Azure, 1.0)));
+		world.push_back(make_object<AABB>(center - extention, center + extention,make_material<SunLight>(Color::White, 1.0)));
 	}
 
-	for (u32 i = 0; i < 100; i++)
-	{
-		const f32 scale = 4.0f;
-		vec3 vertices[3];
-		for (u32 k = 0; k < 3; k++)
-		{
-			const f32 x = RandomGenerator::signed_uniform_real() * scale;
-			const f32 y = RandomGenerator::signed_uniform_real() * scale;
-			const f32 z = RandomGenerator::signed_uniform_real() * 0.1;
-
-			vertices[k] = vec3(x, y, z);
-		}
-		world.push_back(make_object<Triangle>(vertices[0], vertices[1], vertices[2], make_material<Dielectric>(1.5f)));
-	}
-// 	{
-// 		Material* material = make_material<Dielectric>(1.5f);
-// 		//material = make_material<Lambertian>(Color::Bronze);
-// 		vec3 center(0,0,0);
-// 		vec3 extention = vec3::one() * 1;
-// #if 1
-// 		world.push_back(make_object<AABB>(center - extention, center + extention,material));
-// #else
-// 		vec3 v0(+1, +1, +1);
-// 		vec3 v1(+1, -1, +1);
-// 		vec3 v2(-1, +1, +1);
-// 		vec3 v3(-1, -1, +1);
-// 		vec3 v4(+1, +1, -1);
-// 		vec3 v5(+1, -1, -1);
-// 		vec3 v6(-1, +1, -1);
-// 		vec3 v7(-1, -1, -1);
-// 		world.push_back(make_object<Triangle>(v3, v0, v2 , material));
-// 		world.push_back(make_object<Triangle>(v3, v1, v0 , material));
-
-// 		world.push_back(make_object<Triangle>(v1, v4, v0 , material));
-// 		world.push_back(make_object<Triangle>(v1, v5, v4 , material));
-
-// 		world.push_back(make_object<Triangle>(v7, v2, v6 , material));
-// 		world.push_back(make_object<Triangle>(v7, v3, v2 , material));
-
-// 		world.push_back(make_object<Triangle>(v5, v6, v4 , material));
-// 		world.push_back(make_object<Triangle>(v5, v7, v6 , material));
-
-// 		world.push_back(make_object<Triangle>(v2, v4, v6 , material));
-// 		world.push_back(make_object<Triangle>(v2, v0, v4 , material));
-
-// 		world.push_back(make_object<Triangle>(v7, v1, v3 , material));
-// 		world.push_back(make_object<Triangle>(v7, v5, v1 , material));
-// #endif
-// 	}
 
 	//=================================================================
 	// カメラの準備
 	//=================================================================
-	constexpr f32 BaseResolution = 1.0f * 2.0f / 2;
+	constexpr f32 BaseResolution = 1.0f * 2.0f / 1;
 	const u32 resolutionX = static_cast<u32>(1920 * BaseResolution);
 	const u32 resolutionY = static_cast<u32>(1080 * BaseResolution);
 
 	vec3 lookAt(0,0,0);
 	// vec3 lookFrom(0.5,0.2, 1);
 	// vec3 lookFrom(0.9, 0.4, 1);
-	vec3 lookFrom(0.0, 0, 8);
+	vec3 lookFrom(1.0, 5, 3.0);
+	lookFrom *= (10 / lookFrom.length());
 	Camera camera = Camera(lookFrom, lookAt, vec3(0, 1, 0), 20, f32(resolutionX) / f32(resolutionY), 0.0, (lookFrom - lookAt).length());
 
 	//=================================================================
@@ -167,7 +186,7 @@ int main(int argc, char** argv)
 
 	camera = Camera(lookFrom, lookAt, vec3(0, 1, 0), 20, f32(resolutionX) / f32(resolutionY), 0.0, 2 * (lookFrom - lookAt).length());
 	engine.setCamera(camera);
-	engine.render(30, 50);
+	engine.render(300, 50);
 
 	std::string s = "./build/result";
 	s += std::to_string(0);

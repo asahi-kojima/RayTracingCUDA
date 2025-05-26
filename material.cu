@@ -37,7 +37,7 @@ bool Metal::scatter(const Ray &ray_in, const HitRecord &record, Color &attenuati
 //======================================================
 bool Dielectric::scatter(const Ray &ray_in, const HitRecord &record, Color &attenuation, Ray &ray_scattered)
 {
-	attenuation = Color(0xFFFFFF);
+	attenuation = mGlassColor;
 
 	const vec3& pos = record.pos;
 	const vec3& normal = record.normal;
@@ -73,21 +73,6 @@ bool Dielectric::scatter(const Ray &ray_in, const HitRecord &record, Color &atte
 
 
 	return true;
-}
-
-bool Dielectric::canRefract(const vec3& normalized_in_direction, const vec3& normal,f32 cos_between_normal_and_direction, f32 ni_Over_Nt, vec3& refract_direction)
-{
-	f32 cos_refraction_angle_2 = 1.0f - ni_Over_Nt * ni_Over_Nt * (1.0f - cos_between_normal_and_direction * cos_between_normal_and_direction);
-
-	if (cos_refraction_angle_2 > 0)
-	{
-		refract_direction = ni_Over_Nt * (normalized_in_direction - cos_between_normal_and_direction * normal) - normal * sqrtf(cos_refraction_angle_2);
-		return true;
-	}
-	else
-	{
-		return false;
-	}
 }
 
 f32 Dielectric::reflect_probability(f32 cosine, f32 refIdx)
