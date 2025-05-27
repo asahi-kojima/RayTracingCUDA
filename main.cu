@@ -101,7 +101,7 @@ int main(int argc, char** argv)
 				{
 					const f32 x = v[0];
 					const f32 z = v[2];
-					v[1] = sin((x *cos(z)+ 5 * z) * 2 * M_PI) * 0.3;
+					v[1] = sin((x *cos(z)+ 5 * z) * 2 * M_PI) * 2.3;
 				};
 				vec3 v[4] = 
 				{
