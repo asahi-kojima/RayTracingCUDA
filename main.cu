@@ -72,12 +72,12 @@ int main(int argc, char** argv)
 			const vec3& v0 = vertex_list[index_list[offset + 0]];
 			const vec3& v1 = vertex_list[index_list[offset + 1]];
 			const vec3& v2 = vertex_list[index_list[offset + 2]];
-			world.push_back(make_object<Triangle>(v0, v1, v2, make_material<Lambertian>(make_texture<CheckerTexture>(Color(0xCCCCCC), Color::White, 0.5)), false));
+			world.push_back(make_object<Triangle>(v0, v1, v2, make_material<Metal>(make_texture<CheckerTexture>(Color(0xCCCCCC), Color::White, 0.5)), false));
 		}
 	}
 	//水面を作る
 	{
-		const s32 PolygonNum = 70;
+		const s32 PolygonNum = 20;
 		const f32 diff_x = world_scale_x / PolygonNum;
 		const f32 diff_z = world_scale_z / PolygonNum;
 
@@ -101,7 +101,7 @@ int main(int argc, char** argv)
 				{
 					const f32 x = v[0];
 					const f32 z = v[2];
-					v[1] = sin((x *cos(z)+ 5 * z) * 2 * M_PI) * 0.1;
+					v[1] = sin((x *cos(z)+ 5 * z) * 2 * M_PI) * 0.3;
 				};
 				vec3 v[4] = 
 				{
@@ -118,7 +118,7 @@ int main(int argc, char** argv)
 				}
 				Color color = Color::Azure;
 				Material* material = make_material<Dielectric>(1.3, color);
-				// Material* material = make_material<Dielectric>(1.3, Color(RandomGenerator::uniform_int(0, 0xFFFFFF)));
+				material = make_material<Dielectric>(1.3, Color(RandomGenerator::uniform_int(0, 0xFFFFFF)));
 				world.push_back(make_object<Triangle>(v[0], v[3], v[2], material));
 				world.push_back(make_object<Triangle>(v[0], v[1], v[3], material));
 			}
@@ -139,11 +139,11 @@ int main(int argc, char** argv)
 				const vec3 center = startingPoint + vec3(distanceBetweenObjects * i, 0, distanceBetweenObjects * j);
 				const vec3 extention(objectExtentionScale, objectExtentionScale, objectExtentionScale);
 
-				Material* material = make_material<Metal>(make_texture<ConstantTexture>(Color::Bronze));
-				if ((i + j) % 2 == 0)
-				{
-					material = make_material<Metal>(make_texture<ConstantTexture>(Color::Blue));
-				}
+				Material* material = make_material<Metal>(make_texture<ConstantTexture>(Color::White));
+				// if ((i + j) % 2 == 0)
+				// {
+				// 	material = make_material<Metal>(make_texture<ConstantTexture>(Color::Blue));
+				// }
 				world.push_back(make_object<AABB>(center - extention, center + extention, material));
 
 			}
