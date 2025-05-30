@@ -6,19 +6,23 @@
 
 f32& vec3::operator[](size_t i)
 {
+#ifdef DEBUG
 	if (i >= 3 || i < 0)
 	{
 		assert(0);
 	}
+#endif
 	return mElements[i];
 }
 
 f32 vec3::operator[](size_t i) const
 {
+#ifdef DEBUG
 	if (i >= 3 || i < 0)
 	{
 		assert(0);
 	}
+#endif
 	return mElements[i];
 }
 
@@ -179,13 +183,13 @@ f32 vec3::lengthSquared(const vec3& v)
 
 vec3 vec3::cross(const vec3& v0, const vec3& v1)
 {
-	const f32 v0_x = v0.getX();
-	const f32 v0_y = v0.getY();
-	const f32 v0_z = v0.getZ();
+	const f32 v0_x = v0.x();
+	const f32 v0_y = v0.y();
+	const f32 v0_z = v0.z();
 
-	const f32 v1_x = v1.getX();
-	const f32 v1_y = v1.getY();
-	const f32 v1_z = v1.getZ();
+	const f32 v1_x = v1.x();
+	const f32 v1_y = v1.y();
+	const f32 v1_z = v1.z();
 
 	const f32 v_x = v0_y * v1_z - v0_z * v1_y;
 	const f32 v_y = v0_z * v1_x - v0_x * v1_z;
@@ -193,32 +197,23 @@ vec3 vec3::cross(const vec3& v0, const vec3& v1)
 	return vec3(v_x, v_y, v_z);
 }
 
-void vec3::print() const
+void vec3::print_debug() const
 {
 	printf("vector = (%f, %f, %f)\n", mElements[0], mElements[1], mElements[2]);
 }
 
-s32 vec3::maxElementIndex() const
+
+vec3 vec3::generateRandomUnitVector()
 {
-	f32 x = abs(mElements[0]);
-	f32 y = abs(mElements[1]);
-	f32 z = abs(mElements[2]);
-
-	if (x > y && x > z)
-	{
-		return ((mElements[0]) > 0 ? 1 : -1);
-	}
-	else if (y > z)
-	{
-		return ((mElements[1]) > 0 ? 1 : -1) * 2;
-	}
-	return  ((mElements[2]) > 0 ? 1 : -1) * 3;
-}
-
-
-vec3 vec3::signed_uniform_real_vector()
-{
-	return vec3(RandomGenerator::signed_uniform_real(), RandomGenerator::signed_uniform_real(), RandomGenerator::signed_uniform_real());
+#ifdef __CUDA_ARCH__
+	const f32 phi = 2 * M_PI * RandomGeneratorGPU::uniform_real();
+	const f32 theta = M_PI * RandomGeneratorGPU::uniform_real();
+#else
+	const f32 phi = 2 * M_PI * RandomGenerator::uniform_real();
+	const f32 theta = M_PI * RandomGenerator::uniform_real();
+#endif
+	const f32 sin0 = sin(theta);
+	return vec3(cos(phi) * sin0, sin(phi) * sin0, cos(theta));
 }
 
 //=================================================
@@ -240,13 +235,13 @@ vec3 normalize(const vec3& v)
 
 vec3 cross(const vec3& v0, const vec3& v1)
 {
-	const f32 v0_x = v0.getX();
-	const f32 v0_y = v0.getY();
-	const f32 v0_z = v0.getZ();
+	const f32 v0_x = v0.x();
+	const f32 v0_y = v0.y();
+	const f32 v0_z = v0.z();
 
-	const f32 v1_x = v1.getX();
-	const f32 v1_y = v1.getY();
-	const f32 v1_z = v1.getZ();
+	const f32 v1_x = v1.x();
+	const f32 v1_y = v1.y();
+	const f32 v1_z = v1.z();
 
 	const f32 v_x = v0_y * v1_z - v0_z * v1_y;
 	const f32 v_y = v0_z * v1_x - v0_x * v1_z;
@@ -256,13 +251,13 @@ vec3 cross(const vec3& v0, const vec3& v1)
 
 f32 dot(const vec3& v0, const vec3& v1)
 {
-	const f32 v0_x = v0.getX();
-	const f32 v0_y = v0.getY();
-	const f32 v0_z = v0.getZ();
+	const f32 v0_x = v0.x();
+	const f32 v0_y = v0.y();
+	const f32 v0_z = v0.z();
 
-	const f32 v1_x = v1.getX();
-	const f32 v1_y = v1.getY();
-	const f32 v1_z = v1.getZ();
+	const f32 v1_x = v1.x();
+	const f32 v1_y = v1.y();
+	const f32 v1_z = v1.z();
 
 	return v0_x * v1_x + v0_y * v1_y + v0_z * v1_z;
 }

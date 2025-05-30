@@ -15,10 +15,10 @@ public:
 
 	__device__ __host__  vec3 pointAt(const f32 t) const { return mOrigin + mDirection * t; }
 
-	__device__ void print() const
+	__device__ void print_debug() const
 	{
-		mOrigin.print();
-		mDirection.print();
+		mOrigin.print_debug();
+		mDirection.print_debug();
 	}
 
 private:

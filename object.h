@@ -5,8 +5,6 @@
 #include "hittable.h"
 #include "util.h"
 
-//#define testMin(a, b) (a < b ? a : b)
-//#define testMax(a, b) (a > b ? a : b)
 
 class AABB : public Hittable
 {
@@ -22,15 +20,15 @@ public:
 	{
 		vec3 minPos;
 		{
-			minPos.setX(fminf(lhs.minPos.getX(), rhs.minPos.getX()));
-			minPos.setY(fminf(lhs.minPos.getY(), rhs.minPos.getY()));
-			minPos.setZ(fminf(lhs.minPos.getZ(), rhs.minPos.getZ()));
+			minPos.x() = fminf(lhs.minPos.x(), rhs.minPos.x());
+			minPos.y() = fminf(lhs.minPos.y(), rhs.minPos.y());
+			minPos.z() = fminf(lhs.minPos.z(), rhs.minPos.z());
 		}
 		vec3 maxPos;
 		{
-			maxPos.setX(fmaxf(lhs.maxPos.getX(), rhs.maxPos.getX()));
-			maxPos.setY(fmaxf(lhs.maxPos.getY(), rhs.maxPos.getY()));
-			maxPos.setZ(fmaxf(lhs.maxPos.getZ(), rhs.maxPos.getZ()));
+			maxPos.x() = fmaxf(lhs.maxPos.x(), rhs.maxPos.x());
+			maxPos.y() = fmaxf(lhs.maxPos.y(), rhs.maxPos.y());
+			maxPos.z() = fmaxf(lhs.maxPos.z(), rhs.maxPos.z());
 		}
 		return AABB(minPos, maxPos);
 	}
@@ -40,7 +38,7 @@ public:
 		return (minPos + maxPos) / 2.0f;
 	}
 
-	__device__ void print() const
+	__device__ void print_debug() const
 	{
 		printf("maxPos = %f, %f, %f\n", maxPos[0], maxPos[1], maxPos[2]);		
 		printf("minPos = %f, %f, %f\n", minPos[0], minPos[1], minPos[2]);		
