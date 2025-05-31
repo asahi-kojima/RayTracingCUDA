@@ -7,7 +7,7 @@ class Color
 public:
 	__device__ __host__ Color() = default;
 	__device__ __host__ Color(const f32 r, const f32 g, const f32 b, const f32 alpha = 1.0f);
-	__device__ __host__ Color(const vec3& rbg, const f32 alpha = 1.0f);
+	__device__ __host__ Color(const Vec3& rbg, const f32 alpha = 1.0f);
 	__device__ __host__ Color(const u32 hexadecimal);
 
 	__device__ __host__ f32 operator[](size_t i)const;
@@ -52,6 +52,6 @@ public:
 	static const Color Silver;
 
 private:
-	vec3 mRGB;
+	Vec3 mRGB;
 	f32 mAlpha;
 };

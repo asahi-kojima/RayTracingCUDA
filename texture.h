@@ -6,7 +6,7 @@
 class Texture
 {
 public:
-	__device__ __host__ virtual Color color(f32 u, f32 v, const vec3& p) = 0;
+	__device__ __host__ virtual Color color(f32 u, f32 v, const Vec3& p) = 0;
 };
 
 
@@ -18,7 +18,7 @@ public:
 	__device__ __host__ ConstantTexture(Color c) : mColor(c) {}
 
 private:
-	__device__ __host__ virtual Color color(f32 u, f32 v, const vec3& p) override {return mColor;}
+	__device__ __host__ virtual Color color(f32 u, f32 v, const Vec3& p) override {return mColor;}
 
 	Color mColor;
 };
@@ -33,7 +33,7 @@ public:
 		{}
 
 private:
-	__device__ __host__ virtual Color color(f32 u, f32 v, const vec3& p) override
+	__device__ __host__ virtual Color color(f32 u, f32 v, const Vec3& p) override
 	{
 		const f32 coeff = 2 * M_PI / mCheckerScale;
 		const f32 sin_product = sin(p[0] * coeff)* sin(p[1] * coeff)* sin(p[2] * coeff);

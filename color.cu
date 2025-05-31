@@ -8,7 +8,7 @@ Color::Color(const f32 r, const f32 g, const f32 b, const f32 alpha)
 
 }
 
-Color::Color(const vec3& rbg, const f32 alpha)
+Color::Color(const Vec3& rbg, const f32 alpha)
 	: mRGB(rbg), mAlpha(alpha)
 {
 }

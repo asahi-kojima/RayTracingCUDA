@@ -3,42 +3,42 @@
 bool AABB::hit(const Ray &ray, const f32 t_min, const f32 t_max, HitRecord &record)
 {
 #if 1
-	const vec3 center = (maxPos + minPos) * 0.5f;
-	const vec3 extention = (maxPos - minPos) * 0.5f;
+	const Vec3 center = (maxPos + minPos) * 0.5f;
+	const Vec3 extention = (maxPos - minPos) * 0.5f;
 	const f32 extention_x = extention[0];
 	const f32 extention_y = extention[1];
 	const f32 extention_z = extention[2];
-	const vec3 vertex_list[4] = {
-		center + vec3(+extention_x, +extention_y, +extention_z),
-		center + vec3(-extention_x, +extention_y, +extention_z),
-		center + vec3(+extention_x, -extention_y, +extention_z),
-		center + vec3(+extention_x, +extention_y, -extention_z)};
+	const Vec3 vertex_list[4] = {
+		center + Vec3(+extention_x, +extention_y, +extention_z),
+		center + Vec3(-extention_x, +extention_y, +extention_z),
+		center + Vec3(+extention_x, -extention_y, +extention_z),
+		center + Vec3(+extention_x, +extention_y, -extention_z)};
 
 	const size_t index_list[4 * 3] = {0,1,2,3,   0,2,3,1,   0,3,1,2};
 
 	f32 current_min_t = MAXFLOAT;
-	vec3 normal;
+	Vec3 normal;
 	u32 counter = 0;
 	bool isAnyHit = false;
 	for (u32 i = 0; i < 3; i++)
 	{
 		const u32 offset = 4 * i;
-		const vec3 positive_origin = vertex_list[index_list[offset + 0]];
-		const vec3 negative_origin = vertex_list[index_list[offset + 1]];
-		const vec3 other_vertex_for_edge1 = vertex_list[index_list[offset + 2]];
-		const vec3 other_vertex_for_edge2 = vertex_list[index_list[offset + 3]];
+		const Vec3 positive_origin = vertex_list[index_list[offset + 0]];
+		const Vec3 negative_origin = vertex_list[index_list[offset + 1]];
+		const Vec3 other_vertex_for_edge1 = vertex_list[index_list[offset + 2]];
+		const Vec3 other_vertex_for_edge2 = vertex_list[index_list[offset + 3]];
 
-		const vec3 p1 = other_vertex_for_edge1 - positive_origin;
-		const vec3 p2 = other_vertex_for_edge2 - positive_origin;
-		const vec3 v0ToO_list[2] = {ray.origin() - positive_origin, ray.origin() - negative_origin};
+		const Vec3 p1 = other_vertex_for_edge1 - positive_origin;
+		const Vec3 p2 = other_vertex_for_edge2 - positive_origin;
+		const Vec3 v0ToO_list[2] = {ray.origin() - positive_origin, ray.origin() - negative_origin};
 
-		const vec3 a0 = -ray.direction();
-		const vec3 a1 = p1;
-		const vec3 a2 = p2;
+		const Vec3 a0 = -ray.direction();
+		const Vec3 a1 = p1;
+		const Vec3 a2 = p2;
 
-		const vec3 cross1x2 = vec3::cross(a1, a2);
-		const vec3 cross2x0 = vec3::cross(a2, a0);
-		const vec3 cross0x1 = vec3::cross(a0, a1);
+		const Vec3 cross1x2 = Vec3::cross(a1, a2);
+		const Vec3 cross2x0 = Vec3::cross(a2, a0);
+		const Vec3 cross0x1 = Vec3::cross(a0, a1);
 
 		const f32 det = dot(cross1x2, a0);
 		if (det == 0.0)
@@ -48,7 +48,7 @@ bool AABB::hit(const Ray &ray, const f32 t_min, const f32 t_max, HitRecord &reco
 
 		for (s32 j = 0; j < 2; j++)
 		{
-			const vec3& v0ToO = v0ToO_list[j]; 
+			const Vec3& v0ToO = v0ToO_list[j]; 
 			const f32 t = dot(cross1x2, v0ToO) / det;
 			const f32 alpha = dot(cross2x0, v0ToO) / det;
 			const f32 beta = dot(cross0x1, v0ToO) / det;
@@ -63,7 +63,7 @@ bool AABB::hit(const Ray &ray, const f32 t_min, const f32 t_max, HitRecord &reco
 			if (t < current_min_t)
 			{
 				current_min_t = t;
-				normal = vec3(0, 0, 0);
+				normal = Vec3(0, 0, 0);
 				normal[i] = 1 - 2 * j;
 			}
 
@@ -88,8 +88,8 @@ bool AABB::hit(const Ray &ray, const f32 t_min, const f32 t_max, HitRecord &reco
 	f32 t_min_tmp = t_min;
 	f32 t_max_tmp = t_max;
 
-	const vec3 &origin = ray.origin();
-	const vec3 &direction = ray.direction();
+	const Vec3 &origin = ray.origin();
+	const Vec3 &direction = ray.direction();
 
 	bool isRayOriginInThis = true;
 	u32 max_t0_index = 0;
@@ -138,12 +138,12 @@ bool AABB::hit(const Ray &ray, const f32 t_min, const f32 t_max, HitRecord &reco
 
 
 	const f32 t = (isRayOriginInThis ? min_t1_value : max_t0_value);
-	const vec3 pos = ray.pointAt(t);
+	const Vec3 pos = ray.pointAt(t);
 	
 	
 	
 	
-	vec3 normal = vec3(0,0,0);
+	Vec3 normal = Vec3(0,0,0);
 	{
 		if (isRayOriginInThis)
 		{
@@ -169,17 +169,17 @@ bool AABB::hit(const Ray &ray, const f32 t_min, const f32 t_max, HitRecord &reco
 
 bool Triangle::hit(const Ray &ray, const f32 t_min, const f32 t_max, HitRecord &record)
 {
-	const vec3 p1 = mVertices[1] - mVertices[0];
-	const vec3 p2 = mVertices[2] - mVertices[0];
-	const vec3 v0ToO = ray.origin() - mVertices[0];
+	const Vec3 p1 = mVertices[1] - mVertices[0];
+	const Vec3 p2 = mVertices[2] - mVertices[0];
+	const Vec3 v0ToO = ray.origin() - mVertices[0];
 
-	const vec3 a0 = -ray.direction();
-	const vec3 a1 = p1;
-	const vec3 a2 = p2;
+	const Vec3 a0 = -ray.direction();
+	const Vec3 a1 = p1;
+	const Vec3 a2 = p2;
 
-	const vec3 cross1x2 = vec3::cross(a1, a2);
-	const vec3 cross2x0 = vec3::cross(a2, a0);
-	const vec3 cross0x1 = vec3::cross(a0, a1);
+	const Vec3 cross1x2 = Vec3::cross(a1, a2);
+	const Vec3 cross2x0 = Vec3::cross(a2, a0);
+	const Vec3 cross0x1 = Vec3::cross(a0, a1);
 
 	const f32 det = dot(cross1x2, a0);
 	if (det == 0.0)
@@ -211,8 +211,8 @@ AABB Triangle::calcAABB()
 
 bool Sphere::hit(const Ray &r, const f32 t_min, const f32 t_max, HitRecord &record)
 {
-	const vec3 &direction = r.direction();
-	vec3 oc = r.origin() - center;
+	const Vec3 &direction = r.direction();
+	Vec3 oc = r.origin() - center;
 	f32 a = dot(direction, direction);
 	f32 b = 2 * dot(direction, oc);
 	f32 c = dot(oc, oc) - radius * radius;
@@ -252,15 +252,15 @@ bool Sphere::hit(const Ray &r, const f32 t_min, const f32 t_max, HitRecord &reco
 
 AABB Sphere::calcAABB()
 {
-	const vec3 v_min = center - fabsf(radius);
-	const vec3 v_max = center + fabsf(radius);
+	const Vec3 v_min = center - fabsf(radius);
+	const Vec3 v_max = center + fabsf(radius);
 	return AABB(v_min, v_max);
 }
 
 bool AABB::isIntersecting(const Ray &ray,  f32 t_min,  f32 t_max) const
 {
-	const vec3 &origin = ray.origin();
-	const vec3 &direction = ray.direction();
+	const Vec3 &origin = ray.origin();
+	const Vec3 &direction = ray.direction();
 	for (u32 i = 0; i < 3; i++)
 	{
 		const f32 inv = 1.0f / direction[i];

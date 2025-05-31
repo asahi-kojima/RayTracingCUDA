@@ -4,25 +4,28 @@
 
 RayTracingEngine::RayTracingEngine()
 {
-	cudaMalloc(&mCamera, sizeof(Camera));
 }
 
 RayTracingEngine::~RayTracingEngine()
 {
 	cudaDeviceSynchronize();
-	cudaFree(mCamera);
 }
 
 
 
+void RayTracingEngine::setWorld(World& world)
+{
+	mWorldPtr = &world;
+}
+
+void RayTracingEngine::setRenderTarget(RenderTarget& target)
+{
+	mRenderTarget = target;
+}
 
 
 
-
-
-
-
-__global__ void getCenters(Hittable** world, size_t objectNum, vec3* centerList)
+__global__ void getCenters(Hittable** world, size_t objectNum, Vec3* centerList)
 {
 	for (u32 i = 0; i < objectNum; i++)
 	{
@@ -31,14 +34,14 @@ __global__ void getCenters(Hittable** world, size_t objectNum, vec3* centerList)
 }
 
 
-void sort_along_axis(std::vector<std::pair<vec3, u32>>& pairs, const u32 start, u32 end, u32 depth = 0)
+void sort_along_axis(std::vector<std::pair<Vec3, u32>>& pairs, const u32 start, u32 end, u32 depth = 0)
 {
 	if (end - start == 1)
 	{
 		return;
 	}
 
-	std::sort(pairs.begin() + start, pairs.begin() + end, [depth](std::pair<vec3, u32>& pair0, std::pair<vec3, u32> pair1) {const u32 axis_of_sort = depth % 3; return pair0.first[axis_of_sort] < pair1.first[axis_of_sort]; });
+	std::sort(pairs.begin() + start, pairs.begin() + end, [depth](std::pair<Vec3, u32>& pair0, std::pair<Vec3, u32> pair1) {const u32 axis_of_sort = depth % 3; return pair0.first[axis_of_sort] < pair1.first[axis_of_sort]; });
 
 	sort_along_axis(pairs, start, start + (end - start) / 2, depth + 1);
 	sort_along_axis(pairs, start + (end - start) / 2, end, depth + 1);
@@ -50,15 +53,15 @@ void sortObjects(Hittable** world, size_t objectNum, u32* indexList)
 	printf("Sort of World object start\n");
 	
 	//collect center info of objects;
-	vec3 *centerList;
-	CHECK(cudaMallocManaged(&centerList, sizeof(vec3) * objectNum));
+	Vec3 *centerList;
+	CHECK(cudaMallocManaged(&centerList, sizeof(Vec3) * objectNum));
 
 	getCenters<<<1,1>>>(world, objectNum, centerList);
 	GPU_ERROR_CHECKER(cudaPeekAtLastError());
 	CHECK(cudaDeviceSynchronize());
 
 	//sort
-	std::vector<std::pair<vec3, u32> > pairs;
+	std::vector<std::pair<Vec3, u32> > pairs;
 	for (u32 i = 0; i < objectNum; i++)
 	{
 		pairs.push_back({centerList[i], i});
@@ -113,15 +116,7 @@ void RayTracingEngine::setObjects(const std::vector<Hittable*>& world)
 	CHECK(cudaFree(newOrderedIndexList));
 }
 
-void RayTracingEngine::setCamera(const Camera& camera)
-{
-	cudaMemcpy(mCamera, &camera, sizeof(Camera), cudaMemcpyHostToDevice);
-}
 
-void RayTracingEngine::setRenderTarget(RenderTarget& target)
-{
-	mRenderTarget = target;
-}
 
 
 

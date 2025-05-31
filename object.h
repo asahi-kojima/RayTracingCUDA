@@ -10,21 +10,21 @@ class AABB : public Hittable
 {
 public:
 	__device__ AABB() : minPos(0, 0, 0), maxPos(0, 0, 0), mCenter(0, 0, 0) {}
-	__device__ AABB(vec3 minPos, vec3 maxPos, Material* material = nullptr)
+	__device__ AABB(Vec3 minPos, Vec3 maxPos, Material* material = nullptr)
 		: minPos(minPos), maxPos(maxPos), mCenter((minPos + maxPos) / 2),  material(material) {}
 
-	__device__ const vec3& getMinPos() const { return minPos; }
-	__device__ const vec3& getMaxPos() const { return maxPos; }
+	__device__ const Vec3& getMinPos() const { return minPos; }
+	__device__ const Vec3& getMaxPos() const { return maxPos; }
 
 	__device__ inline static AABB wraping(AABB lhs, AABB rhs)
 	{
-		vec3 minPos;
+		Vec3 minPos;
 		{
 			minPos.x() = fminf(lhs.minPos.x(), rhs.minPos.x());
 			minPos.y() = fminf(lhs.minPos.y(), rhs.minPos.y());
 			minPos.z() = fminf(lhs.minPos.z(), rhs.minPos.z());
 		}
-		vec3 maxPos;
+		Vec3 maxPos;
 		{
 			maxPos.x() = fmaxf(lhs.maxPos.x(), rhs.maxPos.x());
 			maxPos.y() = fmaxf(lhs.maxPos.y(), rhs.maxPos.y());
@@ -33,7 +33,7 @@ public:
 		return AABB(minPos, maxPos);
 	}
 
-	__device__ vec3 getCenterPos() const
+	__device__ Vec3 getCenterPos() const
 	{
 		return (minPos + maxPos) / 2.0f;
 	}
@@ -51,23 +51,23 @@ private:
 	__device__ virtual AABB calcAABB() override { return *this; }
 
 
-	vec3 minPos;
-	vec3 maxPos;
-	vec3 mCenter;
+	Vec3 minPos;
+	Vec3 maxPos;
+	Vec3 mCenter;
 	Material* material;
 };
 
 class Triangle final : public Hittable
 {
 public:
-	__device__ Triangle(const vec3& v0, const vec3& v1, const vec3& v2, Material* material, bool isCulling = true)
-	: mVertices{v0, v1, v2}, mMaterial(material) ,mNormal(vec3::cross(v1 - v0, v2 - v0).normalize()), mIsCulling(isCulling)
+	__device__ Triangle(const Vec3& v0, const Vec3& v1, const Vec3& v2, Material* material, bool isCulling = true)
+	: mVertices{v0, v1, v2}, mMaterial(material) ,mNormal(Vec3::cross(v1 - v0, v2 - v0).normalize()), mIsCulling(isCulling)
 	{
 		const f32 dot0 = dot(v1 - v0, v2 - v0);
 		if (dot0 < 0)
 		{
 			const f32 radius = (v1 - v2).length() / 2.0f;
-			const vec3 center = (v1 + v2) / 2.0f;
+			const Vec3 center = (v1 + v2) / 2.0f;
 			mAABB = AABB(center - radius, center + radius);
 			return;
 		}
@@ -76,7 +76,7 @@ public:
 		if (dot1 < 0)
 		{
 			const f32 radius = (v0 - v2).length() / 2.0f;
-			const vec3 center = (v0 + v2) / 2.0f;
+			const Vec3 center = (v0 + v2) / 2.0f;
 			mAABB = AABB(center - radius, center + radius);
 			return;
 		}
@@ -85,17 +85,17 @@ public:
 		if (dot2 < 0)
 		{
 			const f32 radius = (v1 - v0).length() / 2.0f;
-			const vec3 center = (v1 + v0) / 2.0f;
+			const Vec3 center = (v1 + v0) / 2.0f;
 			mAABB = AABB(center - radius, center + radius);
 			return;
 		}
 
 
-		const vec3 c1 = (v1 + v0) / 2.0f;
-		const vec3 c2 = (v2 + v0) / 2.0f;
+		const Vec3 c1 = (v1 + v0) / 2.0f;
+		const Vec3 c2 = (v2 + v0) / 2.0f;
 
-		const vec3 n1 = vec3::cross(v1 - v0, mNormal);
-		const vec3 n2 = vec3::cross(v2 - v0, mNormal);
+		const Vec3 n1 = Vec3::cross(v1 - v0, mNormal);
+		const Vec3 n2 = Vec3::cross(v2 - v0, mNormal);
 
 		const f32 a = dot(n1, n1);
 		const f32 b = dot(n1, n2);
@@ -107,7 +107,7 @@ public:
 		const f32 t = (c * e + b * f) / det;
 		//const f32 s = (-b * e + a * f) / det;
 
-		const vec3 circumcenter = c1 + t * n1;
+		const Vec3 circumcenter = c1 + t * n1;
 		const f32 radius = (circumcenter - v0).length();
 		mAABB = AABB(circumcenter - radius, circumcenter + radius);
 	}
@@ -118,8 +118,8 @@ public:
 	__device__ bool hit(const Ray& r, const f32 t_min, const f32 t_max, HitRecord& record) override;
 	__device__ AABB calcAABB() override;
 
-	vec3 mVertices[3];
-	vec3 mNormal;
+	Vec3 mVertices[3];
+	Vec3 mNormal;
 	Material* mMaterial;
 	AABB mAABB;
 	bool mIsCulling;
@@ -129,7 +129,7 @@ class Sphere : public Hittable
 {
 public:
 	__device__ Sphere() = default;
-	__device__ Sphere(const vec3& center, const f32 radius, Material* material)
+	__device__ Sphere(const Vec3& center, const f32 radius, Material* material)
 		: center(center), radius(radius), material(material) {}
 
 
@@ -138,7 +138,7 @@ private:
 	__device__ AABB calcAABB() override;
 
 
-	vec3 center;
+	Vec3 center;
 	f32 radius;
 	Material* material;
 };
@@ -204,11 +204,11 @@ inline Hittable* make_object(Args...args)
 //class Mesh : public Hittable
 //{
 //public:
-//	Mesh(std::vector<vec3>&& vertexList, std::vector<f32>&& indexList);
-//	Mesh(const std::vector<vec3>& vertexList, const std::vector<f32>& indexList);
+//	Mesh(std::vector<Vec3>&& vertexList, std::vector<f32>&& indexList);
+//	Mesh(const std::vector<Vec3>& vertexList, const std::vector<f32>& indexList);
 //
 //private:
-//	std::vector<vec3> mVertexList;
+//	std::vector<Vec3> mVertexList;
 //	std::vector<f32> mIndexList;
 //
 //	bool hit(const Ray& r, const f32 t_min, const f32 t_max, HitRecord& record) override;

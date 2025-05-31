@@ -108,7 +108,7 @@ public:
     // スケーリング行列を作成する
     //------------------------------------------------------------
     __device__ __host__ static Mat4 generateScale(f32 sx, f32 sy, f32 sz);
-    // __device__ static Mat4 generateScale(const vec3& scale);
+    // __device__ static Mat4 generateScale(const Vec3& scale);
     
 private:
     union

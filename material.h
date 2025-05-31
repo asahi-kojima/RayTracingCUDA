@@ -96,7 +96,7 @@ private:
 class GravitationalField : public Material
 {
 public:
-	__device__ GravitationalField(f32 gravityScale, vec3 center) :mGravityScale(gravityScale), mCenter(center) {}
+	__device__ GravitationalField(f32 gravityScale, Vec3 center) :mGravityScale(gravityScale), mCenter(center) {}
 
 	__device__ virtual bool scatter(const Ray& ray_in, const HitRecord& record, Color& attenuation, Ray& ray_scattered) override;
 
@@ -104,13 +104,13 @@ public:
 private:
 	f32 mGravityScale;
 	constexpr static f32 G = 1.0f;
-	vec3 mCenter;
+	Vec3 mCenter;
 };
 
 class QuasiGravitationalField : public Material
 {
 public:
-	__device__ QuasiGravitationalField(f32 gravityScale, vec3 center) :mGravityScale(gravityScale), mCenter(center) {}
+	__device__ QuasiGravitationalField(f32 gravityScale, Vec3 center) :mGravityScale(gravityScale), mCenter(center) {}
 
 	__device__ virtual bool scatter(const Ray& ray_in, const HitRecord& record, Color& attenuation, Ray& ray_scattered) override;
 
@@ -118,14 +118,14 @@ public:
 private:
 	f32 mGravityScale;
 	constexpr static f32 G = 1.0f;
-	vec3 mCenter;
+	Vec3 mCenter;
 };
 
 
 class QuasiGravitationalField2 : public Material
 {
 public:
-	__device__ QuasiGravitationalField2(f32 gravityScale, vec3 center) :mGravityScale(gravityScale), mCenter(center) {}
+	__device__ QuasiGravitationalField2(f32 gravityScale, Vec3 center) :mGravityScale(gravityScale), mCenter(center) {}
 
 	__device__ virtual bool scatter(const Ray& ray_in, const HitRecord& record, Color& attenuation, Ray& ray_scattered) override;
 
@@ -133,14 +133,14 @@ public:
 private:
 	f32 mGravityScale;
 	constexpr static f32 G = 1.0f;
-	vec3 mCenter;
+	Vec3 mCenter;
 };
 
 
 class Rutherford : public Material
 {
 public:
-	__device__ Rutherford(f32 gravityScale, vec3 center) :mGravityScale(gravityScale), mCenter(center) {}
+	__device__ Rutherford(f32 gravityScale, Vec3 center) :mGravityScale(gravityScale), mCenter(center) {}
 
 	__device__ virtual bool scatter(const Ray& ray_in, const HitRecord& record, Color& attenuation, Ray& ray_scattered) override;
 
@@ -148,14 +148,14 @@ public:
 private:
 	f32 mGravityScale;
 	constexpr static f32 G = 1.0f;
-	vec3 mCenter;
+	Vec3 mCenter;
 };
 
 
 class QuasiRutherford : public Material
 {
 public:
-	__device__ QuasiRutherford(f32 gravityScale, vec3 center) :mGravityScale(gravityScale), mCenter(center) {}
+	__device__ QuasiRutherford(f32 gravityScale, Vec3 center) :mGravityScale(gravityScale), mCenter(center) {}
 
 	__device__ virtual bool scatter(const Ray& ray_in, const HitRecord& record, Color& attenuation, Ray& ray_scattered) override;
 
@@ -163,5 +163,5 @@ public:
 private:
 	f32 mGravityScale;
 	constexpr static f32 G = 1.0f;
-	vec3 mCenter;
+	Vec3 mCenter;
 };
