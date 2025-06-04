@@ -4,6 +4,14 @@
 struct Transform
 {
 public:
+    __device__ Transform()
+    : mScaling{1.0f, 1.0f, 1.0f}
+	, mRotation{0.0f, 0.0f, 0.0f}
+	, mTranslation{0, 0, 0} 
+    , mTransformMatrix{}
+    , mInvTransformMatrix{}
+    {}
+
 	__device__ void setScaling(f32 scale_x, f32 scale_y, f32 scale_z)
 	{
 #ifdef DEBUG
@@ -30,7 +38,7 @@ public:
 		mIsDirty = true;
 	}
 
-    __device__ Mat4 getTransformMatrix()
+    __device__ const Mat4& getTransformMatrix()
     {
         if (mIsDirty)
         {
@@ -41,7 +49,7 @@ public:
 
         return mTransformMatrix;
     }
-    __device__ Mat4 getInvTransformMatrix()
+    __device__ const Mat4& getInvTransformMatrix()
     {
         if (mIsDirty)
         {

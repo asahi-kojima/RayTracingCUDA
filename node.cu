@@ -24,7 +24,7 @@ Node::Node(Hittable **hittableList, u32 *newOrderedIndexList, u32 start, u32 end
 	}
 }
 
-bool Node::hit(const Ray &r, const f32 t_min, const f32 t_max, HitRecord &record) const
+bool Node::isHitInLocalSpace(const Ray &r, const f32 t_min, const f32 t_max, HitRecord &record) const
 {
 
 	// �ڐG������΁A���̓����Ƃ��������Ă���\��������̂ŁA
@@ -32,7 +32,7 @@ bool Node::hit(const Ray &r, const f32 t_min, const f32 t_max, HitRecord &record
 	if (isLeaf)
 	{
 		Hittable *pObject = object->getObject();
-		bool isHit =  pObject->hit(r, t_min, t_max, record);
+		bool isHit =  pObject->isHitInLocalSpace(r, t_min, t_max, record);
 		if (!isHit)
 		{
 			return false;
@@ -52,7 +52,7 @@ bool Node::hit(const Ray &r, const f32 t_min, const f32 t_max, HitRecord &record
 		f32 current_tmax = t_max;
 
 		HitRecord lhsRecord;
-		bool isHitLhs = lhs_node->hit(r, t_min, current_tmax, lhsRecord);
+		bool isHitLhs = lhs_node->isHitInLocalSpace(r, t_min, current_tmax, lhsRecord);
 		if (isHitLhs)
 		{
 			current_tmax = lhsRecord.t;
@@ -60,7 +60,7 @@ bool Node::hit(const Ray &r, const f32 t_min, const f32 t_max, HitRecord &record
 		}
 
 		HitRecord rhsRecord;
-		bool isHitRhs = rhs_node->hit(r, t_min, current_tmax, rhsRecord);
+		bool isHitRhs = rhs_node->isHitInLocalSpace(r, t_min, current_tmax, rhsRecord);
 		if (isHitRhs)
 		{
 			record = rhsRecord;
@@ -74,5 +74,5 @@ Object::Object(Hittable *hittableObject)
 	: mAABB(), mGeometry(nullptr)
 {
 	mGeometry = hittableObject;
-	mAABB = mGeometry->calcAABB();
+	mAABB = mGeometry->getAABB();
 }

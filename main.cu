@@ -34,7 +34,30 @@ int main(int argc, char** argv)
 	// オブジェクトの準備
 	//=================================================================
 	World world;
-	world.addObject();
+	Mesh sphereMesh;
+	world.registMesh("Sphere", sphereMesh);
+	
+	{
+		Transform transform;	
+		Object object_sphere("Sphere", transform);
+		world.addObject(object_sphere);
+	}
+	{
+		Transform transform;
+		Object object_sphere("Sphere", transform);
+		world.addObject(object_sphere);
+	}
+
+
+	World world;
+	Mesh boxMesh;
+	world.registMesh("box", boxMesh);
+	
+	{
+		Transform transform;	
+		Object object_sphere("box", transform);
+		world.addObject(object_sphere);
+	}
 
 
 	//=================================================================
@@ -45,10 +68,7 @@ int main(int argc, char** argv)
 	const u32 resolutionY = static_cast<u32>(1080 * BaseResolution);
 
 	Vec3 lookAt(0,0,0);
-	// Vec3 lookFrom(0.5,0.2, 1);
-	// Vec3 lookFrom(0.9, 0.4, 1);
 	Vec3 lookFrom(1.0, 5, 3.0);
-	lookFrom *= (20 / lookFrom.length());
 	Camera camera = Camera(lookFrom, lookAt, Vec3(0, 1, 0), 20, f32(resolutionX) / f32(resolutionY), 0.0, (lookFrom - lookAt).length());
 
 	//=================================================================

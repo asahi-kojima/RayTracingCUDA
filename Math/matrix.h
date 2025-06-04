@@ -1,5 +1,4 @@
 #pragma once
-#include <stdio.h>
 #include "common.h"
 #include "vector.h"
 
@@ -108,7 +107,6 @@ public:
     // スケーリング行列を作成する
     //------------------------------------------------------------
     __device__ __host__ static Mat4 generateScale(f32 sx, f32 sy, f32 sz);
-    // __device__ static Mat4 generateScale(const Vec3& scale);
     
 private:
     union

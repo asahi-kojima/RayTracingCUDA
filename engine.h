@@ -24,6 +24,9 @@ public:
 	//レンダーターゲットをセット
 	__host__ void setRenderTarget(RenderTarget& target);
 
+	//
+	__host__ void build();
+
 	//セットしたワールドとレンダーターゲットに対しレンダリング
 	__host__ void render(const u32 sampleSize = 30, const u32 depth = 15);
 
@@ -32,8 +35,9 @@ public:
 
 
 private:
-	RenderTarget mRenderTarget;
+	RenderTarget* mRenderTargetPtr = nullptr;
+	World* mWorldPtr = nullptr;
+
 	Node* mRootNode = nullptr;
 
-	World* mWorldPtr;
 };

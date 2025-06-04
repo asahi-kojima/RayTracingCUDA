@@ -1,6 +1,6 @@
 #include "object.h"
 
-bool AABB::hit(const Ray &ray, const f32 t_min, const f32 t_max, HitRecord &record)
+bool AABB::isHitInLocalSpace(const Ray &ray, const f32 t_min, const f32 t_max, HitRecord &record)
 {
 #if 1
 	const Vec3 center = (maxPos + minPos) * 0.5f;
@@ -167,7 +167,7 @@ bool AABB::hit(const Ray &ray, const f32 t_min, const f32 t_max, HitRecord &reco
 }
 
 
-bool Triangle::hit(const Ray &ray, const f32 t_min, const f32 t_max, HitRecord &record)
+bool Triangle::isHitInLocalSpace(const Ray &ray, const f32 t_min, const f32 t_max, HitRecord &record)
 {
 	const Vec3 p1 = mVertices[1] - mVertices[0];
 	const Vec3 p2 = mVertices[2] - mVertices[0];
@@ -204,18 +204,18 @@ bool Triangle::hit(const Ray &ray, const f32 t_min, const f32 t_max, HitRecord &
 	return true;
 }
 
-AABB Triangle::calcAABB()
+AABB Triangle::getAABB()
 {
 	return mAABB;
 }
 
-bool Sphere::hit(const Ray &r, const f32 t_min, const f32 t_max, HitRecord &record)
+bool Sphere::isHitInLocalSpace(const Ray &r, const f32 t_min, const f32 t_max, HitRecord &record)
 {
 	const Vec3 &direction = r.direction();
-	Vec3 oc = r.origin() - center;
+	Vec3 oc = r.origin();
 	f32 a = dot(direction, direction);
 	f32 b = 2 * dot(direction, oc);
-	f32 c = dot(oc, oc) - radius * radius;
+	f32 c = dot(oc, oc) - 1.0f;
 	f32 D = b * b - 4 * a * c;
 
 	bool isHit = false;
@@ -244,13 +244,13 @@ bool Sphere::hit(const Ray &r, const f32 t_min, const f32 t_max, HitRecord &reco
 
 	record.t = tmp;
 	record.pos = r.pointAt(tmp);
-	record.normal = (record.pos - center) *(1.0f / radius);
+	record.normal = (record.pos - center);
 	record.material = this->material;
 
 	return isHit;
 }
 
-AABB Sphere::calcAABB()
+AABB Sphere::getAABB()
 {
 	const Vec3 v_min = center - fabsf(radius);
 	const Vec3 v_max = center + fabsf(radius);
@@ -282,4 +282,13 @@ bool AABB::isIntersecting(const Ray &ray,  f32 t_min,  f32 t_max) const
 	}
 
 	return true;
+}
+
+
+AABB AABB::tranformWith(const Transform& transform) const
+{
+	AABB aabb;
+
+
+	return aabb;
 }

@@ -20,7 +20,21 @@ void RayTracingEngine::setWorld(World& world)
 
 void RayTracingEngine::setRenderTarget(RenderTarget& target)
 {
-	mRenderTarget = target;
+	mRenderTargetPtr = &target;
+}
+
+void RayTracingEngine::build()
+{
+	if (!mWorldPtr || !mRenderTargetPtr)
+	{
+		printf("World or RenderTarget isn't set\n");
+		assert(false);
+	}
+
+	//オブジェクトの数だけノード用のメモリを一括で確保する
+	Node* nodeListPtr;
+
+	CHECK(cudaMalloc(&nodeListPtr, sizeof(Node) * mWorldPtr->getObjectNum()));
 }
 
 
@@ -29,7 +43,7 @@ __global__ void getCenters(Hittable** world, size_t objectNum, Vec3* centerList)
 {
 	for (u32 i = 0; i < objectNum; i++)
 	{
-		centerList[i] = world[i]->calcAABB().getCenterPos();
+		centerList[i] = world[i]->getAABB().getCenterPos();
 	}
 }
 
@@ -131,7 +145,7 @@ __device__ Color castRayAndCalcColor(Node* worldNode, const Ray& ray, const u32 
 	for (u32 depth = 0; depth < maxDepth; depth++)
 	{
 		HitRecord rec;
-		if (worldNode->hit(current_ray, 0.001f, MAXFLOAT, rec))
+		if (worldNode->isHitInLocalSpace(current_ray, 0.001f, MAXFLOAT, rec))
 		{
 			hitCounter++;
 

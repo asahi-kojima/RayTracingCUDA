@@ -59,6 +59,9 @@ private:
 
 __device__ __host__ Vec3 operator*(const f32 value, const Vec3& v);
 
+__device__ Vec3 random_in_unit_sphere();
+
+
 class Vec4
 {
 public:
