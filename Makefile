@@ -1,5 +1,5 @@
 NVCC=/usr/local/cuda/bin/nvcc
-NVCCFLAG=-std=c++17 -rdc=true -O3 -DNDEBUG -w -I .
+NVCCFLAG=-std=c++17 -rdc=true -O3 -DNDEBUG -w -I . -gencode arch=compute_120,code=sm_120
 
 
 SRC_DIRS = . Math Object
@@ -14,7 +14,7 @@ OBJS=$(patsubst %.cu, $(BUILD_DIR)/%.o, $(notdir $(SRCS)))
 DUMMY_MKDIR:=$(shell mkdir -p build)
 
 all: $(TARGET)
-	./$(TARGET)
+	./$(TARGET) 1920 1080
 
 compile: $(TARGET)
 

@@ -51,15 +51,14 @@ public:
 	__device__ __host__ static inline Vec3 zero() { return Vec3(0.0f, 0.0f, 0.0f); };
 	__device__ __host__ static inline Vec3 one() { return Vec3(1.0f, 1.0f, 1.0f); };
 
+#ifdef DEBUG
 	__device__ __host__ void print_debug() const;
-
+#endif
 private:
 	f32 mElements[3];
 };
 
 __device__ __host__ Vec3 operator*(const f32 value, const Vec3& v);
-
-__device__ Vec3 random_in_unit_sphere();
 
 
 class Vec4

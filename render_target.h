@@ -1,7 +1,7 @@
 #pragma once
 #include <vector>
 #include <fstream>
-#include "vector.h"
+#include "Math/vector.h"
 #include "color.h"
 #include "util.h"
 

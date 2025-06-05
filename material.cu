@@ -1,5 +1,5 @@
 #include "material.h"
-#include "hittable.h"
+#include "Object/hittable.h"
 #include "util.h"
 
 //======================================================
@@ -7,10 +7,10 @@
 //======================================================
 bool Lambertian::scatter(const Ray &ray_in, const HitRecord &record, Color &attenuation, Ray &ray_scattered)
 {
-	const Vec3 target = record.pos + record.normal + random_in_unit_sphere();
-	ray_scattered.direction() = target - record.pos;
-	ray_scattered.origin() = record.pos;
-	attenuation = mTexture->color(0, 0, record.pos);
+	const Vec3 target = record.position + record.normal + Vec3::generateRandomUnitVector();
+	ray_scattered.direction() = target - record.position;
+	ray_scattered.origin() = record.position;
+	attenuation = mTexture->color(0, 0, record.position);
 	return true;
 }
 
@@ -20,12 +20,12 @@ bool Lambertian::scatter(const Ray &ray_in, const HitRecord &record, Color &atte
 //======================================================
 bool Metal::scatter(const Ray &ray_in, const HitRecord &record, Color &attenuation, Ray &ray_scattered)
 {
-	Vec3 reflected_ray = reflect(ray_in.direction(), record.normal);
-	ray_scattered = Ray(record.pos, reflected_ray + fuzz * random_in_unit_sphere() * 0.1f);
+	Vec3 reflected_ray = Vec3::reflect(ray_in.direction(), record.normal);
+	ray_scattered = Ray(record.position, reflected_ray + fuzz * Vec3::generateRandomUnitVector() * 0.1f);
 	
-	if (dot(ray_scattered.direction(), record.normal) > 0)
+	if (Vec3::dot(ray_scattered.direction(), record.normal) > 0)
 	{
-		attenuation = mTexture->color(0, 0, record.pos);
+		attenuation = mTexture->color(0, 0, record.position);
 		return true;
 	}
 
@@ -39,11 +39,11 @@ bool Dielectric::scatter(const Ray &ray_in, const HitRecord &record, Color &atte
 {
 	attenuation = mGlassColor;
 
-	const Vec3& pos = record.pos;
+	const Vec3& position = record.position;
 	const Vec3& normal = record.normal;
 	const Vec3 direction = ray_in.direction().normalize();
 
-	const f32 signed_cos_theta = aoba::clamp(dot(normal, direction), -1.0f, 1.0f);//cos_between_normal_and_direction;
+	const f32 signed_cos_theta = aoba::clamp(Vec3::dot(normal, direction), -1.0f, 1.0f);//cos_between_normal_and_direction;
 	const f32 cos_theta = fabsf(signed_cos_theta);
 	const f32 sin_theta = sqrt(1.0f - cos_theta * cos_theta + (1e-5));
 	
@@ -61,14 +61,14 @@ bool Dielectric::scatter(const Ray &ray_in, const HitRecord &record, Color &atte
 	//全反射もしくは屈折出来るが反射が起きる場合は反射処理
 	if (ni_over_nt * sin_theta > 1 || (RandomGeneratorGPU::uniform_real() < reflect_probability(cos_theta, ni_over_nt)))
 	{
-		const Vec3 reflected_ray_direction = reflect(direction, outword_normal);
-		ray_scattered = Ray(pos, reflected_ray_direction);
+		const Vec3 reflected_ray_direction = Vec3::reflect(direction, outword_normal);
+		ray_scattered = Ray(position, reflected_ray_direction);
 	}
 	//屈折する場合
 	else
 	{
 		const Vec3 refracted_ray_direction = -sqrt(1 - ni_over_nt * ni_over_nt * sin_theta * sin_theta) * outword_normal + ni_over_nt * (direction + cos_theta * outword_normal);
-		ray_scattered = Ray(pos, refracted_ray_direction);
+		ray_scattered = Ray(position, refracted_ray_direction);
 	}
 
 
@@ -88,7 +88,7 @@ f32 Dielectric::reflect_probability(f32 cosine, f32 refIdx)
 bool Retroreflective::scatter(const Ray &ray_in, const HitRecord &record, Color &attenuation, Ray &ray_scattered)
 {
 	ray_scattered.direction() = -ray_in.direction();
-	ray_scattered.origin() = record.pos;
+	ray_scattered.origin() = record.position;
 
 	attenuation = albedo;
 
@@ -114,12 +114,12 @@ bool GravitationalField::scatter(const Ray &ray_in, const HitRecord &record, Col
 	const f32 m = 1.0f;
 	const f32 v = 10.0f;
 
-	const Vec3 CP = record.pos - mCenter;
+	const Vec3 CP = record.position - mCenter;
 	const f32 R = CP.length();
 
 	const Vec3 OC = mCenter - ray_in.origin();
 	const Vec3 D = ray_in.direction();
-	const f32 ray_center_dist_squared = (D * (dot(OC, D) / D.lengthSquared()) - OC).lengthSquared();
+	const f32 ray_center_dist_squared = (D * (Vec3::dot(OC, D) / D.lengthSquared()) - OC).lengthSquared();
 
 	const f32 E = 0.5f * m * v * v - G * M * m / R;
 	const f32 L_squared = m * m * v * v * ray_center_dist_squared;
@@ -137,9 +137,9 @@ bool GravitationalField::scatter(const Ray &ray_in, const HitRecord &record, Col
 	attenuation = Color(0xFFFFFF);
 
 	{
-		const Vec3 ux = -normalize(D);
-		const Vec3 uz = normalize(cross(ux, CP));
-		const Vec3 uy = cross(uz, ux);
+		const Vec3 ux = -Vec3::normalize(D);
+		const Vec3 uz = Vec3::normalize(Vec3::cross(ux, CP));
+		const Vec3 uy = Vec3::cross(uz, ux);
 		const f32 h = sqrtf(ray_center_dist_squared);
 		const f32 theta = asinf(h / R);
 
@@ -153,11 +153,11 @@ bool GravitationalField::scatter(const Ray &ray_in, const HitRecord &record, Col
 
 		const f32 outgoing_x = cosPhi2 * x + sinPhi2 * y;
 		const f32 outgoing_y = sinPhi2 * x - cosPhi2 * y;
-		const Vec3 outgoing_pos = outgoing_x * ux + outgoing_y * uy + mCenter;
+		const Vec3 outgoing_position = outgoing_x * ux + outgoing_y * uy + mCenter;
 		const Vec3 outgoing_dir = cosPhi2 * ux + sinPhi2 * uy;
 
 		ray_scattered.direction() = outgoing_dir;
-		ray_scattered.origin() = outgoing_pos;
+		ray_scattered.origin() = outgoing_position;
 	}
 	return true;
 }
@@ -171,12 +171,12 @@ bool QuasiGravitationalField::scatter(const Ray &ray_in, const HitRecord &record
 	const f32 m = 1.0f;
 	const f32 v = 10.0f;
 
-	const Vec3 CP = record.pos - mCenter;
+	const Vec3 CP = record.position - mCenter;
 	const f32 R = CP.length();
 
 	const Vec3 OC = mCenter - ray_in.origin();
 	const Vec3 D = ray_in.direction();
-	const f32 ray_center_dist = (D * (dot(OC, D) / D.lengthSquared()) - OC).length();
+	const f32 ray_center_dist = (D * (Vec3::dot(OC, D) / D.lengthSquared()) - OC).length();
 
 	const f32 E = 0.5f * m * v * v - G * M * m / R;
 	const f32 L = m * v * ray_center_dist;
@@ -194,10 +194,10 @@ bool QuasiGravitationalField::scatter(const Ray &ray_in, const HitRecord &record
 	attenuation = Color(0xFFFFFF);
 
 	{
-		const Vec3 ux = -normalize(D);
-		const Vec3 uz = normalize(cross(ux, CP));
-		const Vec3 uy = cross(uz, ux);
-		const f32 h = abs(dot(ux, CP));
+		const Vec3 ux = -Vec3::normalize(D);
+		const Vec3 uz = Vec3::normalize(Vec3::cross(ux, CP));
+		const Vec3 uy = Vec3::cross(uz, ux);
+		const f32 h = abs(Vec3::dot(ux, CP));
 		const f32 theta = asinf(h / R);
 
 		const f32 phi = -(acosf(((R0 / OC.length()) - 1.0f) / e) - theta);
@@ -210,11 +210,11 @@ bool QuasiGravitationalField::scatter(const Ray &ray_in, const HitRecord &record
 
 		const f32 outgoing_x = cosPhi2 * x + sinPhi2 * y;
 		const f32 outgoing_y = sinPhi2 * x - cosPhi2 * y;
-		const Vec3 outgoing_pos = outgoing_x * ux + outgoing_y * uy + mCenter;
+		const Vec3 outgoing_position = outgoing_x * ux + outgoing_y * uy + mCenter;
 		const Vec3 outgoing_dir = cosPhi2 * ux + sinPhi2 * uy;
 
 		ray_scattered.direction() = outgoing_dir;
-		ray_scattered.origin() = outgoing_pos;
+		ray_scattered.origin() = outgoing_position;
 	}
 	return true;
 }
@@ -228,12 +228,12 @@ bool QuasiGravitationalField2::scatter(const Ray &ray_in, const HitRecord &recor
 	const f32 m = 1.0f;
 	const f32 v = 10.0f;
 
-	const Vec3 CP = record.pos - mCenter;
+	const Vec3 CP = record.position - mCenter;
 	const f32 R = CP.length();
 
 	const Vec3 OC = mCenter - ray_in.origin();
 	const Vec3 D = ray_in.direction();
-	const f32 ray_center_dist = (D * (dot(OC, D) / D.lengthSquared()) - OC).length();
+	const f32 ray_center_dist = (D * (Vec3::dot(OC, D) / D.lengthSquared()) - OC).length();
 
 	const f32 E = 0.5f * m * v * v - G * M * m / R;
 	const f32 L = m * v * ray_center_dist;
@@ -251,10 +251,10 @@ bool QuasiGravitationalField2::scatter(const Ray &ray_in, const HitRecord &recor
 	attenuation = Color(0xFFFFFF);
 
 	{
-		const Vec3 ux = -normalize(D);
-		const Vec3 uz = normalize(cross(ux, CP));
-		const Vec3 uy = cross(uz, ux);
-		const f32 h = abs(dot(uz, CP));
+		const Vec3 ux = -Vec3::normalize(D);
+		const Vec3 uz = Vec3::normalize(Vec3::cross(ux, CP));
+		const Vec3 uy = Vec3::cross(uz, ux);
+		const f32 h = abs(Vec3::dot(uz, CP));
 		const f32 theta = asinf(h / R);
 
 		const f32 phi = -(acosf(((R0 / OC.length()) - 1.0f) / e) - theta);
@@ -267,11 +267,11 @@ bool QuasiGravitationalField2::scatter(const Ray &ray_in, const HitRecord &recor
 
 		const f32 outgoing_x = cosPhi2 * x + sinPhi2 * y;
 		const f32 outgoing_y = sinPhi2 * x - cosPhi2 * y;
-		const Vec3 outgoing_pos = outgoing_x * ux + outgoing_y * uy + mCenter;
+		const Vec3 outgoing_position = outgoing_x * ux + outgoing_y * uy + mCenter;
 		const Vec3 outgoing_dir = cosPhi2 * ux + sinPhi2 * uy;
 
 		ray_scattered.direction() = outgoing_dir;
-		ray_scattered.origin() = outgoing_pos;
+		ray_scattered.origin() = outgoing_position;
 	}
 	return true;
 }
@@ -285,12 +285,12 @@ bool Rutherford::scatter(const Ray &ray_in, const HitRecord &record, Color &atte
 	const f32 m = 1.0f;
 	const f32 v = 10.0f;
 
-	const Vec3 CP = record.pos - mCenter;
+	const Vec3 CP = record.position - mCenter;
 	const f32 R = CP.length();
 
 	const Vec3 OC = mCenter - ray_in.origin();
 	const Vec3 D = ray_in.direction();
-	const f32 ray_center_dist = (D * (dot(OC, D) / D.lengthSquared()) - OC).length();
+	const f32 ray_center_dist = (D * (Vec3::dot(OC, D) / D.lengthSquared()) - OC).length();
 
 	const f32 E = 0.5f * m * v * v + G * M * m / R;
 	const f32 L = m * v * ray_center_dist;
@@ -303,9 +303,9 @@ bool Rutherford::scatter(const Ray &ray_in, const HitRecord &record, Color &atte
 	attenuation = Color(0xFFFFFF);
 
 	{
-		const Vec3 ux = -normalize(D);
-		const Vec3 uz = normalize(cross(ux, CP));
-		const Vec3 uy = cross(uz, ux);
+		const Vec3 ux = -Vec3::normalize(D);
+		const Vec3 uz = Vec3::normalize(Vec3::cross(ux, CP));
+		const Vec3 uy = Vec3::cross(uz, ux);
 		const f32 h = ray_center_dist;
 		const f32 theta = asinf(h / R);
 
@@ -324,11 +324,11 @@ bool Rutherford::scatter(const Ray &ray_in, const HitRecord &record, Color &atte
 
 		const f32 outgoing_x = -cosPhiTheta * x - sinPhiTheta * y; //-cos(phi + theta) * x + sin(phi + theta) * y;
 		const f32 outgoing_y = sinPhiTheta * x - cosPhiTheta * y;  //-sin(phi + theta) * x - cos(phi + theta) * y;
-		const Vec3 outgoing_pos = outgoing_x * ux + outgoing_y * uy + mCenter;
+		const Vec3 outgoing_position = outgoing_x * ux + outgoing_y * uy + mCenter;
 		const Vec3 outgoing_dir = -cosPhi * ux + sinPhi * uy;
 
 		ray_scattered.direction() = outgoing_dir;
-		ray_scattered.origin() = outgoing_pos;
+		ray_scattered.origin() = outgoing_position;
 	}
 	return true;
 }
@@ -342,12 +342,12 @@ bool QuasiRutherford::scatter(const Ray &ray_in, const HitRecord &record, Color 
 	const f32 m = 1.0f;
 	const f32 v = 10.0f;
 
-	const Vec3 CP = record.pos - mCenter;
+	const Vec3 CP = record.position - mCenter;
 	const f32 R = CP.length();
 
 	const Vec3 OC = mCenter - ray_in.origin();
 	const Vec3 D = ray_in.direction();
-	const f32 ray_center_dist = (D * (dot(OC, D) / D.lengthSquared()) - OC).length();
+	const f32 ray_center_dist = (D * (Vec3::dot(OC, D) / D.lengthSquared()) - OC).length();
 
 	const f32 E = 0.5f * m * v * v + G * M * m / R;
 	const f32 L = m * v * ray_center_dist;
@@ -360,9 +360,9 @@ bool QuasiRutherford::scatter(const Ray &ray_in, const HitRecord &record, Color 
 	attenuation = Color(0xFFFFFF);
 
 	{
-		const Vec3 ux = -normalize(D);
-		const Vec3 uz = normalize(cross(ux, CP));
-		const Vec3 uy = cross(uz, ux);
+		const Vec3 ux = -Vec3::normalize(D);
+		const Vec3 uz = Vec3::normalize(Vec3::cross(ux, CP));
+		const Vec3 uy = Vec3::cross(uz, ux);
 		const f32 h = ray_center_dist;
 		const f32 theta = asinf(h / R);
 
@@ -373,11 +373,11 @@ bool QuasiRutherford::scatter(const Ray &ray_in, const HitRecord &record, Color 
 
 		const f32 outgoing_x = -(cos(phi + theta) * x + sin(phi + theta) * y);
 		const f32 outgoing_y = -(sin(phi + theta) * x - cos(phi + theta) * y);
-		const Vec3 outgoing_pos = outgoing_x * ux + outgoing_y * uy + mCenter;
+		const Vec3 outgoing_position = outgoing_x * ux + outgoing_y * uy + mCenter;
 		const Vec3 outgoing_dir = -cos(phi) * ux + sin(phi) * uy;
 
 		ray_scattered.direction() = outgoing_dir;
-		ray_scattered.origin() = outgoing_pos;
+		ray_scattered.origin() = outgoing_position;
 	}
 	return true;
 }

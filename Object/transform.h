@@ -1,83 +1,27 @@
 #pragma once
-#include "matrix.h"
+#include "Math/matrix.h"
 
 struct Transform
 {
 public:
-    __device__ Transform()
-    : mScaling{1.0f, 1.0f, 1.0f}
-	, mRotation{0.0f, 0.0f, 0.0f}
-	, mTranslation{0, 0, 0} 
-    , mTransformMatrix{}
-    , mInvTransformMatrix{}
-    {}
+    __device__ __host__ Transform();
 
-	__device__ void setScaling(f32 scale_x, f32 scale_y, f32 scale_z)
-	{
-#ifdef DEBUG
-		if (scale_x == 0.0f || scale_y == 0.0f || scale_z == 0.0f)
-		{
-			printf("Error : scale value is 0!\n");
-		}
-#endif
-		mScaling[0] = scale_x;
-		mScaling[1] = scale_y;
-		mScaling[2] = scale_z;
-		mIsDirty = true;
-	}
-	__device__ void setRotationAngle(f32 angle_x, f32 angle_y, f32 angle_z)
-	{
-		mRotation[0] = angle_x;
-		mRotation[1] = angle_y;
-		mRotation[2] = angle_z;
-		mIsDirty = true;
-	}
-	__device__ void setTranslation(const Vec3& t)
-	{
-		mTranslation = t;
-		mIsDirty = true;
-	}
+	__device__ __host__ void setScaling(f32 scale_x, f32 scale_y, f32 scale_z);
+	__device__ __host__ void setRotationAngle(f32 angle_x, f32 angle_y, f32 angle_z);
+	__device__ __host__ void setTranslation(const Vec3& t);
 
-    __device__ const Mat4& getTransformMatrix()
-    {
-        if (mIsDirty)
-        {
-            calcTransformMatrix();
-            calcInverseTransformMatrix();
-            mIsDirty = false;
-        }
+    __device__ __host__ const Mat4& getTransformMatrix();
+    __device__ __host__ const Mat4& getInvTransformMatrix();
+    __device__ __host__ const Mat4& getInvTransposeTransformMatrix();
 
-        return mTransformMatrix;
-    }
-    __device__ const Mat4& getInvTransformMatrix()
-    {
-        if (mIsDirty)
-        {
-            calcTransformMatrix();
-            calcInverseTransformMatrix();
-            mIsDirty = false;
-        }
+	__device__ __host__ const Vec3& getTranslation() const;
 
-        return mInvTransformMatrix;
-    }
+	__device__ __host__ static Transform translation(const Vec3& v);
 
 private:
-	__device__ void calcTransformMatrix()
-	{
-		Mat4 S = Mat4::generateScale(mScaling[0], mScaling[1], mScaling[2]);
-		Mat4 R = Mat4::generateRotation(mRotation[0], mRotation[1], mRotation[2]);
-		Mat4 T = Mat4::generateTransform(mTranslation);
-
-		mTransformMatrix = T * R * S;
-	}
-	__device__ void calcInverseTransformMatrix()
-	{
-		Mat4 inv_T = Mat4::generateTransform(-mTranslation);
-		Mat4 inv_R = Mat4::generateRotation(-mRotation[0], -mRotation[1], -mRotation[2]);
-		Mat4 inv_S = Mat4::generateScale(1.0f / mScaling[0], 1.0f / mScaling[1], 1.0f / mScaling[2]);
-
-		mInvTransformMatrix = inv_S * inv_R * inv_T;
-	}
+	__device__ __host__ void calcTransformMatrix();
+	__device__ __host__ void calcInverseTransformMatrix();
+	__device__ __host__ void calcInverseTransposeTransformMatrix();
 
 	bool mIsDirty;
 	
@@ -87,4 +31,5 @@ private:
 
     Mat4 mTransformMatrix;
 	Mat4 mInvTransformMatrix;
+	Mat4 mInvTransposeTransformMatrix;
 };

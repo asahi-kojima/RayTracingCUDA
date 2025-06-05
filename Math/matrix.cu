@@ -1,6 +1,16 @@
 #include "matrix.h"
 
+Vec3 operator*(const Mat3& M, const Vec3& v)
+{
+    Vec3 Mv;
+    for (u32 i = 0; i < 3; i++)
+    {
+        f32 tmp = 0.0f;
+        Mv[i] = M(i, 0) * v[0] + M(i, 1) * v[1] + M(i, 2) * v[2];
+    }
 
+    return Mv;
+}
 
 
 f32 Mat4::operator()(size_t i, size_t j) const
@@ -25,7 +35,19 @@ f32& Mat4::operator()(size_t i, size_t j)
     return mElementList.asVector[i][j];
 }
 
-Mat4 Mat4::operator*(const Mat4& other)
+
+Mat4 Mat4::transpose()
+{
+    return Mat4(
+        mElementList.asVector[0][0], mElementList.asVector[1][0], mElementList.asVector[2][0], mElementList.asVector[3][0],       
+        mElementList.asVector[0][1], mElementList.asVector[1][1], mElementList.asVector[2][1], mElementList.asVector[3][1],       
+        mElementList.asVector[0][2], mElementList.asVector[1][2], mElementList.asVector[2][2], mElementList.asVector[3][2],       
+        mElementList.asVector[0][3], mElementList.asVector[1][3], mElementList.asVector[2][3], mElementList.asVector[3][3]       
+    );
+}
+
+
+Mat4 Mat4::operator*(const Mat4& other) const
 {
     Mat4 m;
     for (size_t col = 0; col < 4; col++)

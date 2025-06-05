@@ -1,21 +1,27 @@
 #pragma once
 #include "common.h"
 #include "util.h"
-#include "hittable.h"
-#include "primitive.h"
+#include "Object/hittable.h"
+#include "Object/primitive.h"
+
+class Object;
 
 class BvhNode : public Hittable
 {
 public:
-    BvhNode();
-    ~BvhNode();
+    __device__ BvhNode();
+    __device__ ~BvhNode();
 
 private:
-    BvhNode* mLhsNode;
-    BvhNode* mRhsNode;
+    BvhNode* mLhsNodeDevicePtr;
+    BvhNode* mRhsNodeDevicePtr;
+    Object* mObjectDevicePtr;
     // AABB
-	__device__ virtual bool isHitInLocalSpace(const Ray& r, const f32 t_min, const f32 t_max, HitRecord& record) = 0;
-	__device__ virtual AABB getAABB() = 0;
+	__device__ virtual bool isHit(const Ray& r, const f32 t_min, const f32 t_max, HitRecord& record) ;
+	__device__ __host__ virtual AABB getAABB();
+
 
     AABB mAABB;
+
+    bool mIsLeaf;
 };

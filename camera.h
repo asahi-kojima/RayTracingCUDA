@@ -2,7 +2,7 @@
 #include <math.h>
 #include <cmath>
 #include "ray.h"
-#include "vector.h"
+#include "Math/vector.h"
 #include "util.h"
 
 class Camera
@@ -21,9 +21,9 @@ public:
 		f32 halfWidth = aspect * halfHeight;
 
 		mEyeOrigin = lookFrom;
-		mCameraZ = normalize(lookFrom - lookAt);	// z
-		mCameraX = normalize(cross(vUp, mCameraZ)); // x
-		mCameraY = cross(mCameraZ, mCameraX);		// y
+		mCameraZ = Vec3::normalize(lookFrom - lookAt);	// z
+		mCameraX = Vec3::normalize(Vec3::cross(vUp, mCameraZ)); // x
+		mCameraY = Vec3::cross(mCameraZ, mCameraX);		// y
 
 		mScreenOrigin = mEyeOrigin - focusDist * mCameraZ - focusDist * halfWidth * mCameraX - focusDist * halfHeight * mCameraY;
 		horizontal = focusDist * 2 * halfWidth * mCameraX;
@@ -37,7 +37,7 @@ public:
 
 		Vec3 rayOrigin = mEyeOrigin + offset;
 
-		return Ray(rayOrigin, normalize(mScreenOrigin + s * horizontal + t * vertical - rayOrigin));
+		return Ray(rayOrigin, Vec3::normalize(mScreenOrigin + s * horizontal + t * vertical - rayOrigin));
 	}
 
 	__device__ __host__ Vec3 getEyeOrigin() const { return mEyeOrigin; }
@@ -45,8 +45,8 @@ public:
 	__device__ __host__ Vec3 getCameraX() const { return mCameraX; }
 	__device__ __host__ Vec3 getCameraY() const { return mCameraY; }
 	__device__ __host__ Vec3 getCameraZ() const { return mCameraZ; }
-	__device__ __host__ f32 getHorizontalScreenScale() const { return dot(horizontal, mCameraX); }
-	__device__ __host__ f32 getVerticalScreenScale() const { return dot(vertical, mCameraY); }
+	__device__ __host__ f32 getHorizontalScreenScale() const { return Vec3::dot(horizontal, mCameraX); }
+	__device__ __host__ f32 getVerticalScreenScale() const { return Vec3::dot(vertical, mCameraY); }
 	__device__ __host__ f32 getFocusDistance() const { return focusDistance; }
 
 private:

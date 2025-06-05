@@ -1,22 +1,23 @@
 #pragma once
 #include <vector>
 #include <memory>
-#include "vector.h"
+#include "Math/vector.h"
 #include "hittable.h"
 #include "util.h"
 
+using Primitive = Hittable;
 
 class AABB final : public Hittable
 {
 public:
-	__device__ AABB() : minPos(0, 0, 0), maxPos(0, 0, 0), mCenter(0, 0, 0) {}
-	__device__ AABB(Vec3 minPos, Vec3 maxPos, Material* material = nullptr)
+	__device__ __host__ AABB() : minPos(0, 0, 0), maxPos(0, 0, 0), mCenter(0, 0, 0) {}
+	__device__ __host__ AABB(Vec3 minPos, Vec3 maxPos, Material* material = nullptr)
 		: minPos(minPos), maxPos(maxPos), mCenter((minPos + maxPos) / 2),  material(material) {}
 
 	__device__ const Vec3& getMinPos() const { return minPos; }
 	__device__ const Vec3& getMaxPos() const { return maxPos; }
 
-	__device__ inline static AABB wraping(AABB lhs, AABB rhs)
+	__device__ __host__ inline static AABB wraping(AABB lhs, AABB rhs)
 	{
 		Vec3 minPos;
 		{
@@ -44,13 +45,14 @@ public:
 		printf("minPos = %f, %f, %f\n", minPos[0], minPos[1], minPos[2]);		
 	}
 
+	//軽量のヒット判定関数
 	__device__  bool isIntersecting(const Ray& ray,  f32 t_min,  f32 t_max) const;
 
-	__device__ AABB tranformWith(const Transform& transform) const;
+	__device__ __host__ AABB tranformWith(const Mat4& transformMat) const;
 	
 private:
-	__device__ virtual bool isHitInLocalSpace(const Ray& r, const f32 t_min, const f32 t_max, HitRecord& record) override;
-	__device__ virtual AABB getAABB() override { return *this; }
+	__device__ virtual bool isHit(const Ray& r, const f32 t_min, const f32 t_max, HitRecord& record) override;
+	__device__ __host__ virtual AABB getAABB() override { return *this; }
 
 
 	Vec3 minPos;
@@ -59,86 +61,31 @@ private:
 	Material* material;
 };
 
-class Triangle final : public Hittable
+class Box final: public Hittable
 {
 public:
-	__device__ Triangle(const Vec3& v0, const Vec3& v1, const Vec3& v2, Material* material, bool isCulling = true)
-	: mVertices{v0, v1, v2}, mMaterial(material) ,mNormal(Vec3::cross(v1 - v0, v2 - v0).normalize()), mIsCulling(isCulling)
-	{
-		const f32 dot0 = dot(v1 - v0, v2 - v0);
-		if (dot0 < 0)
-		{
-			const f32 radius = (v1 - v2).length() / 2.0f;
-			const Vec3 center = (v1 + v2) / 2.0f;
-			mAABB = AABB(center - radius, center + radius);
-			return;
-		}
+	__device__ Box() : mAABB(-Vec3(1,1,1), Vec3(1,1,1)){}
 
-		const f32 dot1 = dot(v0 - v1, v2 - v1);
-		if (dot1 < 0)
-		{
-			const f32 radius = (v0 - v2).length() / 2.0f;
-			const Vec3 center = (v0 + v2) / 2.0f;
-			mAABB = AABB(center - radius, center + radius);
-			return;
-		}
+private:
+	__device__ bool isHit(const Ray& r, const f32 t_min, const f32 t_max, HitRecord& record) override;
+	__device__ __host__ AABB getAABB() override;
 
-		const f32 dot2 = dot(v1 - v2, v0 - v2);
-		if (dot2 < 0)
-		{
-			const f32 radius = (v1 - v0).length() / 2.0f;
-			const Vec3 center = (v1 + v0) / 2.0f;
-			mAABB = AABB(center - radius, center + radius);
-			return;
-		}
-
-
-		const Vec3 c1 = (v1 + v0) / 2.0f;
-		const Vec3 c2 = (v2 + v0) / 2.0f;
-
-		const Vec3 n1 = Vec3::cross(v1 - v0, mNormal);
-		const Vec3 n2 = Vec3::cross(v2 - v0, mNormal);
-
-		const f32 a = dot(n1, n1);
-		const f32 b = dot(n1, n2);
-		const f32 c = -dot(n2, n2);
-		const f32 e = dot(n1, c2- c1);
-		const f32 f = dot(n2, c2- c1);
-
-		const f32 det = a * c + b * b;
-		const f32 t = (c * e + b * f) / det;
-		//const f32 s = (-b * e + a * f) / det;
-
-		const Vec3 circumcenter = c1 + t * n1;
-		const f32 radius = (circumcenter - v0).length();
-		mAABB = AABB(circumcenter - radius, circumcenter + radius);
-	}
-
-
-	
-	private:
-	__device__ bool isHitInLocalSpace(const Ray& r, const f32 t_min, const f32 t_max, HitRecord& record) override;
-	__device__ AABB getAABB() override;
-
-	Vec3 mVertices[3];
-	Vec3 mNormal;
-	Material* mMaterial;
 	AABB mAABB;
-	bool mIsCulling;
 };
+
+
 
 class Sphere final: public Hittable
 {
 public:
-	__device__ Sphere() = default;
-	__device__ Sphere(){}
+	__device__ Sphere() : mAABB(-Vec3(1,1,1), Vec3(1,1,1)){}
 
 
 private:
-	__device__ bool isHitInLocalSpace(const Ray& r, const f32 t_min, const f32 t_max, HitRecord& record) override;
-	__device__ AABB getAABB() override;
+	__device__ bool isHit(const Ray& r, const f32 t_min, const f32 t_max, HitRecord& record) override;
+	__device__ __host__ AABB getAABB() override;
 
-	Material* material;
+	AABB mAABB;
 };
 
 
@@ -225,6 +172,6 @@ inline Hittable* make_object(Args...args)
 //	std::vector<Vec3> mVertexList;
 //	std::vector<f32> mIndexList;
 //
-//	bool isHitInLocalSpace(const Ray& r, const f32 t_min, const f32 t_max, HitRecord& record) override;
+//	bool isHit(const Ray& r, const f32 t_min, const f32 t_max, HitRecord& record) override;
 //	AABB getAABB() override;
 //};

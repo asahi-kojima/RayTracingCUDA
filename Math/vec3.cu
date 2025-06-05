@@ -181,6 +181,19 @@ f32 Vec3::lengthSquared(const Vec3& v)
 	return v.lengthSquared();
 }
 
+f32 Vec3::dot(const Vec3& v0, const Vec3& v1)
+{
+	const f32 v0_x = v0.x();
+	const f32 v0_y = v0.y();
+	const f32 v0_z = v0.z();
+
+	const f32 v1_x = v1.x();
+	const f32 v1_y = v1.y();
+	const f32 v1_z = v1.z();
+
+	return v0_x * v1_x + v0_y * v1_y + v0_z * v1_z;
+}
+
 Vec3 Vec3::cross(const Vec3& v0, const Vec3& v1)
 {
 	const f32 v0_x = v0.x();
@@ -195,6 +208,11 @@ Vec3 Vec3::cross(const Vec3& v0, const Vec3& v1)
 	const f32 v_y = v0_z * v1_x - v0_x * v1_z;
 	const f32 v_z = v0_x * v1_y - v0_y * v1_x;
 	return Vec3(v_x, v_y, v_z);
+}
+
+Vec3 Vec3::reflect(const Vec3& v, const Vec3& n)
+{
+	return v - 2 * dot(v, n) * n;
 }
 
 void Vec3::print_debug() const
@@ -225,56 +243,56 @@ Vec3 operator*(const f32 value, const Vec3& v)
 }
 
 
-Vec3 normalize(const Vec3& v)
-{
-	Vec3 normalized_v = v;
+// Vec3 normalize(const Vec3& v)
+// {
+// 	Vec3 normalized_v = v;
 
-	return normalized_v.normalize();
-}
+// 	return normalized_v.normalize();
+// }
 
-Vec3 cross(const Vec3& v0, const Vec3& v1)
-{
-	const f32 v0_x = v0.x();
-	const f32 v0_y = v0.y();
-	const f32 v0_z = v0.z();
+// Vec3 cross(const Vec3& v0, const Vec3& v1)
+// {
+// 	const f32 v0_x = v0.x();
+// 	const f32 v0_y = v0.y();
+// 	const f32 v0_z = v0.z();
 
-	const f32 v1_x = v1.x();
-	const f32 v1_y = v1.y();
-	const f32 v1_z = v1.z();
+// 	const f32 v1_x = v1.x();
+// 	const f32 v1_y = v1.y();
+// 	const f32 v1_z = v1.z();
 
-	const f32 v_x = v0_y * v1_z - v0_z * v1_y;
-	const f32 v_y = v0_z * v1_x - v0_x * v1_z;
-	const f32 v_z = v0_x * v1_y - v0_y * v1_x;
-	return Vec3(v_x, v_y, v_z);
-}
+// 	const f32 v_x = v0_y * v1_z - v0_z * v1_y;
+// 	const f32 v_y = v0_z * v1_x - v0_x * v1_z;
+// 	const f32 v_z = v0_x * v1_y - v0_y * v1_x;
+// 	return Vec3(v_x, v_y, v_z);
+// }
 
-f32 dot(const Vec3& v0, const Vec3& v1)
-{
-	const f32 v0_x = v0.x();
-	const f32 v0_y = v0.y();
-	const f32 v0_z = v0.z();
+// f32 dot(const Vec3& v0, const Vec3& v1)
+// {
+// 	const f32 v0_x = v0.x();
+// 	const f32 v0_y = v0.y();
+// 	const f32 v0_z = v0.z();
 
-	const f32 v1_x = v1.x();
-	const f32 v1_y = v1.y();
-	const f32 v1_z = v1.z();
+// 	const f32 v1_x = v1.x();
+// 	const f32 v1_y = v1.y();
+// 	const f32 v1_z = v1.z();
 
-	return v0_x * v1_x + v0_y * v1_y + v0_z * v1_z;
-}
+// 	return v0_x * v1_x + v0_y * v1_y + v0_z * v1_z;
+// }
 
-Vec3 reflect(const Vec3& v, const Vec3& n)
-{
-	return v - 2 * dot(v, n) * n;
-}
-
-
+// Vec3 reflect(const Vec3& v, const Vec3& n)
+// {
+// 	return v - 2 * dot(v, n) * n;
+// }
 
 
-Vec3 random_in_unit_sphere()
-{
-	Vec3 p;
-	do
-	{
-		p = Vec3(RandomGeneratorGPU::signed_uniform_real(), RandomGeneratorGPU::signed_uniform_real(), RandomGeneratorGPU::signed_uniform_real());
-	} while (p.lengthSquared() >= 1.0f);
-	return p;
-}
+
+
+// Vec3 random_in_unit_sphere()
+// {
+// 	Vec3 p;
+// 	do
+// 	{
+// 		p = Vec3(RandomGeneratorGPU::uniform_real(), RandomGeneratorGPU::signed_uniform_real(), RandomGeneratorGPU::signed_uniform_real());
+// 	} while (p.lengthSquared() >= 1.0f);
+// 	return p;
+// }

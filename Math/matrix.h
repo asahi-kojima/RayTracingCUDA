@@ -1,4 +1,5 @@
 #pragma once
+#include <stdio.h>
 #include "common.h"
 #include "vector.h"
 
@@ -36,17 +37,7 @@ private:
 };
 
 
-Vec3 operator*(const Mat3& M, const Vec3& v)
-{
-    Vec3 Mv;
-    for (u32 i = 0; i < 3; i++)
-    {
-        f32 tmp = 0.0f;
-        Mv[i] = M(i, 0) * v[0] + M(i, 1) * v[1] + M(i, 2) * v[2];
-    }
 
-    return Mv;
-}
 
 
 
@@ -85,10 +76,13 @@ public:
     __device__ __host__ f32 operator()(size_t i, size_t j) const;
     __device__ __host__ f32& operator()(size_t i, size_t j);
 
+    __device__ __host__ Mat4 transpose();
+
     //------------------------------------------------------------
     // operator overload
     //------------------------------------------------------------
-    __device__ __host__ Mat4 operator*(const Mat4& other);
+    __device__ __host__ Mat4 operator*(const Mat4& other) const;
+
 
     //------------------------------------------------------------
     // 平行移動行列を作成する
@@ -116,4 +110,4 @@ private:
     } mElementList;
 };
 
-Vec4 operator*(const Mat4& M, const Vec4& v);
+__device__ __host__ Vec4 operator*(const Mat4& M, const Vec4& v);

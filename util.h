@@ -20,9 +20,15 @@ inline void gpuAssert(cudaError_t code, const char* file, u32 line)
 {
 	if (code != cudaSuccess)
 	{
-		printf("GPU assert : Code %d : %d line in %s", code, line, file);
+		printf("GPU assert : Code %d : %d line in %s\n", code, line, file);
 	}
 }
+
+#define KERNEL_ERROR_CHECKER GPU_ERROR_CHECKER(cudaPeekAtLastError()); CHECK(cudaDeviceSynchronize());
+
+#define ONCE_ON_GPU(global_func) global_func<<<1,1>>>
+
+
 
 class RandomGenerator
 {
@@ -112,3 +118,26 @@ namespace aoba
 		return (clamp_for_min > max_v ? max_v : clamp_for_min);
 	}
 }
+
+
+
+
+
+template <typename T, typename S>
+class CuMap
+{
+public:
+	CuMap();
+	void resize(u32 newSize)
+	{
+		if (mArray != nullptr)
+		{
+			delete[] mArray;
+		}
+		mArray = new T[newSize];
+	}
+	
+private:
+	T* mArray;
+	u32 mAllocaionSize = 0;
+};
