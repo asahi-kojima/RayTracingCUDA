@@ -17,7 +17,7 @@ public:
 	__device__ const Vec3& getMinPos() const { return minPos; }
 	__device__ const Vec3& getMaxPos() const { return maxPos; }
 
-	__device__ __host__ inline static AABB wraping(AABB lhs, AABB rhs)
+	__device__ __host__ inline static AABB wraping(const AABB& lhs, const AABB& rhs)
 	{
 		Vec3 minPos;
 		{

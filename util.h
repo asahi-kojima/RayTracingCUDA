@@ -15,6 +15,7 @@
         exit(1);                                                               \
     }                                                                          \
 }
+
 #define GPU_ERROR_CHECKER(code) {gpuAssert((code), __FILE__, __LINE__);}
 inline void gpuAssert(cudaError_t code, const char* file, u32 line)
 {

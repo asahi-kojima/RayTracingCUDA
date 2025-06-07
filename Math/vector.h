@@ -50,6 +50,9 @@ public:
 	
 	__device__ __host__ static inline Vec3 zero() { return Vec3(0.0f, 0.0f, 0.0f); };
 	__device__ __host__ static inline Vec3 one() { return Vec3(1.0f, 1.0f, 1.0f); };
+	__device__ __host__ static inline Vec3 unitX() { return Vec3(1.0f, 0.0f, 0.0f); };
+	__device__ __host__ static inline Vec3 unitY() { return Vec3(0.0f, 1.0f, 0.0f); };
+	__device__ __host__ static inline Vec3 unitZ() { return Vec3(0.0f, 0.0f, 1.0f); };
 
 #ifdef DEBUG
 	__device__ __host__ void print_debug() const;

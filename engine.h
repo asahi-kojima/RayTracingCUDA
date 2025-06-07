@@ -1,49 +1,9 @@
 #pragma once
-
-#include <vector>
-#include <memory>
-#include <string>
-
-#include "Math/vector.h"
-#include "typeinfo.h"
-#include "render_target.h"
-#include "camera.h"
-#include "Object/hittable.h"
-
 #include "world.h"
+#include "render_target.h"
 
 class RayTracingEngine
 {
 public:
-    void render(World& world, RenderTarget& renderTarget);
+    static void render(World& world, RenderTarget& renderTarget, const u32 sampleSize = 30, const u32 depth = 50);
 };
-
-// class RayTracingEngine
-// {
-// public:
-// 	__host__ RayTracingEngine();
-// 	__host__ ~RayTracingEngine();
-
-// 	//描画するワールド（シーン）をセット
-// 	__host__ void setWorld(World& world);
-
-// 	//レンダーターゲットをセット
-// 	__host__ void setRenderTarget(RenderTarget& target);
-
-// 	//
-// 	__host__ void build();
-
-// 	//セットしたワールドとレンダーターゲットに対しレンダリング
-// 	__host__ void render(const u32 sampleSize = 30, const u32 depth = 15);
-
-// 	//レンダリング結果を指定パスに保存
-// 	__host__ void saveRenderResult(const std::string& path);
-
-
-// private:
-// 	RenderTarget* mRenderTargetPtr = nullptr;
-// 	World* mWorldPtr = nullptr;
-
-
-
-// };

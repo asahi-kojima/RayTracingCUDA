@@ -5,6 +5,8 @@
 #include "Object/object.h"
 #include "Object/mesh.h"
 #include "bvh_node.h"
+#include "camera.h"
+
 
 //worldにはデフォルトでプリミティブが定義されていると仮定する。
 
@@ -56,14 +58,19 @@ public:
 
     void addPrimitive(const std::string& name, Mesh&& primitive);
     void addObject(const char* objectName, const char* primitiveName, const char* materialName, const Transform& transform = Transform());
-
+    void setCamera(const Camera& camera);
     void buildBvh();
 
     u32 getObjectNum() const;
     u32 getPrimitiveNum() const;
     u32 getMaterialNum() const;
 
+    BvhNode* getRootBvhDevicePtr() const;
+
+    Camera* getCameraManagedPtr() const;
+
 private:
+    Camera* mCameraManagedPtr;
 
     // オブジェクトレコードのリスト（GPU上のオブジェクト情報を保持したCPU側のデータ）
     std::map<std::string, ObjectRecord> mString_MapTo_ObjectRecord;
@@ -74,6 +81,6 @@ private:
     //GPU上のマテリアル
     std::map<std::string, Material*> mString_MapTo_MaterialDevPtr;
 
-    //
-    BvhNode* mRootBvhNode;
+    //BVHのルートのポインタ
+    BvhNode* mRootBvhNodeDevicePtr;
 };

@@ -100,6 +100,7 @@ AABB AABB::tranformWith(const Mat4& transformMat) const
 
 		//トランスフォームを行う
 		transformed_vertex[i] = (transformMat * vertex[i]).extractXYZ();
+		//printf("%f\n", transformed_vertex[i][0]);
 	}
 
 	f32 new_x_min = MAXFLOAT;

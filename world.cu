@@ -1,12 +1,17 @@
 #include <algorithm>
 #include "world.h"
 
-
-//とりあえず100個用意しているが、ここは後ほど精密に行う
-constexpr u32 MaxMaterialNum = 100;
-__managed__ Material* gMaterialList[MaxMaterialNum];
-constexpr u32 MaxPrimitiveNum = 100;
-__managed__ Primitive* gPrimitiveList[MaxPrimitiveNum];
+namespace 
+{
+    //とりあえず100個用意しているが、ここは後ほど精密に行う
+    constexpr u32 MaxMaterialNum = 100;
+    __managed__ Material* gMaterialList[MaxMaterialNum];
+    constexpr u32 MaxPrimitiveNum = 100;
+    __managed__ Primitive* gPrimitiveList[MaxPrimitiveNum];
+    
+    //BVH構築用
+    __managed__ BvhNode* rootBvhPtr;
+} 
 
 __global__ void setupPrimitives()
 {
@@ -22,7 +27,7 @@ __global__ void setupMaterials()
 
 World::World()
 {
-
+    //デフォルトのプリミティブ・マテリアルを登録
     ONCE_ON_GPU(setupPrimitives)();
     ONCE_ON_GPU(setupMaterials)();
     KERNEL_ERROR_CHECKER;
@@ -32,6 +37,9 @@ World::World()
     
     mString_MapTo_MaterialDevPtr["Metal"] = gMaterialList[0];
     mString_MapTo_MaterialDevPtr["Lambert"] = gMaterialList[1];
+
+    //カメラの確保
+    CHECK(cudaMallocManaged(&mCameraManagedPtr, sizeof(Camera)));
 }
 
 
@@ -133,41 +141,141 @@ void World::addObject(const char* objectName, const char* primitiveName, const c
 }
 
 
+//=================================================================
+// カメラをセットする
+//=================================================================
+void World::setCamera(const Camera& camera)
+{
+    *mCameraManagedPtr = camera;
+}
+
+
 //========================================================================================
 // BVHの構築
 //========================================================================================
-__device__ void makeLeafNode()
-{
-
-}
-
-__global__ void buildBvhOnGPU(u32 objectNum)
-{
-    // //ノードがいくつ必要か計算する
-    // const u32 nodeNum = 2 * objectNum - 1;
-
-    // //メモリ上に一列にノードを確保する
-    // BvhNode* bvhArray = new BvhNode[nodeNum];
-
-    // makeLeafNode();
-    // //makeBvhNode();
-}
-
 void sort_along_axis(std::vector<std::pair<Vec3, Object*>>& pairs, const u32 start, u32 end, u32 depth = 0)
 {
-	if (end - start == 1)
-	{
-		return;
-	}
+    if (end - start == 1)
+    {
+        return;
+    }
 
-	std::sort(
+    std::sort(
         pairs.begin() + start, 
         pairs.begin() + end, 
         [depth](std::pair<Vec3, Object*>& pair0, std::pair<Vec3, Object*> pair1) {const u32 axis_of_sort = depth % 3; return pair0.first[axis_of_sort] < pair1.first[axis_of_sort]; });
 
-	sort_along_axis(pairs, start, start + (end - start) / 2, depth + 1);
-	sort_along_axis(pairs, start + (end - start) / 2, end, depth + 1);
+    sort_along_axis(pairs, start, start + (end - start) / 2, depth + 1);
+    sort_along_axis(pairs, start + (end - start) / 2, end, depth + 1);
 }
+
+//-----------------------------------------------------------------------
+// 葉ノードにBVHノードを構築する
+//-----------------------------------------------------------------------
+// __global__ void makeLeafNode(Object* objectPtrList[], BvhNode* bvhArray)
+// {
+//     const u32 id = threadIdx.x + blockDim.x * blockIdx.x;
+//     new (&bvhArray[id]) BvhNode(objectPtrList[id], objectPtrList[id]->getAABB());
+// }
+
+//-----------------------------------------------------------------------------------------------------
+//
+//-----------------------------------------------------------------------------------------------------
+// __device__ void makeBvhNodeCasePow2(const u32 objectNum, BvhNode* parentNode, BvhNode* nodeArray, Object* objectPtrList[], const u32 offset = 0)
+// {
+//     if (objectNum == 2)
+//     {
+//         printf("reach a leaf\n");
+//
+//         BvhNode* lhs = (nodeArray + offset + 0);
+//         BvhNode* rhs = (nodeArray + offset + 1);
+//
+//         new (lhs) BvhNode(objectPtrList[id], objectPtrList[id]->getAABB());
+//         new (rhs) BvhNode(rhs, objectPtrList[id]->getAABB());
+//         return;
+//     }
+//     printf("pow2 : %d\n", objectNum);
+//     makeBvhNodeCasePow2(objectNum / 2, nodeArray, objectPtrList, offset);
+//     makeBvhNodeCasePow2(objectNum / 2, nodeArray, objectPtrList, offset);
+// }
+//
+// //-----------------------------------------------------------------------------------------------------
+// //
+// //-----------------------------------------------------------------------------------------------------
+// __device__ void makeBvhNodeCaseResidual(const u32 objectNum, BvhNode* parentNode, BvhNode* nodeArray, Object* objectPtrList[], const u32 offset = 0)
+// {
+//     if (objectNum == 1)
+//     {
+//         printf("reach final residual\n");
+//         return;
+//     }
+//    
+//     const u32 logN = static_cast<u32>(log2f(objectNum));
+//     // printf("residual : (%d, %d)\n", 1 << logN, objectNum - (1 << logN));
+//
+//     const u32 componentPow2 = (1 << logN);
+//     const u32 componentRes = objectNum - componentPow2;
+//
+//     makeBvhNodeCasePow2(componentPow2, nullptr, nullptr);
+//     if (componentRes == 0)
+//     {
+//         printf("no residual\n");
+//         return;
+//     }
+//     //makeBvhNodeCaseResidual(componentRes, offset);
+// }
+
+__device__ BvhNode* recursiveBuildBvh(const u32 start, const u32 range, BvhNode nodeArray[], Object* objectPtrList[], u32& memoryId)
+{
+    const u32 index = memoryId;
+    memoryId++;
+
+    //葉ノードに到着したので、オブジェクトを登録
+    if (range == 1)
+    {
+        //printf("objectID = %d : memory-index = %d : %p\n", start, index, nodeArray + index);
+        new (nodeArray + index) BvhNode(objectPtrList[start], objectPtrList[start]->getAABB());
+        return nodeArray + index;
+    }
+
+    BvhNode* lhs = recursiveBuildBvh(start,              range / 2,      nodeArray, objectPtrList, memoryId);
+    BvhNode* rhs = recursiveBuildBvh(start + range / 2, (range + 1) / 2, nodeArray, objectPtrList, memoryId);
+
+
+    AABB aabb = AABB::wraping(lhs->getAABB(), rhs->getAABB());
+    new (nodeArray + index) BvhNode(lhs, rhs, aabb);
+
+    return nodeArray + index;
+}
+
+
+//-----------------------------------------------------------------------------
+//
+//-----------------------------------------------------------------------------
+__global__ void buildBvhOnDevice(const u32 objectNum, Object* objectPtrList[])
+{
+    //ノードがいくつ必要か計算する
+    const u32 nodeNum = 2 * objectNum - 1;
+
+    //メモリ上に一列にノードを確保する
+    BvhNode* bvhArray = reinterpret_cast<BvhNode*>(malloc(sizeof(BvhNode) * nodeNum));
+
+    //BVHの先端：葉の部分に相当するノードにオブジェクト情報をセットする
+    // {
+    //     dim3 block(16);
+    //     dim3 grid((objectNum + block.x - 1) / block.x);
+    //     makeLeafNode<<<grid, block>>>(objectPtrList, bvhArray + (objectNum - 1));
+    // }
+
+    {
+        BvhNode* bvhNodePtr;
+        u32 memoryId = 0;
+        BvhNode* rootNodePtr =  recursiveBuildBvh(0, objectNum, bvhArray, objectPtrList, memoryId);
+
+        rootBvhPtr = rootNodePtr;
+    }
+
+}    
 
 
 void World::buildBvh()
@@ -175,26 +283,51 @@ void World::buildBvh()
     if (getObjectNum() == 0)
     {
         assert(0);
+        printf("Object Num must be more than 1\n");
+        exit(1);
     }
 
+    //--------------------------------------------------------------------
+    // BVHを構築する前にCPU側でソートをしておく。
+    //--------------------------------------------------------------------
     std::vector<std::pair<Vec3, Object*>> mPair_Translation_ObjectDevicePtr_List;
     for (auto iter = mString_MapTo_ObjectRecord.begin(), end = mString_MapTo_ObjectRecord.end(); iter != end; iter++)
     {
         const Vec3& translation = iter->second.getTransform().getTranslation();
         Object* objectDevicePtr = iter->second.getObjectDevicePtr();
         mPair_Translation_ObjectDevicePtr_List.push_back(std::make_pair(translation, objectDevicePtr));
-        printf("%f, %f, %f\n", translation[0], translation[1], translation[2]);
+        //printf("%f, %f, %f\n", translation[0], translation[1], translation[2]);
     }
+    #ifdef DEBUG
+        if (mPair_Translation_ObjectDevicePtr_List.size() != getObjectNum())
+        {
+            printf("size mismatch\n");
+            assert(false);
+        }
+    #endif
     sort_along_axis(mPair_Translation_ObjectDevicePtr_List, 0, getObjectNum());
 
-#ifdef DEBUG
-    if (mPair_Translation_ObjectDevicePtr_List.size() != getObjectNum())
+    //---------------------------------------------------------------------
+    // オブジェクトのトランスフォームを基準にソート
+    //---------------------------------------------------------------------
+    BvhNode** bvhPtrList;
+    CHECK(cudaMalloc(&bvhPtrList, sizeof(BvhNode*) * getObjectNum()));
+
+    Object** objectDevicePtrList;//Object* array[size]; 
+    CHECK(cudaMallocManaged(&objectDevicePtrList, sizeof(Object*) * getObjectNum())); CHECK(cudaDeviceSynchronize());
+    for (auto iter = mPair_Translation_ObjectDevicePtr_List.begin(), begin = mPair_Translation_ObjectDevicePtr_List.begin(), end = mPair_Translation_ObjectDevicePtr_List.end(); iter != end; iter++)
     {
-        printf("size mismatch\n");
-        assert(false);
+        const u32 index = (iter - begin);
+        objectDevicePtrList[index] = iter->second;
     }
-#endif
-    ONCE_ON_GPU(buildBvhOnGPU)(getObjectNum());
+
+    //---------------------------------------------------------------------
+    // オブジェクトのBVHを構築する
+    //---------------------------------------------------------------------
+    ONCE_ON_GPU(buildBvhOnDevice)(getObjectNum(), objectDevicePtrList);
+    CHECK(cudaDeviceSynchronize());
+
+    mRootBvhNodeDevicePtr = rootBvhPtr;
 }
 
 
@@ -215,4 +348,14 @@ u32 World::getPrimitiveNum() const
 u32 World::getMaterialNum() const
 {
     return mString_MapTo_MaterialDevPtr.size();
+}
+
+BvhNode* World::getRootBvhDevicePtr() const
+{
+    return mRootBvhNodeDevicePtr;
+}
+
+Camera* World::getCameraManagedPtr() const
+{
+    return mCameraManagedPtr;
 }

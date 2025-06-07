@@ -156,6 +156,11 @@ Vec3 Vec3::normalize() const
 	return Vec3(x, y, z);
 }
 
+Vec3 Vec3::normalize(const Vec3& v)
+{
+	return v.normalize();
+}
+
 f32 Vec3::length() const
 {
 	const f32 lengthSquared = this->lengthSquared();
