@@ -1,11 +1,34 @@
 #include "object.h"
 
-Object::Object(Hittable* pritmitivePtr, Material* materialPtr, const Transform& transform)
+SurfaceProperty::SurfaceProperty()
+: mTransparency(0.0f)
+, mReflectance(1.0f)
+, mAlbedo(0xFFFFFF)
+{
+}
+
+
+
+void SurfaceProperty::setAlbedo(const Color& albedo)
+{
+    mAlbedo = albedo;
+}
+
+const Color& SurfaceProperty::getAlbedo() const
+{
+    return mAlbedo;
+}
+
+
+
+
+Object::Object(Hittable* pritmitivePtr, Material* materialPtr, const Transform& transform, const SurfaceProperty& surfacePropery)
 : mPrimitivePtr(pritmitivePtr)
 , mMaterialPtr(materialPtr)
 , mTransform(transform)
 , mAABB()
 , mIsDirty(false)
+, mSurfaceProperty(surfacePropery)
 {
     AABB primitiveAABB = mPrimitivePtr->getAABB();
     const Mat4& transformMat = mTransform.getTransformMatrix();
@@ -44,6 +67,7 @@ bool Object::isHit(const Ray& r, const f32 t_min, const f32 t_max, HitRecord& re
     }
 
     record.material = mMaterialPtr;
+    record.hitObject = this;
 
     return true;
 }

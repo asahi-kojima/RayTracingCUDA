@@ -4,13 +4,21 @@
 #include "render_target.h"
 #include "engine.h"
 
-//__device__ curandState s[32];
-
+__device__ curandState s[32];
+__global__ void setup_gpu()
+{
+	for (u32 i = 0; i < 32; i++)
+	{
+		curand_init(static_cast<unsigned long long>(i), 0, 0, &s[i]);
+	}
+}
 
 int main(int argc, char** argv)
 {
 	//cudaDeviceSetLimit(cudaLimitMallocHeapSize, 1024 * 1024 * 1024);
 	cudaDeviceSetLimit(cudaLimitStackSize, 1024*100);
+	setup_gpu<<<1,1>>>();
+	KERNEL_ERROR_CHECKER;
 	//------------------------------------------
 	// レンダリングする際の解像度を外から与える
 	//------------------------------------------
@@ -31,25 +39,32 @@ int main(int argc, char** argv)
 	{
 		//オブジェクトの追加
 		{
-			for (s32 z = 0; z < 3; z++)
+			for (s32 z = -3; z < 10; z++)
 			{
-				for (s32 i = 0; i < 30 * 30; i++)
+				const s32 num = 30;
+				for (s32 i = 0; i < num * num; i++)
 				{
-					const s32 h = i / 30 - 15;
-					const s32 w = i % 30 - 15;
+					const s32 h = i / num - num/2;
+					const s32 w = i % num - num/2;
+
+					if (h == 0 && w == 0)
+						continue;
 					
 					Transform transform = Transform::translation(Vec3(h, w, -z));
 					transform.setScaling(0.2f);
 
 					char* primitiveName = "Sphere";
 					char* materialName = "Metal";
-					if (RandomGenerator::uniform_real() < 0.5)
+					if (RandomGenerator::uniform_real() < 0.2)
 					{
 						materialName = "Lambert";
 					} 
 					
 					std::string objectName = "SphereObject"; objectName += std::to_string(i) += std::to_string(z);
-					world.addObject(objectName.c_str(), primitiveName, materialName, transform);
+
+					SurfaceProperty property{};
+					property.setAlbedo(Color(RandomGenerator::uniform_int(0, 0xFFFFFF)));
+					world.addObject(objectName.c_str(), primitiveName, materialName, transform,property);
 				}
 			}
 			printf("Object Num in World : %d\n", world.getObjectNum());
@@ -77,8 +92,8 @@ int main(int argc, char** argv)
 	//------------------------------------------
 	// エンジンに渡して、レンダリング	
 	//------------------------------------------
-	RayTracingEngine::render(world, renderTarget, 1, 5);
-
+	for (u32 i = 0; i < 1; i++)
+	RayTracingEngine::render(world, renderTarget, 30, 10);
 
 	//------------------------------------------
 	// 画像に出力して結果の確認

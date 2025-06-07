@@ -22,7 +22,7 @@ __global__ void setupPrimitives()
 __global__ void setupMaterials()
 {
     gMaterialList[0] = new Metal(Color(0xFF0000));
-    gMaterialList[1] = new Lambertian(Color(0x0000FF));
+    gMaterialList[1] = new Lambertian(Color(0xFFFFFF));
 }
 
 World::World()
@@ -79,12 +79,12 @@ void World::addPrimitive(const std::string& name, Mesh&& primitive)
 //=================================================================
 // オブジェクトの構築を行う
 //=================================================================
-__global__ void constructObject(Object* objectPtr, Primitive* primitivePtr, Material* materialPtr, Transform* transformPtr)
+__global__ void constructObject(Object* objectPtr, Primitive* primitivePtr, Material* materialPtr, Transform* transformPtr, SurfaceProperty* surfaceProperyPtr)
 {
-    new (objectPtr) Object(primitivePtr,materialPtr, *transformPtr);
+    new (objectPtr) Object(primitivePtr,materialPtr, *transformPtr, *surfaceProperyPtr);
 }
 
-void World::addObject(const char* objectName, const char* primitiveName, const char* materialName, const Transform& transform)
+void World::addObject(const char* objectName, const char* primitiveName, const char* materialName, const Transform& transform, const SurfaceProperty& surfacePropery)
 {
     //------------------------------------------------------
     // 指定されたオブジェクトやプリミティブが正しいかのチェック
@@ -117,22 +117,21 @@ void World::addObject(const char* objectName, const char* primitiveName, const c
     Transform* transformPtrD = nullptr;
     CHECK(cudaMalloc(&transformPtrD, sizeof(Transform)));
     CHECK(cudaMemcpy(transformPtrD, &transform, sizeof(Transform), cudaMemcpyHostToDevice));
-    
-    // 今後、マネージドメモリから初期化を行えるようにする
-    // CHECK(cudaMallocManaged(&objectPtrOnGpu, sizeof(Object)));
-    // CHECK(cudaDeviceSynchronize());
-    // // new (objectPtrOnGpu) Object(primitivePtr_d, materialPtr_d, transform);
-    // new (objectPtrOnGpu) Object(primitivePtr_d, materialPtr_d);
-    // //GPU_ERROR_CHECKER(cudaGetLastError());
+
+    //--------------------------------------------------
+    //GPU上に表面プロパティを用意しておく
+    //--------------------------------------------------
+    SurfaceProperty* surfaceProperyDevicePtr = nullptr;
+    CHECK(cudaMalloc(&surfaceProperyDevicePtr, sizeof(SurfaceProperty)));
+    CHECK(cudaMemcpy(surfaceProperyDevicePtr, &surfacePropery, sizeof(SurfaceProperty), cudaMemcpyHostToDevice));
     
     //--------------------------------------------------
     //GPU上でオブジェクトインスタンスをメモリ上に構築
     //--------------------------------------------------
     Object* objectPtrD = nullptr;
     CHECK(cudaMalloc(&objectPtrD, sizeof(Object)));
-    ONCE_ON_GPU(constructObject)(objectPtrD, primitivePtrD,materialPtrD, transformPtrD);
+    ONCE_ON_GPU(constructObject)(objectPtrD, primitivePtrD,materialPtrD, transformPtrD, surfaceProperyDevicePtr);
     KERNEL_ERROR_CHECKER;
-
 
     //-----------------------------------------------------
     // GPU上に構築したオブジェクト情報を参照する為のレコード

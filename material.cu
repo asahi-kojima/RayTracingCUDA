@@ -1,7 +1,7 @@
 #include "material.h"
 #include "Object/hittable.h"
 #include "util.h"
-
+#include "Object/object.h"
 //======================================================
 // ランバート
 //======================================================
@@ -25,7 +25,7 @@ bool Metal::scatter(const Ray &ray_in, const HitRecord &record, Color &attenuati
 	
 	if (Vec3::dot(ray_scattered.direction(), record.normal) > 0)
 	{
-		attenuation = mTexture->color(0, 0, record.position);
+		attenuation = record.hitObject->getSurfaceProperty().getAlbedo();//mTexture->color(0, 0, record.position);
 		return true;
 	}
 

@@ -9,13 +9,14 @@
 
 class AABB;
 class Ray;
-
+class Object;
 
 struct HitRecord
 {
 	f32 t;								//���C��������܂ł̃p�����[�^�l
 	Vec3 position;							//�ǂ��œ���������
 	Vec3 normal;						//�@�������͂ǂ���
+	Object* hitObject;
 	Material* material;	//�ǂ̂悤�ȍގ���
 };
 

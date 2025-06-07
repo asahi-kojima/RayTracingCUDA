@@ -57,7 +57,7 @@ public:
     World();
 
     void addPrimitive(const std::string& name, Mesh&& primitive);
-    void addObject(const char* objectName, const char* primitiveName, const char* materialName, const Transform& transform = Transform());
+    void addObject(const char* objectName, const char* primitiveName, const char* materialName, const Transform& transform = Transform(), const SurfaceProperty& surfacePropery = SurfaceProperty());
     void setCamera(const Camera& camera);
     void buildBvh();
 
