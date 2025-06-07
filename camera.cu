@@ -25,6 +25,6 @@ __device__ Ray Camera::getRay(f32 s, f32 t)
     Vec3 offset = mCameraX * rd[0] + mCameraY * rd[1];
 
     Vec3 rayOrigin = mEyeOrigin + offset;
-
+ 
     return Ray(rayOrigin, Vec3::normalize(mScreenOrigin + s * horizontal + t * vertical - rayOrigin));
 }

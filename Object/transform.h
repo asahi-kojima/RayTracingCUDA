@@ -8,6 +8,7 @@ public:
     // __device__ __host__ Transform(const Transform& other);
 
 	__device__ __host__ void setScaling(f32 scale_x, f32 scale_y, f32 scale_z);
+	__device__ __host__ void setScaling(f32 scale);
 	__device__ __host__ void setRotationAngle(f32 angle_x, f32 angle_y, f32 angle_z);
 	__device__ __host__ void setTranslation(const Vec3& t);
 

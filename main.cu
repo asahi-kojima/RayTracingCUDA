@@ -31,20 +31,26 @@ int main(int argc, char** argv)
 	{
 		//オブジェクトの追加
 		{
-			for (u32 i = 0; i < 8000; i++)
+			for (s32 z = 0; z < 3; z++)
 			{
-				Transform transform = Transform::translation(Vec3::generateRandomUnitVector() * 10);
-				transform.setScaling(0.01f, 0.01f, 0.01f);
-				//std::cout << "T = " << transform.getTransformMatrix()(0, 3) << std::endl;
-				char* primitiveName = "Sphere";
-				char* materialName = "Metal";
-				if (RandomGenerator::uniform_real() < 0.5)
+				for (s32 i = 0; i < 30 * 30; i++)
 				{
-					materialName = "Lambert";
-				} 
+					const s32 h = i / 30 - 15;
+					const s32 w = i % 30 - 15;
+					
+					Transform transform = Transform::translation(Vec3(h, w, -z));
+					transform.setScaling(0.2f);
 
-				std::string objectName = "SphereObject"; objectName += std::to_string(i);
-				world.addObject(objectName.c_str(), primitiveName, materialName, transform);
+					char* primitiveName = "Sphere";
+					char* materialName = "Metal";
+					if (RandomGenerator::uniform_real() < 0.5)
+					{
+						materialName = "Lambert";
+					} 
+					
+					std::string objectName = "SphereObject"; objectName += std::to_string(i) += std::to_string(z);
+					world.addObject(objectName.c_str(), primitiveName, materialName, transform);
+				}
 			}
 			printf("Object Num in World : %d\n", world.getObjectNum());
 		}
@@ -52,8 +58,9 @@ int main(int argc, char** argv)
 		//カメラのセット
 		{
 			Vec3 lookAt(0, 0, 0);
-			Vec3 lookFrom(0,0,20.0f);
-			Camera(lookFrom, lookAt, Vec3::unitY(), 20, f32(ResolutionW) / f32(ResolutionH), 0.0, (lookFrom - lookAt).length());
+			Vec3 lookFrom(0,0,3.0f);
+			Camera camera(lookFrom, lookAt, Vec3::unitY(), 20, f32(ResolutionW) / f32(ResolutionH), 0.0, (lookFrom - lookAt).length());
+			world.setCamera(camera);
 		}
 
 		world.buildBvh();
@@ -70,11 +77,12 @@ int main(int argc, char** argv)
 	//------------------------------------------
 	// エンジンに渡して、レンダリング	
 	//------------------------------------------
-	RayTracingEngine::render(world, renderTarget, 5, 5);
+	RayTracingEngine::render(world, renderTarget, 1, 5);
+
 
 	//------------------------------------------
 	// 画像に出力して結果の確認
 	//------------------------------------------
-	renderTarget.saveRenderResult("./build/result.ppm");
+	renderTarget.saveRenderResult("./picture/result.ppm");
 
 }

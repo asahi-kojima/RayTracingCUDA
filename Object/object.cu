@@ -7,12 +7,9 @@ Object::Object(Hittable* pritmitivePtr, Material* materialPtr, const Transform& 
 , mAABB()
 , mIsDirty(false)
 {
-    //PrimitiveMeshからAABBを取得し、AABBを計算する。
     AABB primitiveAABB = mPrimitivePtr->getAABB();
     const Mat4& transformMat = mTransform.getTransformMatrix();
     mAABB = primitiveAABB.tranformWith(transformMat);
-    //printf("%f, %f, %f\n", mAABB.getMaxPos()[0], mAABB.getMaxPos()[1], mAABB.getMaxPos()[2]);
-    //printf("%f, %f, %f\n", mAABB.getMaxPos()[0], mAABB.getMaxPos()[1], transform.getTranslation()[2]);
 }
 
 
@@ -29,6 +26,7 @@ bool Object::isHit(const Ray& r, const f32 t_min, const f32 t_max, HitRecord& re
         return false;
     }
 
+
     //最適化ポイント：これは衝突点がより近い点があった場合に無駄が出得る。
     //recode内の衝突点を変換する必要がある。
     {
@@ -36,7 +34,6 @@ bool Object::isHit(const Ray& r, const f32 t_min, const f32 t_max, HitRecord& re
         const Mat4& transformMat = mTransform.getTransformMatrix();
         record.position = (transformMat * position).extractXYZ();
     }
-
     //最適化ポイント：これは衝突点がより近い点があった場合に無駄が出得る。
     //recode内のノーマルを変換する必要がある。
     {
@@ -45,6 +42,8 @@ bool Object::isHit(const Ray& r, const f32 t_min, const f32 t_max, HitRecord& re
 
         record.normal = (invTransposeTransformMat * normal).extractXYZ();
     }
+
+    record.material = mMaterialPtr;
 
     return true;
 }

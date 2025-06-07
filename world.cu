@@ -40,6 +40,7 @@ World::World()
 
     //カメラの確保
     CHECK(cudaMallocManaged(&mCameraManagedPtr, sizeof(Camera)));
+    CHECK(cudaDeviceSynchronize());
 }
 
 
@@ -169,61 +170,6 @@ void sort_along_axis(std::vector<std::pair<Vec3, Object*>>& pairs, const u32 sta
     sort_along_axis(pairs, start + (end - start) / 2, end, depth + 1);
 }
 
-//-----------------------------------------------------------------------
-// 葉ノードにBVHノードを構築する
-//-----------------------------------------------------------------------
-// __global__ void makeLeafNode(Object* objectPtrList[], BvhNode* bvhArray)
-// {
-//     const u32 id = threadIdx.x + blockDim.x * blockIdx.x;
-//     new (&bvhArray[id]) BvhNode(objectPtrList[id], objectPtrList[id]->getAABB());
-// }
-
-//-----------------------------------------------------------------------------------------------------
-//
-//-----------------------------------------------------------------------------------------------------
-// __device__ void makeBvhNodeCasePow2(const u32 objectNum, BvhNode* parentNode, BvhNode* nodeArray, Object* objectPtrList[], const u32 offset = 0)
-// {
-//     if (objectNum == 2)
-//     {
-//         printf("reach a leaf\n");
-//
-//         BvhNode* lhs = (nodeArray + offset + 0);
-//         BvhNode* rhs = (nodeArray + offset + 1);
-//
-//         new (lhs) BvhNode(objectPtrList[id], objectPtrList[id]->getAABB());
-//         new (rhs) BvhNode(rhs, objectPtrList[id]->getAABB());
-//         return;
-//     }
-//     printf("pow2 : %d\n", objectNum);
-//     makeBvhNodeCasePow2(objectNum / 2, nodeArray, objectPtrList, offset);
-//     makeBvhNodeCasePow2(objectNum / 2, nodeArray, objectPtrList, offset);
-// }
-//
-// //-----------------------------------------------------------------------------------------------------
-// //
-// //-----------------------------------------------------------------------------------------------------
-// __device__ void makeBvhNodeCaseResidual(const u32 objectNum, BvhNode* parentNode, BvhNode* nodeArray, Object* objectPtrList[], const u32 offset = 0)
-// {
-//     if (objectNum == 1)
-//     {
-//         printf("reach final residual\n");
-//         return;
-//     }
-//    
-//     const u32 logN = static_cast<u32>(log2f(objectNum));
-//     // printf("residual : (%d, %d)\n", 1 << logN, objectNum - (1 << logN));
-//
-//     const u32 componentPow2 = (1 << logN);
-//     const u32 componentRes = objectNum - componentPow2;
-//
-//     makeBvhNodeCasePow2(componentPow2, nullptr, nullptr);
-//     if (componentRes == 0)
-//     {
-//         printf("no residual\n");
-//         return;
-//     }
-//     //makeBvhNodeCaseResidual(componentRes, offset);
-// }
 
 __device__ BvhNode* recursiveBuildBvh(const u32 start, const u32 range, BvhNode nodeArray[], Object* objectPtrList[], u32& memoryId)
 {
@@ -233,7 +179,6 @@ __device__ BvhNode* recursiveBuildBvh(const u32 start, const u32 range, BvhNode 
     //葉ノードに到着したので、オブジェクトを登録
     if (range == 1)
     {
-        //printf("objectID = %d : memory-index = %d : %p\n", start, index, nodeArray + index);
         new (nodeArray + index) BvhNode(objectPtrList[start], objectPtrList[start]->getAABB());
         return nodeArray + index;
     }
@@ -260,13 +205,6 @@ __global__ void buildBvhOnDevice(const u32 objectNum, Object* objectPtrList[])
     //メモリ上に一列にノードを確保する
     BvhNode* bvhArray = reinterpret_cast<BvhNode*>(malloc(sizeof(BvhNode) * nodeNum));
 
-    //BVHの先端：葉の部分に相当するノードにオブジェクト情報をセットする
-    // {
-    //     dim3 block(16);
-    //     dim3 grid((objectNum + block.x - 1) / block.x);
-    //     makeLeafNode<<<grid, block>>>(objectPtrList, bvhArray + (objectNum - 1));
-    // }
-
     {
         BvhNode* bvhNodePtr;
         u32 memoryId = 0;
@@ -274,7 +212,6 @@ __global__ void buildBvhOnDevice(const u32 objectNum, Object* objectPtrList[])
 
         rootBvhPtr = rootNodePtr;
     }
-
 }    
 
 

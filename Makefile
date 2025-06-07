@@ -16,7 +16,8 @@ DUMMY_MKDIR:=$(shell mkdir -p build)
 
 
 all: $(TARGET)
-	./$(TARGET) 1920 1080
+	./$(TARGET) 1920 1080 > log.txt
+	convert ./picture/result.ppm ./picture/result.png
 
 compile: $(TARGET)
 

@@ -66,21 +66,21 @@ Mat4 Mat4::operator*(const Mat4& other) const
     return m;
 }
 
-Mat4 Mat4::generateTransform(f32 x, f32 y, f32 z)
+Mat4 Mat4::generateTranslation(f32 x, f32 y, f32 z)
 {
     return Mat4(
         Vec4(1, 0, 0, x), 
         Vec4(0, 1, 0, y), 
-        Vec4(0, 0, 0, z), 
+        Vec4(0, 0, 1, z), 
         Vec4(0, 0, 0, 1));
 }
 
-Mat4 Mat4::generateTransform(const Vec3& v)
+Mat4 Mat4::generateTranslation(const Vec3& v)
 {
     return Mat4(
         Vec4(1, 0, 0, v.x()), 
         Vec4(0, 1, 0, v.y()), 
-        Vec4(0, 0, 0, v.z()), 
+        Vec4(0, 0, 1, v.z()), 
         Vec4(0, 0, 0, 1));
 }
 

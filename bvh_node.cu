@@ -21,12 +21,13 @@ bool BvhNode::isHit(const Ray& r, const f32 t_min, const f32 t_max, HitRecord& r
         currentTMax = recordLhs.t;
         record = recordLhs;
     }
-
-    bool isHitRhs = mRhsNodeDevicePtr->isHit(r, t_min, t_max, recordRhs);
+    
+    bool isHitRhs = mRhsNodeDevicePtr->isHit(r, t_min, currentTMax, recordRhs);
     if (isHitRhs)
     {
         record = recordRhs;
     }
+    
 
     return (isHitLhs || isHitRhs);
 }

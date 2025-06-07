@@ -28,6 +28,11 @@ void Transform::setScaling(f32 scale_x, f32 scale_y, f32 scale_z)
     mIsDirty = true;
 }
 
+void Transform::setScaling(f32 scale)
+{
+    setScaling(scale, scale, scale);
+}
+
 void Transform::setRotationAngle(f32 angle_x, f32 angle_y, f32 angle_z)
 {
     mRotation[0] = angle_x;
@@ -103,14 +108,14 @@ void Transform::calcTransformMatrix()
 {
     const Mat4 S = Mat4::generateScale(mScaling[0], mScaling[1], mScaling[2]);
     const Mat4 R = Mat4::generateRotation(mRotation[0], mRotation[1], mRotation[2]);
-    const Mat4 T = Mat4::generateTransform(mTranslation);
+    const Mat4 T = Mat4::generateTranslation(mTranslation);
     
     mTransformMatrix = T * R * S;
 }
 
 void Transform::calcInverseTransformMatrix()
 {
-    const Mat4 inv_T = Mat4::generateTransform(-mTranslation);
+    const Mat4 inv_T = Mat4::generateTranslation(-mTranslation);
     const Mat4 inv_R = Mat4::generateRotation(-mRotation[0], -mRotation[1], -mRotation[2]);
     const Mat4 inv_S = Mat4::generateScale(1.0f / mScaling[0], 1.0f / mScaling[1], 1.0f / mScaling[2]);
 
@@ -121,7 +126,7 @@ void Transform::calcInverseTransposeTransformMatrix()
 {
     const Mat4 invTranspose_S = Mat4::generateScale(1.0f / mScaling[0], 1.0f / mScaling[1], 1.0f / mScaling[2]);
     const Mat4 invTranspose_R = Mat4::generateRotation(mRotation[0], mRotation[1], mRotation[2]);
-    const Mat4 invTranspose_T = Mat4::generateTransform(-mTranslation).transpose();
+    const Mat4 invTranspose_T = Mat4::generateTranslation(-mTranslation).transpose();
 
     mInvTransposeTransformMatrix = invTranspose_T * invTranspose_R * invTranspose_S;
 }

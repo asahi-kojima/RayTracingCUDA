@@ -89,8 +89,8 @@ public:
     //------------------------------------------------------------
     // 平行移動行列を作成する
     //------------------------------------------------------------
-    __device__ __host__ static Mat4 generateTransform(f32 x, f32 y, f32 z);
-    __device__ __host__ static Mat4 generateTransform(const Vec3& v);
+    __device__ __host__ static Mat4 generateTranslation(f32 x, f32 y, f32 z);
+    __device__ __host__ static Mat4 generateTranslation(const Vec3& v);
 
     //------------------------------------------------------------
     // 平行移動行列を作成する

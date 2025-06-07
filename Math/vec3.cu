@@ -220,9 +220,9 @@ Vec3 Vec3::reflect(const Vec3& v, const Vec3& n)
 	return v - 2 * dot(v, n) * n;
 }
 
-void Vec3::print_debug() const
+void Vec3::print_debug(const char* message) const
 {
-	printf("vector = (%f, %f, %f)\n", mElements[0], mElements[1], mElements[2]);
+	printf("vector = (%f, %f, %f) : %s\n", mElements[0], mElements[1], mElements[2], message);
 }
 
 Vec3 Vec3::generateRandomUnitVector()

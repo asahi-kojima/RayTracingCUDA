@@ -11,7 +11,7 @@ __device__ Color castRayAndCalcColor(BvhNode* worldNode, const Ray& ray, const u
 		HitRecord rec;
 		if (worldNode->isHit(current_ray, 0.001f, MAXFLOAT, rec))
 		{
-			Ray scattered;
+            Ray scattered;
 			Color attenuation;
 			if (rec.material->scatter(current_ray, rec, attenuation, scattered))
 			{

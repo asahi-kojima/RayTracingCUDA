@@ -34,12 +34,13 @@ Ray Ray::transformWith(const Mat4& mat) const
     Vec3 transformedOrigin = (mat * origin).extractXYZ();
     Vec3 transformedDirection = (mat * direction).extractXYZ();
 
+
     return Ray(transformedOrigin, transformedDirection);
 }
 
 
 void Ray::print_debug() const
 {
-    mOrigin.print_debug();
-    mDirection.print_debug();
+    mOrigin.print_debug("Origin");
+    mDirection.print_debug("Direction");
 }
