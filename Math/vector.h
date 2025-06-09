@@ -55,7 +55,7 @@ public:
 	__device__ __host__ static inline Vec3 unitZ() { return Vec3(0.0f, 0.0f, 1.0f); };
 
 #ifdef DEBUG
-	__device__ __host__ void print_debug(const char* message) const;
+	__device__ __host__ void print_debug(const char* message = "") const;
 #endif
 private:
 	f32 mElements[3];

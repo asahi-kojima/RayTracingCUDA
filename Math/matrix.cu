@@ -101,6 +101,25 @@ Mat4 Mat4::generateRotation(f32 angleX, f32 angleY, f32 angleZ)
     );
 }
 
+Mat4 Mat4::generateInverseRotation(f32 angleX, f32 angleY, f32 angleZ)
+{
+    const f32 cosx = cos(angleX);
+    const f32 sinx = sin(angleX);
+    const f32 cosy = cos(angleY);
+    const f32 siny = sin(angleY);
+    const f32 cosz = cos(angleZ);
+    const f32 sinz = sin(angleZ);
+
+    return Mat4(
+        cosy * cosz                      , -cosy * sinz                     , siny        , 0,
+        sinx * siny * cosz + cosx * sinz , -sinx * siny * sinz + cosx * cosz, -sinx * cosy, 0,
+        -cosx * siny * cosz + sinx * sinz, cosx * siny * sinz + sinx * cosz , cosx * cosy , 0, 
+        0                                , 0                                , 0           , 1
+    );
+}
+
+
+
 Mat4 Mat4::generateRotation(const Vec3& rotationUnitVector, f32 angle)
 {
     const Vec3& n = rotationUnitVector;

@@ -24,6 +24,7 @@ public:
     __device__ Object(Primitive* pritmitivePtr, Material* materialPtr, const Transform& transform = Transform(), const SurfaceProperty& surfacePropery = SurfaceProperty());
 	__device__ virtual bool isHit(const Ray& r, const f32 t_min, const f32 t_max, HitRecord& record);
 	__device__ __host__ virtual AABB getAABB();
+    __device__ __host__ const Transform& getTransform() const;
 
     __device__ const SurfaceProperty& getSurfaceProperty() const
     {

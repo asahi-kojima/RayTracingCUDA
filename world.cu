@@ -21,8 +21,11 @@ __global__ void setupPrimitives()
 
 __global__ void setupMaterials()
 {
-    gMaterialList[0] = new Metal(Color(0xFF0000));
+    gMaterialList[0] = new Metal(Color(0xFFFFFF));
     gMaterialList[1] = new Lambertian(Color(0xFFFFFF));
+    gMaterialList[2] = new Dielectric(1.33);
+    gMaterialList[3] = new Dielectric(1.5);
+    gMaterialList[4] = new Dielectric(2.5);
 }
 
 World::World()
@@ -37,6 +40,9 @@ World::World()
     
     mString_MapTo_MaterialDevPtr["Metal"] = gMaterialList[0];
     mString_MapTo_MaterialDevPtr["Lambert"] = gMaterialList[1];
+    mString_MapTo_MaterialDevPtr["Water"] = gMaterialList[2];
+    mString_MapTo_MaterialDevPtr["Glass"] = gMaterialList[3];
+    mString_MapTo_MaterialDevPtr["Diamond"] = gMaterialList[4];
 
     //カメラの確保
     CHECK(cudaMallocManaged(&mCameraManagedPtr, sizeof(Camera)));

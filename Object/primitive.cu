@@ -1,9 +1,31 @@
 #include "primitive.h"
 
+AABB AABB::wraping(const AABB& lhs, const AABB& rhs)
+{
+	Vec3 minPos;
+	{
+		minPos.x() = fminf(lhs.mMinPosition.x(), rhs.mMinPosition.x());
+		minPos.y() = fminf(lhs.mMinPosition.y(), rhs.mMinPosition.y());
+		minPos.z() = fminf(lhs.mMinPosition.z(), rhs.mMinPosition.z());
+	}
+	Vec3 maxPos;
+	{
+		maxPos.x() = fmaxf(lhs.mMaxPosition.x(), rhs.mMaxPosition.x());
+		maxPos.y() = fmaxf(lhs.mMaxPosition.y(), rhs.mMaxPosition.y());
+		maxPos.z() = fmaxf(lhs.mMaxPosition.z(), rhs.mMaxPosition.z());
+	}
+	return AABB(minPos, maxPos);
+}
+
+const Vec3&  AABB::getCenterPos() const
+{
+	return mCenter;
+}
+
 bool AABB::isHit(const Ray &ray, const f32 t_min, const f32 t_max, HitRecord &record)
 {
-	const Vec3 center = (maxPos + minPos) * 0.5f;
-	const Vec3 extention = (maxPos - minPos) * 0.5f;
+	const Vec3 center = (mMaxPosition + mMinPosition) * 0.5f;
+	const Vec3 extention = (mMaxPosition - mMinPosition) * 0.5f;
 	const f32 extention_x = extention[0];
 	const f32 extention_y = extention[1];
 	const f32 extention_z = extention[2];
@@ -74,20 +96,20 @@ bool AABB::isHit(const Ray &ray, const f32 t_min, const f32 t_max, HitRecord &re
 	}
 	
 	record.t = current_min_t;	
-	record.position = ray.pointAt(current_min_t);
+	//record.position = ray.pointAt(current_min_t);
 	record.normal = normal;
-	record.material = this->material;
+
 	return true;
 }
 
 AABB AABB::tranformWith(const Mat4& transformMat) const
 {
-	const f32 x_min = minPos[0];
-	const f32 y_min = minPos[1];
-	const f32 z_min = minPos[2];
-	const f32 x_max = maxPos[0];
-	const f32 y_max = maxPos[1];
-	const f32 z_max = maxPos[2];
+	const f32 x_min = mMinPosition[0];
+	const f32 y_min = mMinPosition[1];
+	const f32 z_min = mMinPosition[2];
+	const f32 x_max = mMaxPosition[0];
+	const f32 y_max = mMaxPosition[1];
+	const f32 z_max = mMaxPosition[2];
 	Vec4 vertex[8];
 	Vec3 transformed_vertex[8];
 	for (u32 i = 0; i < 8; i++)
@@ -129,8 +151,8 @@ bool AABB::isIntersecting(const Ray &ray,  f32 t_min,  f32 t_max) const
 	{
 		const f32 inv = 1.0f / direction[i];
 		const f32 ith_origin = origin[i];
-		f32 t0 = (minPos[i] - ith_origin) * inv;
-		f32 t1 = (maxPos[i] - ith_origin) * inv;
+		f32 t0 = (mMinPosition[i] - ith_origin) * inv;
+		f32 t1 = (mMaxPosition[i] - ith_origin) * inv;
 
 		if (inv < 0.0f)
 		{
@@ -170,24 +192,21 @@ bool Sphere::isHit(const Ray &r, const f32 t_min, const f32 t_max, HitRecord &re
 		tmp = (-b - root_of_D) * inv_2a;
 		if (tmp < t_max && tmp > t_min)
 		{
-			isHit = true;
+			record.t = tmp;
+			record.normal = r.pointAt(tmp);
+			return true;
 		}
 
-		if (!isHit)
+		tmp = (-b + root_of_D) * inv_2a;
+		if (tmp < t_max && tmp > t_min)
 		{
-			tmp = (-b + root_of_D) * inv_2a;
-			if (tmp < t_max && tmp > t_min)
-			{
-				isHit = true;
-			}
+			record.t = tmp;
+			record.normal = r.pointAt(tmp);
+			return true;
 		}
 	}
 
-	record.t = tmp;
-	record.position = r.pointAt(tmp);
-	record.normal = record.position;
-
-	return isHit;
+	return false;
 }
 
 AABB Sphere::getAABB()

@@ -41,6 +41,11 @@ void Transform::setRotationAngle(f32 angle_x, f32 angle_y, f32 angle_z)
     mIsDirty = true;
 }
 
+void Transform::setRotationAngle(const Vec3& angles)
+{
+    setRotationAngle(angles[0], angles[1], angles[2]);
+}
+
 
 void Transform::setTranslation(const Vec3& t)
 {
@@ -48,43 +53,30 @@ void Transform::setTranslation(const Vec3& t)
     mIsDirty = true;
 }
 
-const Mat4& Transform::getTransformMatrix()
+void Transform::updateTransformMatrices()
 {
     if (mIsDirty)
-    {
+    {   
         calcTransformMatrix();
         calcInverseTransformMatrix();
         calcInverseTransposeTransformMatrix();
         mIsDirty = false;
     }
+}
 
+const Mat4& Transform::getTransformMatrix() const
+{
     return mTransformMatrix;
 }
 
 
-const Mat4& Transform::getInvTransformMatrix()
+const Mat4& Transform::getInvTransformMatrix() const
 {
-    if (mIsDirty)
-    {
-        calcTransformMatrix();
-        calcInverseTransformMatrix();
-        calcInverseTransposeTransformMatrix();
-        mIsDirty = false;
-    }
-
     return mInvTransformMatrix;
 }
 
-const Mat4& Transform::getInvTransposeTransformMatrix()
+const Mat4& Transform::getInvTransposeTransformMatrix() const
 {
-    if (mIsDirty)
-    {
-        calcTransformMatrix();
-        calcInverseTransformMatrix();
-        calcInverseTransposeTransformMatrix();
-        mIsDirty = false;
-    }
-
     return mInvTransposeTransformMatrix;
 }
 
@@ -116,7 +108,7 @@ void Transform::calcTransformMatrix()
 void Transform::calcInverseTransformMatrix()
 {
     const Mat4 inv_T = Mat4::generateTranslation(-mTranslation);
-    const Mat4 inv_R = Mat4::generateRotation(-mRotation[0], -mRotation[1], -mRotation[2]);
+    const Mat4 inv_R = Mat4::generateInverseRotation(-mRotation[0], -mRotation[1], -mRotation[2]);
     const Mat4 inv_S = Mat4::generateScale(1.0f / mScaling[0], 1.0f / mScaling[1], 1.0f / mScaling[2]);
 
     mInvTransformMatrix = inv_S * inv_R * inv_T;

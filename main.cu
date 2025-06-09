@@ -22,7 +22,7 @@ int main(int argc, char** argv)
 	//------------------------------------------
 	// レンダリングする際の解像度を外から与える
 	//------------------------------------------
-	if (argc <= 2)
+	if (argc <= 4)
 	{
 		printf("few arguments\n");
 		exit(1);
@@ -30,6 +30,8 @@ int main(int argc, char** argv)
 
 	const u32 ResolutionW = atoi(argv[1]);
 	const u32 ResolutionH = atoi(argv[2]);
+	const u32 SampleNum = atoi(argv[3]);
+	const u32 MaxDepth = atoi(argv[4]);
 
 
 	//------------------------------------------
@@ -51,15 +53,16 @@ int main(int argc, char** argv)
 						continue;
 					
 					Transform transform = Transform::translation(Vec3(h, w, -z));
+					transform.setRotationAngle(Vec3::generateRandomUnitVector() * 10);
 					transform.setScaling(0.2f);
 
-					char* primitiveName = "Sphere";
+					char* primitiveName = "AABB";
 					char* materialName = "Metal";
-					if (RandomGenerator::uniform_real() < 0.2)
+					if (RandomGenerator::uniform_real() < 0.3)
 					{
-						materialName = "Lambert";
+						materialName = "Diamond";
 					} 
-					
+
 					std::string objectName = "SphereObject"; objectName += std::to_string(i) += std::to_string(z);
 
 					SurfaceProperty property{};
@@ -67,6 +70,7 @@ int main(int argc, char** argv)
 					world.addObject(objectName.c_str(), primitiveName, materialName, transform,property);
 				}
 			}
+
 			printf("Object Num in World : %d\n", world.getObjectNum());
 		}
 
@@ -88,12 +92,11 @@ int main(int argc, char** argv)
 	//------------------------------------------
 	RenderTarget renderTarget(ResolutionW, ResolutionH);
 
-
 	//------------------------------------------
 	// エンジンに渡して、レンダリング	
 	//------------------------------------------
 	for (u32 i = 0; i < 1; i++)
-	RayTracingEngine::render(world, renderTarget, 30, 10);
+	RayTracingEngine::render(world, renderTarget, SampleNum, MaxDepth);
 
 	//------------------------------------------
 	// 画像に出力して結果の確認

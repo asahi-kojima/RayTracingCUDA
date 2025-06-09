@@ -10,39 +10,22 @@ using Primitive = Hittable;
 class AABB final : public Hittable
 {
 public:
-	__device__ __host__ AABB() : minPos(0, 0, 0), maxPos(0, 0, 0), mCenter(0, 0, 0) {}
+	constexpr static f32 DefaultExtensionRange= 0.5f;
+	__device__ __host__ AABB() : mMinPosition(-DefaultExtensionRange, -DefaultExtensionRange, -DefaultExtensionRange), mMaxPosition(DefaultExtensionRange,DefaultExtensionRange,DefaultExtensionRange), mCenter(0, 0, 0) {}
 	__device__ __host__ AABB(Vec3 minPos, Vec3 maxPos, Material* material = nullptr)
-		: minPos(minPos), maxPos(maxPos), mCenter((minPos + maxPos) / 2),  material(material) {}
+		: mMinPosition(minPos), mMaxPosition(maxPos), mCenter((minPos + maxPos) / 2){}
 
-	__device__ const Vec3& getMinPos() const { return minPos; }
-	__device__ const Vec3& getMaxPos() const { return maxPos; }
+	__device__ const Vec3& getMinPos() const { return mMinPosition; }
+	__device__ const Vec3& getMaxPos() const { return mMaxPosition; }
 
-	__device__ __host__ inline static AABB wraping(const AABB& lhs, const AABB& rhs)
-	{
-		Vec3 minPos;
-		{
-			minPos.x() = fminf(lhs.minPos.x(), rhs.minPos.x());
-			minPos.y() = fminf(lhs.minPos.y(), rhs.minPos.y());
-			minPos.z() = fminf(lhs.minPos.z(), rhs.minPos.z());
-		}
-		Vec3 maxPos;
-		{
-			maxPos.x() = fmaxf(lhs.maxPos.x(), rhs.maxPos.x());
-			maxPos.y() = fmaxf(lhs.maxPos.y(), rhs.maxPos.y());
-			maxPos.z() = fmaxf(lhs.maxPos.z(), rhs.maxPos.z());
-		}
-		return AABB(minPos, maxPos);
-	}
+	__device__ __host__ static AABB wraping(const AABB& lhs, const AABB& rhs);
 
-	__device__ Vec3 getCenterPos() const
-	{
-		return (minPos + maxPos) / 2.0f;
-	}
+	__device__ const Vec3& getCenterPos() const;
 
 	__device__ void print_debug() const
 	{
-		printf("maxPos = %f, %f, %f\n", maxPos[0], maxPos[1], maxPos[2]);		
-		printf("minPos = %f, %f, %f\n", minPos[0], minPos[1], minPos[2]);		
+		printf("maxPos = %f, %f, %f\n", mMaxPosition[0], mMaxPosition[1], mMaxPosition[2]);		
+		printf("minPos = %f, %f, %f\n", mMinPosition[0], mMinPosition[1], mMinPosition[2]);		
 	}
 
 	//軽量のヒット判定関数
@@ -55,10 +38,9 @@ private:
 	__device__ __host__ virtual AABB getAABB() override { return *this; }
 
 
-	Vec3 minPos;
-	Vec3 maxPos;
+	Vec3 mMinPosition;
+	Vec3 mMaxPosition;
 	Vec3 mCenter;
-	Material* material;
 };
 
 class Box final: public Hittable

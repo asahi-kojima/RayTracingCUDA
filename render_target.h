@@ -19,6 +19,7 @@ public:
 
 	u32 getResolutionWidth() const { return mResolutionWidth; }
 	u32 getResolutionHeight() const { return mResolutionHeight; }
+	u32 getPixelNum() const { return mPixelNum; }
 	Color* getPixels() const {return mPixelArray;}
 
 private:

@@ -96,6 +96,7 @@ public:
     // 平行移動行列を作成する
     //------------------------------------------------------------
     __device__ __host__ static Mat4 generateRotation(f32 angleX, f32 angleY, f32 angleZ);
+    __device__ __host__ static Mat4 generateInverseRotation(f32 angleX, f32 angleY, f32 angleZ);
     __device__ __host__ static Mat4 generateRotation(const Vec3& rotationUnitVector, f32 angle);
     __device__ __host__ static Mat4 generateRotation(const Vec3& rotationVector);
 
