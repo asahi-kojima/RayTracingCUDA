@@ -18,6 +18,7 @@ struct HitRecord
 	Vec3 normal;						//�@�������͂ǂ���
 	Object* hitObject;
 	Material* material;	//�ǂ̂悤�ȍގ���
+	u32 bvhDepth;
 };
 
 

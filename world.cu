@@ -238,7 +238,6 @@ void World::buildBvh()
         const Vec3& translation = iter->second.getTransform().getTranslation();
         Object* objectDevicePtr = iter->second.getObjectDevicePtr();
         mPair_Translation_ObjectDevicePtr_List.push_back(std::make_pair(translation, objectDevicePtr));
-        //printf("%f, %f, %f\n", translation[0], translation[1], translation[2]);
     }
     #ifdef DEBUG
         if (mPair_Translation_ObjectDevicePtr_List.size() != getObjectNum())

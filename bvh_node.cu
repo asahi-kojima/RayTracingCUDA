@@ -3,6 +3,7 @@
 
 bool BvhNode::isHit(const Ray& r, const f32 t_min, const f32 t_max, HitRecord& record)
 {
+
     if (mIsLeaf)
     {
         return mObjectDevicePtr->isHit(r, t_min, t_max, record);
@@ -12,22 +13,11 @@ bool BvhNode::isHit(const Ray& r, const f32 t_min, const f32 t_max, HitRecord& r
     {
         return false;
     }
-
-    f32 currentTMax = t_max;
-    HitRecord recordLhs, recordRhs;
-    bool isHitLhs = mLhsNodeDevicePtr->isHit(r, t_min, currentTMax, recordLhs);
-    if (isHitLhs)
-    {
-        currentTMax = recordLhs.t;
-        record = recordLhs;
-    }
+    record.bvhDepth = record.bvhDepth + 1;
     
-    bool isHitRhs = mRhsNodeDevicePtr->isHit(r, t_min, currentTMax, recordRhs);
-    if (isHitRhs)
-    {
-        record = recordRhs;
-    }
+    bool isHitLhs = mLhsNodeDevicePtr->isHit(r, t_min, t_max, record);
     
+    bool isHitRhs = mRhsNodeDevicePtr->isHit(r, t_min, t_max, record);
 
     return (isHitLhs || isHitRhs);
 }

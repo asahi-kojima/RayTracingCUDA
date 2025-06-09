@@ -41,43 +41,47 @@ int main(int argc, char** argv)
 	{
 		//オブジェクトの追加
 		{
-			for (s32 z = -3; z < 10; z++)
+			Vec3 positionList[12] = {
+				Vec3( 0.5,  0.3,  -8),
+				Vec3( 0.5, -0.3, -8),
+				Vec3(-0.5,  0.3, -8),
+				Vec3(-0.5, -0.3,-8),
+				Vec3( 1.5,   2,  -5),
+				Vec3( 1.5,  -2,  -5),
+				Vec3(-1.5,   2,  -5),
+				Vec3(-1.5,  -2,  -5),
+				Vec3( 3, 1,   -2),
+				Vec3( 3, -1,  -2),
+				Vec3(-3, 1,   -2),
+				Vec3(-3, -1,  -2)
+			};
+			for (u32 i = 0; i < (sizeof(positionList) / sizeof(positionList[0])); i++)
 			{
-				const s32 num = 30;
-				for (s32 i = 0; i < num * num; i++)
+				Transform transform = Transform::translation(positionList[i] * 0.4);
+				//transform.setRotationAngle(Vec3::generateRandomUnitVector() * 10);
+				transform.setScaling(0.05f);
+
+				char* primitiveName = "Sphere";
+				char* materialName = "Metal";
+				if (RandomGenerator::uniform_real() < 0.3)
 				{
-					const s32 h = i / num - num/2;
-					const s32 w = i % num - num/2;
+					materialName = "Diamond";
+				} 
 
-					if (h == 0 && w == 0)
-						continue;
-					
-					Transform transform = Transform::translation(Vec3(h, w, -z));
-					transform.setRotationAngle(Vec3::generateRandomUnitVector() * 10);
-					transform.setScaling(0.2f);
+				std::string objectName = "SphereObject"; objectName += std::to_string(i);
 
-					char* primitiveName = "AABB";
-					char* materialName = "Metal";
-					if (RandomGenerator::uniform_real() < 0.3)
-					{
-						materialName = "Diamond";
-					} 
-
-					std::string objectName = "SphereObject"; objectName += std::to_string(i) += std::to_string(z);
-
-					SurfaceProperty property{};
-					property.setAlbedo(Color(RandomGenerator::uniform_int(0, 0xFFFFFF)));
-					world.addObject(objectName.c_str(), primitiveName, materialName, transform,property);
-				}
+				SurfaceProperty property{};
+				property.setAlbedo(Color(RandomGenerator::uniform_int(0, 0xFFFFFF)));
+				world.addObject(objectName.c_str(), primitiveName, materialName, transform,property);
 			}
-
+		
 			printf("Object Num in World : %d\n", world.getObjectNum());
 		}
 
 		//カメラのセット
 		{
 			Vec3 lookAt(0, 0, 0);
-			Vec3 lookFrom(0,0,3.0f);
+			Vec3 lookFrom(0,0,5.0f);
 			Camera camera(lookFrom, lookAt, Vec3::unitY(), 20, f32(ResolutionW) / f32(ResolutionH), 0.0, (lookFrom - lookAt).length());
 			world.setCamera(camera);
 		}

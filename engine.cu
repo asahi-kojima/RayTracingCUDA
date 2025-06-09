@@ -10,46 +10,25 @@ __device__ Color castRayAndCalcColor(BvhNode* worldNode, const Ray& ray, const u
 	for (u32 depth = 0; depth < maxDepth; depth++)
 	{
 		HitRecord record;
+		record.bvhDepth = 0;
 		if (worldNode->isHit(currentRay, 0.001f, MAXFLOAT, record))
 		{
-			// レコードには本当に衝突したオブジェクトの情報が一部入っているので、
-			// その情報を基にレコードを正確に更新する。
-			{
-				//衝突座標の設定
-				record.position = currentRay.pointAt(record.t);
-
-				//法線の設定
-				const Vec4 normal(record.normal, 0.0f);
-				const Mat4& invTransposeTransformMat = record.hitObject->getTransform().getInvTransposeTransformMatrix();
-				record.normal = (invTransposeTransformMat * normal).extractXYZ().normalize();
-			}
-			
-            Ray scattered;
-			Color albedo(0x000000);
-			if (record.material->scatter(currentRay, record, albedo, scattered))
-			{
-				resultColor *= albedo;
-				currentRay = scattered;
-			}
-			else
-			{
-				return albedo * resultColor;
-			}
+			f32 z = ray.pointAt(record.t)[2];
+			record.bvhDepth += 2;
+			return Color(1,0, 0) * (-z / 8);
 		}
 		else
 		{
-			Vec3 direction = currentRay.direction();
-			f32 length2 = direction.lengthSquared();
-			f32 direction_y = direction[1];
-	
-			f32 t = 0.5f * (direction_y * direction_y / length2 + 1.0f);
-			resultColor *= Color(0xFFFFFF) * (1.0f - t) + Color(0xF0FFFF) * t;
-
-			return resultColor;
+			if (record.bvhDepth % 3 == 0)
+				return Color(0, 1, 1) * (record.bvhDepth * 1.0f / 15);
+			else if (record.bvhDepth % 3 == 1)
+				return Color(1, 0, 1) * (record.bvhDepth * 1.0f / 15);
+			else
+				return Color(1, 1, 0) * (record.bvhDepth * 1.0f / 15);
 		}
 	}
 
-	return Color(0x000000);
+	return Color(0x00000);
 }
 
 __global__ void castRayToWorld(BvhNode* worldNode, Color* pixels, Camera* camera, const u32 screenSizeW, const u32 screenSizeH, const u32 sampleSize, const u32 maxDepth)
