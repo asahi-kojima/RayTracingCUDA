@@ -15,16 +15,17 @@ __device__ Color castRayAndCalcColor(BvhNode* worldNode, const Ray& ray, const u
 		{
 			f32 z = ray.pointAt(record.t)[2];
 			record.bvhDepth += 2;
-			return Color(1,0, 0) * (-z / 8);
+			return Color(1,0, 0) * (abs(z) / 20);
 		}
 		else
 		{
-			if (record.bvhDepth % 3 == 0)
-				return Color(0, 1, 1) * (record.bvhDepth * 1.0f / 15);
-			else if (record.bvhDepth % 3 == 1)
-				return Color(1, 0, 1) * (record.bvhDepth * 1.0f / 15);
-			else
-				return Color(1, 1, 0) * (record.bvhDepth * 1.0f / 15);
+			if (record.bvhDepth > 100)
+			{
+				printf("%d\n", record.bvhDepth);
+			}
+			if (record.bvhDepth % 3 == 0)				return Color(0, 1, 1) * (record.bvhDepth * 1.0f / 130);
+			else if (record.bvhDepth % 3 == 1)			return Color(1, 0, 1) * (record.bvhDepth * 1.0f / 130);
+			else										return Color(1, 1, 0) * (record.bvhDepth * 1.0f / 130);
 		}
 	}
 

@@ -41,40 +41,36 @@ int main(int argc, char** argv)
 	{
 		//オブジェクトの追加
 		{
-			Vec3 positionList[12] = {
-				Vec3( 0.5,  0.3,  -8),
-				Vec3( 0.5, -0.3, -8),
-				Vec3(-0.5,  0.3, -8),
-				Vec3(-0.5, -0.3,-8),
-				Vec3( 1.5,   2,  -5),
-				Vec3( 1.5,  -2,  -5),
-				Vec3(-1.5,   2,  -5),
-				Vec3(-1.5,  -2,  -5),
-				Vec3( 3, 1,   -2),
-				Vec3( 3, -1,  -2),
-				Vec3(-3, 1,   -2),
-				Vec3(-3, -1,  -2)
-			};
-			for (u32 i = 0; i < (sizeof(positionList) / sizeof(positionList[0])); i++)
+			for (s32 z = -3; z < 10; z++)
 			{
-				Transform transform = Transform::translation(positionList[i] * 0.4);
-				//transform.setRotationAngle(Vec3::generateRandomUnitVector() * 10);
-				transform.setScaling(0.05f);
-
-				char* primitiveName = "Sphere";
-				char* materialName = "Metal";
-				if (RandomGenerator::uniform_real() < 0.3)
+				const s32 num = 30;
+				for (s32 i = 0; i < num * num; i++)
 				{
-					materialName = "Diamond";
-				} 
+					const s32 h = i / num - num/2;
+					const s32 w = i % num - num/2;
 
-				std::string objectName = "SphereObject"; objectName += std::to_string(i);
+					if (h == 0 && w == 0)
+						continue;
+					
+					Transform transform = Transform::translation(Vec3(h, w, -z));
+					transform.setRotationAngle(Vec3::generateRandomUnitVector() * 10);
+					transform.setScaling(0.2f);
 
-				SurfaceProperty property{};
-				property.setAlbedo(Color(RandomGenerator::uniform_int(0, 0xFFFFFF)));
-				world.addObject(objectName.c_str(), primitiveName, materialName, transform,property);
+					char* primitiveName = "AABB";
+					char* materialName = "Metal";
+					if (RandomGenerator::uniform_real() < 0.3)
+					{
+						materialName = "Diamond";
+					} 
+
+					std::string objectName = "SphereObject"; objectName += std::to_string(i) += std::to_string(z);
+
+					SurfaceProperty property{};
+					property.setAlbedo(Color(RandomGenerator::uniform_int(0, 0xFFFFFF)));
+					world.addObject(objectName.c_str(), primitiveName, materialName, transform,property);
+				}
 			}
-		
+
 			printf("Object Num in World : %d\n", world.getObjectNum());
 		}
 
