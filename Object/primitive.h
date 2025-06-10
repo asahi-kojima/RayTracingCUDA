@@ -71,7 +71,20 @@ private:
 };
 
 
+class Board final: public Hittable
+{
+public:
+	__device__ Board() : mAABB(Vec3(-DefaultEdgeLength,-Thinness,-DefaultEdgeLength), Vec3(DefaultEdgeLength,Thinness,DefaultEdgeLength)){}
 
+
+private:
+	__device__ bool isHit(const Ray& r, const f32 t_min, const f32 t_max, HitRecord& record) override;
+	__device__ __host__ AABB getAABB() override;
+
+	AABB mAABB;
+	constexpr static f32 DefaultEdgeLength = 0.5f;
+	constexpr static f32 Thinness = 0.00001f;
+};
 
 
 

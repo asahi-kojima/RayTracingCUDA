@@ -12,6 +12,7 @@ public:
 	__device__ __host__ void setRotationAngle(f32 angle_x, f32 angle_y, f32 angle_z);
 	__device__ __host__ void setRotationAngle(const Vec3& angles);
 	__device__ __host__ void setTranslation(const Vec3& t);
+	__device__ __host__ void setTranslation(const f32 x, const f32 y, const f32 z);
 
 	__device__ __host__ void updateTransformMatrices();
 

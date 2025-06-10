@@ -41,28 +41,36 @@ void RenderTarget::saveRenderResult(const std::string& path)
 
     stream << "P3\n" << mResolutionWidth << " " << mResolutionHeight << "\n255\n";
 
-    f32 maxIntensity = 0.0f;
-    for (s32 j = mResolutionHeight - 1; j >= 0; j--)
-    {
-        for (u32 i = 0; i < mResolutionWidth; i++)
-        {
-            Color color = mPixelArray[calcIndex(i, j)];
-            maxIntensity = max(maxIntensity, color.r());
-            maxIntensity = max(maxIntensity, color.g());
-            maxIntensity = max(maxIntensity, color.b());
-        }
-    }
+    // f32 maxIntensity = 0.0f;
+    // for (s32 j = mResolutionHeight - 1; j >= 0; j--)
+    // {
+    //     for (u32 i = 0; i < mResolutionWidth; i++)
+    //     {
+    //         Color color = mPixelArray[calcIndex(i, j)];
+    //         maxIntensity = max(maxIntensity, color.r());
+    //         maxIntensity = max(maxIntensity, color.g());
+    //         maxIntensity = max(maxIntensity, color.b());
+    //     }
+    // }
 
     for (s32 j = mResolutionHeight - 1; j >= 0; j--)
     {
         for (u32 i = 0; i < mResolutionWidth; i++)
         {
             Color color = mPixelArray[calcIndex(i, j)];
-            color = Color(sqrt(color[0]), sqrt(color[1]), sqrt(color[2]));
-            color[0] = static_cast<f32>(static_cast<s32>(255.99 * color[0]));
-            color[1] = static_cast<f32>(static_cast<s32>(255.99 * color[1]));
-            color[2] = static_cast<f32>(static_cast<s32>(255.99 * color[2]));
-            stream << color[0] << " " << color[1] << " " << color[2] << "\n";
+            Color gammaCorrectedColor = Color(sqrt(color[0]), sqrt(color[1]), sqrt(color[2]));
+            gammaCorrectedColor[0] = static_cast<f32>(static_cast<s32>(255.99 * gammaCorrectedColor[0]));
+            gammaCorrectedColor[1] = static_cast<f32>(static_cast<s32>(255.99 * gammaCorrectedColor[1]));
+            gammaCorrectedColor[2] = static_cast<f32>(static_cast<s32>(255.99 * gammaCorrectedColor[2]));
+            if (gammaCorrectedColor[0] < 0 || gammaCorrectedColor[1] < 0 || gammaCorrectedColor[2] < 0)
+            {
+                color.printColor();
+                gammaCorrectedColor.printColor();
+            }
+            //color.printColor();
+            // printf("(%f, %f, %f)\n", color[0], color[1], color[2]);
+            // continue;
+            stream << gammaCorrectedColor[0] << " " << gammaCorrectedColor[1] << " " << gammaCorrectedColor[2] << "\n";
         }
     }
     stream.close();

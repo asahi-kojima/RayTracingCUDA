@@ -217,3 +217,53 @@ AABB Sphere::getAABB()
 
 
 
+
+bool Board::isHit(const Ray &ray, const f32 t_min, const f32 t_max, HitRecord &record)
+{
+	const  Vec3 vertex0(Vec3(-DefaultEdgeLength, 0, -DefaultEdgeLength));
+	const  Vec3 vertex1(Vec3(-DefaultEdgeLength, 0, +DefaultEdgeLength));
+	const  Vec3 vertex2(Vec3(+DefaultEdgeLength, 0, -DefaultEdgeLength));
+
+
+	const Vec3 p1 = vertex1 - vertex0;
+	const Vec3 p2 = vertex2 - vertex0;
+	const Vec3 v0ToO = ray.origin() - vertex0;
+
+	const Vec3 a0 = -ray.direction();
+	const Vec3 a1 = p1;
+	const Vec3 a2 = p2;
+
+	const Vec3 cross1x2 = Vec3::cross(a1, a2);
+	const Vec3 cross2x0 = Vec3::cross(a2, a0);
+	const Vec3 cross0x1 = Vec3::cross(a0, a1);
+
+	const f32 det = Vec3::dot(cross1x2, a0);
+	if (det == 0.0)
+	{
+		return false;
+	}
+
+	const f32 t = Vec3::dot(cross1x2, v0ToO) / det;
+	const f32 alpha = Vec3::dot(cross2x0, v0ToO) / det;
+	const f32 beta = Vec3::dot(cross0x1, v0ToO) / det;
+
+	if (!(t > t_min && t < t_max && alpha > 0 && beta > 0 && alpha < 1 && beta < 1))
+	{
+		return false;
+	}
+
+
+	record.t = t;
+	record.normal = Vec3(0, 1, 0);
+
+	return true;
+}
+
+AABB Board::getAABB()
+{
+	return mAABB;
+}
+
+
+
+

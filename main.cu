@@ -41,44 +41,104 @@ int main(int argc, char** argv)
 	{
 		//オブジェクトの追加
 		{
-			for (s32 z = -3; z < 10; z++)
+			// for (s32 z = -3; z < 10; z++)
+			// {
+			// 	const s32 num = 30;
+			// 	for (s32 i = 0; i < num * num; i++)
+			// 	{
+			// 		const s32 h = i / num - num/2;
+			// 		const s32 w = i % num - num/2;
+
+			// 		if (h == 0 && w == 0 && -z > 0)
+			// 			continue;
+			// 		f32 s = z * (M_PI) / 6;
+			// 		f32 newH = cos(s) * h - sin(s) * w;
+			// 		f32 newW = sin(s) * h + cos(s) * w;
+
+			// 		Transform transform = Transform::translation(Vec3(newH, newW, -z));
+			// 		transform.setRotationAngle(Vec3::generateRandomUnitVector() * 10);
+			// 		transform.setScaling(0.2f);
+
+			// 		char* primitiveName = "AABB";
+			// 		char* materialName = "Metal";
+			// 		if (RandomGenerator::uniform_real() < 0.3)
+			// 		{
+			// 			materialName = "Water";
+			// 		} 
+
+			// 		std::string objectName = "SphereObject"; objectName += std::to_string(i) += std::to_string(z);
+
+			// 		SurfaceProperty property{};
+			// 		property.setAlbedo(Color(RandomGenerator::uniform_int(0, 0xFFFFFF)));
+			// 		world.addObject(objectName.c_str(), primitiveName, materialName, transform,property);
+			// 	}
+			// }
+			
+			constexpr f32 BoardScale = 555.0f;
 			{
-				const s32 num = 30;
-				for (s32 i = 0; i < num * num; i++)
-				{
-					const s32 h = i / num - num/2;
-					const s32 w = i % num - num/2;
+				Transform transform;
+				transform.setScaling(BoardScale, 1, BoardScale);
+				transform.setTranslation(BoardScale / 2, BoardScale, BoardScale / 2);
 
-					if (h == 0 && w == 0)
-						continue;
-					
-					Transform transform = Transform::translation(Vec3(h, w, -z));
-					transform.setRotationAngle(Vec3::generateRandomUnitVector() * 10);
-					transform.setScaling(0.2f);
+				SurfaceProperty property{};
+				property.setAlbedo(Color::White);
 
-					char* primitiveName = "AABB";
-					char* materialName = "Metal";
-					if (RandomGenerator::uniform_real() < 0.3)
-					{
-						materialName = "Diamond";
-					} 
-
-					std::string objectName = "SphereObject"; objectName += std::to_string(i) += std::to_string(z);
-
-					SurfaceProperty property{};
-					property.setAlbedo(Color(RandomGenerator::uniform_int(0, 0xFFFFFF)));
-					world.addObject(objectName.c_str(), primitiveName, materialName, transform,property);
-				}
+				world.addObject("Ceil", "Board", "Lambert", transform, property);
 			}
+
+			{
+				Transform transform;
+				transform.setScaling(BoardScale, 1, BoardScale);
+				transform.setTranslation(BoardScale / 2, 0, BoardScale / 2);
+
+				SurfaceProperty property{};
+				property.setAlbedo(Color::White);
+
+				world.addObject("Floor", "Board", "Lambert", transform, property);
+			}
+			
+			{
+				Transform transform;
+				transform.setScaling(BoardScale, 1, BoardScale);
+				transform.setRotationAngle(M_PI_2, 0, 0);
+				transform.setTranslation(BoardScale / 2, BoardScale, BoardScale / 2);
+
+				SurfaceProperty property{};
+				property.setAlbedo(Color::White);
+				world.addObject("BackBoard", "Board", "Lambert", transform, property);
+			}
+
+			{
+				Transform transform;
+				transform.setScaling(BoardScale, 1, BoardScale);
+				transform.setRotationAngle(0, 0, M_PI_2);
+				transform.setTranslation(0, BoardScale / 2, BoardScale / 2);
+
+				SurfaceProperty property{};
+				property.setAlbedo(Color::Red);
+				world.addObject("RightBoard", "Board", "Lambert", transform, property);
+			}
+
+			{
+				Transform transform;
+				transform.setScaling(BoardScale, 1, BoardScale);
+				transform.setRotationAngle(0, 0, M_PI_2);
+				transform.setTranslation(BoardScale, BoardScale / 2, BoardScale / 2);
+
+				SurfaceProperty property{};
+				property.setAlbedo(Color::Green);
+				world.addObject("LeftBoard", "Board", "Lambert", transform, property);
+			}
+
 
 			printf("Object Num in World : %d\n", world.getObjectNum());
 		}
 
 		//カメラのセット
 		{
-			Vec3 lookAt(0, 0, 0);
-			Vec3 lookFrom(0,0,3.0f);
-			Camera camera(lookFrom, lookAt, Vec3::unitY(), 20, f32(ResolutionW) / f32(ResolutionH), 0.0, (lookFrom - lookAt).length());
+			Vec3 lookFrom(278, 278, -800);
+			Vec3 lookAt(278,278,0);
+			Camera camera(lookFrom, lookAt, Vec3::unitY(), 40, f32(ResolutionW) / f32(ResolutionH), 0.0, 1);
 			world.setCamera(camera);
 		}
 

@@ -17,6 +17,7 @@ __global__ void setupPrimitives()
 {
     gPrimitiveList[0] = new Sphere();
     gPrimitiveList[1] = new AABB();
+    gPrimitiveList[2] = new Board();
 }
 
 __global__ void setupMaterials()
@@ -37,6 +38,7 @@ World::World()
 
     mString_MapTo_PrimitiveDevPtr["Sphere"] = gPrimitiveList[0];
     mString_MapTo_PrimitiveDevPtr["AABB"] = gPrimitiveList[1];
+    mString_MapTo_PrimitiveDevPtr["Board"] = gPrimitiveList[2];
     
     mString_MapTo_MaterialDevPtr["Metal"] = gMaterialList[0];
     mString_MapTo_MaterialDevPtr["Lambert"] = gMaterialList[1];
@@ -180,7 +182,6 @@ __device__ BvhNode* recursiveBuildBvh(const u32 start, const u32 range, BvhNode 
 {
     const u32 index = memoryId;
     memoryId++;
-
     //葉ノードに到着したので、オブジェクトを登録
     if (range == 1)
     {

@@ -19,7 +19,7 @@ all: $(TARGET)
 	convert ./picture/result.ppm ./picture/result.png
 
 release: $(TARGET)
-	./$(TARGET) 3840 2160 50 30 > log.txt
+	./$(TARGET) 3840 2160 100 30 > log.txt
 	convert ./picture/result.ppm ./picture/hegh-resolution.png
  
 

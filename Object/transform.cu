@@ -53,6 +53,13 @@ void Transform::setTranslation(const Vec3& t)
     mIsDirty = true;
 }
 
+void Transform::setTranslation(const f32 x, const f32 y, const f32 z)
+{
+    mTranslation = Vec3(x, y, z);
+    mIsDirty = true;
+}
+
+
 void Transform::updateTransformMatrices()
 {
     if (mIsDirty)
