@@ -9,7 +9,11 @@
 
 
 //worldにはデフォルトでプリミティブが定義されていると仮定する。
-
+enum class ObjectType
+{
+    Default,
+    Light
+};
 
 struct ObjectRecord
 {
@@ -51,6 +55,23 @@ private:
     Transform* mTransformPtrD;
 };
 
+class WorldRecord
+{
+public:
+    WorldRecord(BvhNode* bvhRootNodeDevicePtr, Object** lightObjectDevicePtrList, u32 lightObjectNum)
+    : mBvhRootNodeDevicePtr(bvhRootNodeDevicePtr)
+    , mLightObjectDevicePtrList(lightObjectDevicePtrList)
+    , mLightObjectNum(lightObjectNum){}
+
+    __device__ __host__ BvhNode* getBvhRootNodeDevicePtr() const {return mBvhRootNodeDevicePtr;}
+    __device__ __host__ Object** getLightObjectDevicePtrList() const {return mLightObjectDevicePtrList;}
+    __device__ __host__ u32 getLightObjectNum() const {return mLightObjectNum;}
+    
+private:
+    BvhNode* mBvhRootNodeDevicePtr;
+    Object** mLightObjectDevicePtrList;
+    u32 mLightObjectNum;
+};
 class World
 {
 public:
@@ -58,22 +79,37 @@ public:
 
     void addPrimitive(const std::string& name, Mesh&& primitive);
     void addObject(const char* objectName, const char* primitiveName, const char* materialName, const Transform& transform = Transform(), const SurfaceProperty& surfacePropery = SurfaceProperty());
+    void addLightObject(const char* objectName, const char* primitiveName, const char* materialName, const Transform& transform = Transform(), const SurfaceProperty& surfacePropery = SurfaceProperty());
     void setCamera(const Camera& camera);
-    void buildBvh();
 
+    void build();
+    
     u32 getObjectNum() const;
     u32 getPrimitiveNum() const;
     u32 getMaterialNum() const;
-
+    
     BvhNode* getRootBvhDevicePtr() const;
-
+    
     Camera* getCameraManagedPtr() const;
-
+    
+    WorldRecord* getWorldRecordDevicePtr() const;
+    
 private:
+    void buildBvh();
+
+
     Camera* mCameraManagedPtr;
+
+    WorldRecord* mWorldRecordManagedPtr;
 
     // オブジェクトレコードのリスト（GPU上のオブジェクト情報を保持したCPU側のデータ）
     std::map<std::string, ObjectRecord> mString_MapTo_ObjectRecord;
+
+    //Lightオブジェクトのポインタを格納する
+    static constexpr u32 MaxLightNum = 10;
+    Object* mLightDevicePtrList[MaxLightNum];
+    u32 mLightObjectNum;
+    Object** mLightObjectManagedList;
 
     //GPU上のPrimitiveリスト
     std::map<std::string, Primitive*> mString_MapTo_PrimitiveDevPtr;
@@ -83,4 +119,6 @@ private:
 
     //BVHのルートのポインタ
     BvhNode* mRootBvhNodeDevicePtr;
+
+
 };

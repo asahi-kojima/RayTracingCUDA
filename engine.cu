@@ -2,15 +2,16 @@
 #include "engine.h"
 #include "bvh_node.h"
 
-__device__ Color castRayAndCalcColor(BvhNode* worldNode, const Ray& ray, const u32 maxDepth)
+__device__ Color castRayAndCalcColor(WorldRecord* worldRecord, const Ray& ray, const u32 maxDepth)
 {
+	BvhNode* bvhRootNodePtr = worldRecord->getBvhRootNodeDevicePtr();
 	Color resultColor(0xFFFFFF);
 	Ray currentRay = ray;
 	
 	for (u32 depth = 0; depth < maxDepth; depth++)
 	{
 		HitRecord record;
-		if (worldNode->isHit(currentRay, 0.001f, MAXFLOAT, record))
+		if (bvhRootNodePtr->isHit(currentRay, 0.001f, MAXFLOAT, record))
 		{
 			// レコードには本当に衝突したオブジェクトの情報が一部入っているので、
 			// その情報を基にレコードを正確に更新する。
@@ -46,7 +47,7 @@ __device__ Color castRayAndCalcColor(BvhNode* worldNode, const Ray& ray, const u
 	return Color(0x000000);
 }
 
-__global__ void castRayToWorld(BvhNode* worldNode, Color* pixels, Camera* camera, const u32 screenSizeW, const u32 screenSizeH, const u32 sampleSize, const u32 maxDepth)
+__global__ void castRayToWorld(WorldRecord* worldRecord, Color* pixels, Camera* camera, const u32 screenSizeW, const u32 screenSizeH, const u32 sampleSize, const u32 maxDepth)
 {
 	const u32 id_w = blockIdx.x * blockDim.x + threadIdx.x;
 	const u32 id_h = blockIdx.y * blockDim.y + threadIdx.y;
@@ -70,7 +71,7 @@ __global__ void castRayToWorld(BvhNode* worldNode, Color* pixels, Camera* camera
 			
 			Ray ray = camera->getRay(u, v);
 	
-			resultColor += castRayAndCalcColor(worldNode,ray, maxDepth);
+			resultColor += castRayAndCalcColor(worldRecord, ray, maxDepth);
 		}
 		resultColor /= sampleSize;
 
@@ -89,7 +90,7 @@ void RayTracingEngine::render(World& world, RenderTarget& renderTarget, const u3
 	dim3 block(16, 16);
 	dim3 grid((renderTarget.getResolutionWidth() + block.x - 1) / block.x, (renderTarget.getResolutionHeight() + block.y - 1) / block.y);
 	castRayToWorld << <grid, block >> > (
-		world.getRootBvhDevicePtr(),
+		world.getWorldRecordDevicePtr(),
 		renderTarget.getPixels(), 
 		world.getCameraManagedPtr(), 
 		renderTarget.getResolutionWidth(), 

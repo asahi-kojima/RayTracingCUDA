@@ -145,7 +145,7 @@ int main(int argc, char** argv)
 
 				SurfaceProperty property{};
 				property.setAlbedo(Color::Silver);
-				world.addObject("RightBox", "AABB", "Lambert", transform, property);
+				world.addObject("RightBox", "AABB", "Metal", transform, property);
 			}
 
 
@@ -162,19 +162,20 @@ int main(int argc, char** argv)
 
 				SurfaceProperty property{};
 				property.setAlbedo(Color::Silver);
-				world.addObject("LeftBox", "AABB", "Lambert", transform, property);
+				world.addObject("LeftBox", "AABB", "Metal", transform, property);
 			}
 
 			{
 				Transform transform;
-				transform.setScaling(130.0f, 1.0, 105.0);
+				constexpr f32 LightSizeScale = 0.5f;
+				transform.setScaling(555 * LightSizeScale, 1.0, 555 * LightSizeScale);
 				transform.setRotationAngle(0, 0, -M_PI);
-				Vec3 t(278, 554, 279.5);
+				Vec3 t(555 / 2, 554, 555 / 2);
 				transform.setTranslation(t);
 
 				SurfaceProperty property{};
 				property.setAlbedo(Color::White * 3);
-				world.addObject("CeilingLight", "Board", "DiffuseLight", transform, property);
+				world.addLightObject("CeilingLight", "Board", "DiffuseLight", transform, property);
 			}
 
 			printf("Object Num in World : %d\n", world.getObjectNum());
@@ -188,9 +189,8 @@ int main(int argc, char** argv)
 			world.setCamera(camera);
 		}
 
-		world.buildBvh();
+		world.build();
 	}
-
 
 
 	//------------------------------------------
@@ -203,6 +203,7 @@ int main(int argc, char** argv)
 	//------------------------------------------
 	for (u32 i = 0; i < 1; i++)
 	RayTracingEngine::render(world, renderTarget, SampleNum, MaxDepth);
+
 
 	//------------------------------------------
 	// 画像に出力して結果の確認

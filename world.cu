@@ -32,6 +32,7 @@ __global__ void setupMaterials()
 }
 
 World::World()
+: mLightObjectNum(0)
 {
     //デフォルトのプリミティブ・マテリアルを登録
     ONCE_ON_GPU(setupPrimitives)();
@@ -51,6 +52,10 @@ World::World()
 
     //カメラの確保
     CHECK(cudaMallocManaged(&mCameraManagedPtr, sizeof(Camera)));
+    CHECK(cudaDeviceSynchronize());
+
+
+    CHECK(cudaMallocManaged(&mWorldRecordManagedPtr, sizeof(WorldRecord)));
     CHECK(cudaDeviceSynchronize());
 }
 
@@ -149,6 +154,20 @@ void World::addObject(const char* objectName, const char* primitiveName, const c
     //-----------------------------------------------------
     ObjectRecord record(objectPtrD, objectName, primitiveName, materialName, transform, transformPtrD);
     mString_MapTo_ObjectRecord[objectName] = record;
+}
+
+void World::addLightObject(const char* objectName, const char* primitiveName, const char* materialName, const Transform& transform, const SurfaceProperty& surfacePropery)
+{
+    if (mLightObjectNum == MaxLightNum)
+    {
+        printf("Error : over max light num\n");
+        return;
+    }
+    addObject(objectName, primitiveName, materialName, transform, surfacePropery);
+
+    //Lightの情報をレコードに追加する
+    mLightDevicePtrList[mLightObjectNum] = mString_MapTo_ObjectRecord[objectName].getObjectDevicePtr();
+    mLightObjectNum++;
 }
 
 
@@ -277,6 +296,22 @@ void World::buildBvh()
 }
 
 
+void World::build()
+{
+    // BVHの構築
+    buildBvh();
+
+    // Lightオブジェクトの情報をGPU上に書き来む
+    cudaMallocManaged(&mLightObjectManagedList, sizeof(Object*) * mLightObjectNum);
+    for (u32 i = 0; i < mLightObjectNum; i++)
+    {
+        mLightObjectManagedList[i] = mLightDevicePtrList[i];
+    }
+
+    // WorldRecordの作成
+    new (mWorldRecordManagedPtr) WorldRecord(mRootBvhNodeDevicePtr, mLightObjectManagedList, mLightObjectNum);
+}
+
 
 //============================================================================================
 //============================================================================================
@@ -304,4 +339,9 @@ BvhNode* World::getRootBvhDevicePtr() const
 Camera* World::getCameraManagedPtr() const
 {
     return mCameraManagedPtr;
+}
+
+WorldRecord* World::getWorldRecordDevicePtr() const
+{
+    return mWorldRecordManagedPtr;
 }
