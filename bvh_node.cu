@@ -5,9 +5,9 @@ bool BvhNode::isHit(const Ray& r, const f32 t_min, const f32 t_max, HitRecord& r
 {
     if (mIsLeaf)
     {
-        //printf("Hit\n");
         return mObjectDevicePtr->isHit(r, t_min, t_max, record);
     }
+    
     if (!mAABB.isIntersecting(r, t_min, t_max))
     {
         return false;

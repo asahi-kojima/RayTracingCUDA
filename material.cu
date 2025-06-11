@@ -7,6 +7,10 @@
 //======================================================
 bool Lambertian::scatter(const Ray &ray_in, const HitRecord &record, Color &attenuation, Ray &ray_scattered)
 {
+	if (Vec3::dot(ray_in.direction(), record.normal) > 0)
+	{
+		return false;
+	}
 	const Vec3 target = record.position + record.normal + Vec3::generateRandomUnitVector();
 	ray_scattered.direction() = target - record.position;
 	ray_scattered.origin() = record.position;
@@ -59,7 +63,7 @@ bool Dielectric::scatter(const Ray &ray_in, const HitRecord &record, Color &atte
 	const Vec3 outword_normal = normal * (isFromOutside ? 1 : -1);
 
 	//全反射もしくは屈折出来るが反射が起きる場合は反射処理
-	if (ni_over_nt * sin_theta > 1 || (RandomGeneratorGPU::uniform_real() < reflect_probability(cos_theta, ni_over_nt)))
+	if (ni_over_nt * sin_theta >= 1 || (RandomGeneratorGPU::uniform_real() < reflect_probability(cos_theta, ni_over_nt)))
 	{
 		const Vec3 reflected_ray_direction = Vec3::reflect(direction, outword_normal);
 		ray_scattered = Ray(position, reflected_ray_direction);
@@ -67,7 +71,7 @@ bool Dielectric::scatter(const Ray &ray_in, const HitRecord &record, Color &atte
 	//屈折する場合
 	else
 	{
-		const Vec3 refracted_ray_direction = -sqrt(1 - ni_over_nt * ni_over_nt * sin_theta * sin_theta) * outword_normal + ni_over_nt * (direction + cos_theta * outword_normal);
+		const Vec3 refracted_ray_direction = -sqrt(1 - ni_over_nt * ni_over_nt * sin_theta * sin_theta + (1e-7)) * outword_normal + ni_over_nt * (direction + cos_theta * outword_normal);
 		ray_scattered = Ray(position, refracted_ray_direction);
 	}
 

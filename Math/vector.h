@@ -47,6 +47,8 @@ public:
 	__device__ __host__ static Vec3 cross(const Vec3&, const Vec3&);
 	__device__ __host__ static Vec3 reflect(const Vec3& v, const Vec3& n);
 	__device__ __host__ static Vec3 generateRandomUnitVector();
+
+	__device__ __host__ bool isNan() const;
 	
 	__device__ __host__ static inline Vec3 zero() { return Vec3(0.0f, 0.0f, 0.0f); };
 	__device__ __host__ static inline Vec3 one() { return Vec3(1.0f, 1.0f, 1.0f); };

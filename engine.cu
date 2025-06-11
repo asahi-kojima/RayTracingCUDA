@@ -23,31 +23,23 @@ __device__ Color castRayAndCalcColor(BvhNode* worldNode, const Ray& ray, const u
 				const Mat4& invTransposeTransformMat = record.hitObject->getTransform().getInvTransposeTransformMatrix();
 				record.normal = (invTransposeTransformMat * normal).extractXYZ().normalize();
 			}
-            Ray scattered;
+            
+			Ray scattered;
+			const Color emissionFromObject = record.material->emission(0, 0, record.position) * record.hitObject->getSurfaceProperty().getAlbedo();
 			Color albedo(0x000000);
 			if (record.material->scatter(currentRay, record, albedo, scattered))
 			{
-				resultColor *= albedo;
+				resultColor = emissionFromObject + resultColor* albedo;
 				currentRay = scattered;
 			}
 			else
 			{
-				return albedo * resultColor;
+				return emissionFromObject * resultColor;
 			}
 		}
 		else
 		{
-			Vec3 direction = currentRay.direction();
-			f32 length2 = direction.lengthSquared();
-			f32 direction_y = direction[1];
-	
-			f32 t = 0.5f * (direction_y * direction_y / length2 + 1.0f);
-			resultColor *= Color(0xFFFFFF) * (1.0f - t) + Color(0xF0FFFF) * t;
-			if (depth == 0)
-			{
-				return Color(0x000000);
-			}
-			return resultColor;
+			return Color(0x000000);
 		}
 	}
 
@@ -81,8 +73,8 @@ __global__ void castRayToWorld(BvhNode* worldNode, Color* pixels, Camera* camera
 			resultColor += castRayAndCalcColor(worldNode,ray, maxDepth);
 		}
 		resultColor /= sampleSize;
+
 		
-	
 		*(pixels + pixelIndex) = resultColor;
 }
 

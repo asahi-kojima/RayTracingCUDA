@@ -27,6 +27,8 @@ __global__ void setupMaterials()
     gMaterialList[2] = new Dielectric(1.33);
     gMaterialList[3] = new Dielectric(1.5);
     gMaterialList[4] = new Dielectric(2.5);
+    gMaterialList[5] = new DiffuseLight();
+    
 }
 
 World::World()
@@ -45,6 +47,7 @@ World::World()
     mString_MapTo_MaterialDevPtr["Water"] = gMaterialList[2];
     mString_MapTo_MaterialDevPtr["Glass"] = gMaterialList[3];
     mString_MapTo_MaterialDevPtr["Diamond"] = gMaterialList[4];
+    mString_MapTo_MaterialDevPtr["DiffuseLight"] = gMaterialList[5];
 
     //カメラの確保
     CHECK(cudaMallocManaged(&mCameraManagedPtr, sizeof(Camera)));

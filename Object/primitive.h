@@ -46,7 +46,9 @@ private:
 class Box final: public Hittable
 {
 public:
-	__device__ Box() : mAABB(-Vec3(1,1,1), Vec3(1,1,1)){}
+	constexpr static f32 DefaultExtensionRange= 0.5f;
+
+	__device__ Box() : mAABB(-Vec3(DefaultExtensionRange,DefaultExtensionRange,DefaultExtensionRange), Vec3(DefaultExtensionRange,DefaultExtensionRange,DefaultExtensionRange)){}
 
 private:
 	__device__ bool isHit(const Ray& r, const f32 t_min, const f32 t_max, HitRecord& record) override;

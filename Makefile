@@ -1,5 +1,6 @@
 NVCC=/usr/local/cuda/bin/nvcc
-NVCCFLAG=-std=c++17 -rdc=true -O3 -Xptxas -O3 -DNDEBUG -w -I . -gencode arch=compute_120,code=sm_120
+# OPTIMIZE= -O3 -Xptxas -O3 
+NVCCFLAG=-std=c++17 -rdc=true $(OPTIMIZE) -DNDEBUG -w -I . -gencode arch=compute_120,code=sm_120
 
 SRC_DIRS = . Math Object
 BUILD_DIR = ./build
@@ -15,11 +16,11 @@ DUMMY_MKDIR:=$(shell mkdir -p build)
 
 
 all: $(TARGET)
-	./$(TARGET) 1920 1080 5 20 > log.txt
+	./$(TARGET) 1920 1080 10 20 > log.txt
 	convert ./picture/result.ppm ./picture/result.png
 
 release: $(TARGET)
-	./$(TARGET) 3840 2160 100 30 > log.txt
+	./$(TARGET) 3840 2160 50 30 > log.txt
 	convert ./picture/result.ppm ./picture/hegh-resolution.png
  
 

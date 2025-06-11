@@ -155,6 +155,12 @@ __device__ void Color::clamp()
 	}
 }
 
+bool Color::isNan()
+{
+	return mRGB.isNan();
+}
+
+
 
 
 const Color Color::White(0xFFFFFF);

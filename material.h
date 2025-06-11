@@ -14,6 +14,7 @@ public:
 	/// </summary>
 	/// <returns></returns>
 	__device__ virtual bool scatter(const Ray& ray_in, const HitRecord& record, Color& attenuation, Ray& ray_scattered) = 0;
+	__device__ virtual Color emission(const f32 u, const f32 v, const Vec3& p) const { return Color(0,0,0); }
 };
 
 class Lambertian : public Material
@@ -90,6 +91,16 @@ private:
 	Color albedo;
 	f32 mIntensity;
 	__device__ virtual bool scatter(const Ray& ray_in, const HitRecord& record, Color& attenuation, Ray& ray_scattered) override;
+};
+
+class DiffuseLight : public Material
+{
+public:
+	__device__ DiffuseLight()  {}
+
+private:
+	__device__ virtual bool scatter(const Ray& ray_in, const HitRecord& record, Color& attenuation, Ray& ray_scattered) override {return false;}
+	__device__ virtual Color emission(const f32 u, const f32 v, const Vec3& p) const override { return Color(1,1,1); }
 };
 
 

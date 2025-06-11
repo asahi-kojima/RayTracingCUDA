@@ -58,18 +58,19 @@ void RenderTarget::saveRenderResult(const std::string& path)
         for (u32 i = 0; i < mResolutionWidth; i++)
         {
             Color color = mPixelArray[calcIndex(i, j)];
+            if (isnan(color[0]) || isnan(color[1]) || isnan(color[2]))
+            {
+                printf("=====================================");
+                printf("nan detected!");
+                printf("=====================================");
+                //color = Color(0, 0, 0);
+            }
             Color gammaCorrectedColor = Color(sqrt(color[0]), sqrt(color[1]), sqrt(color[2]));
+
             gammaCorrectedColor[0] = static_cast<f32>(static_cast<s32>(255.99 * gammaCorrectedColor[0]));
             gammaCorrectedColor[1] = static_cast<f32>(static_cast<s32>(255.99 * gammaCorrectedColor[1]));
             gammaCorrectedColor[2] = static_cast<f32>(static_cast<s32>(255.99 * gammaCorrectedColor[2]));
-            if (gammaCorrectedColor[0] < 0 || gammaCorrectedColor[1] < 0 || gammaCorrectedColor[2] < 0)
-            {
-                color.printColor();
-                gammaCorrectedColor.printColor();
-            }
-            //color.printColor();
-            // printf("(%f, %f, %f)\n", color[0], color[1], color[2]);
-            // continue;
+
             stream << gammaCorrectedColor[0] << " " << gammaCorrectedColor[1] << " " << gammaCorrectedColor[2] << "\n";
         }
     }

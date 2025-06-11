@@ -78,12 +78,13 @@ int main(int argc, char** argv)
 			{
 				Transform transform;
 				transform.setScaling(BoardScale, 1, BoardScale);
+				transform.setRotationAngle(0, 0, M_PI);
 				transform.setTranslation(BoardScale / 2, BoardScale, BoardScale / 2);
 
 				SurfaceProperty property{};
 				property.setAlbedo(Color::White);
 
-				world.addObject("Ceil", "Board", "Lambert", transform, property);
+				world.addObject("Ceiling", "Board", "Lambert", transform, property);
 			}
 
 			{
@@ -100,8 +101,8 @@ int main(int argc, char** argv)
 			{
 				Transform transform;
 				transform.setScaling(BoardScale, 1, BoardScale);
-				transform.setRotationAngle(M_PI_2, 0, 0);
-				transform.setTranslation(BoardScale / 2, BoardScale, BoardScale / 2);
+				transform.setRotationAngle(3*M_PI_2, 0, 0);
+				transform.setTranslation(BoardScale / 2, BoardScale / 2, BoardScale);
 
 				SurfaceProperty property{};
 				property.setAlbedo(Color::White);
@@ -111,7 +112,7 @@ int main(int argc, char** argv)
 			{
 				Transform transform;
 				transform.setScaling(BoardScale, 1, BoardScale);
-				transform.setRotationAngle(0, 0, M_PI_2);
+				transform.setRotationAngle(0, 0, -M_PI_2);
 				transform.setTranslation(0, BoardScale / 2, BoardScale / 2);
 
 				SurfaceProperty property{};
@@ -130,6 +131,51 @@ int main(int argc, char** argv)
 				world.addObject("LeftBoard", "Board", "Lambert", transform, property);
 			}
 
+			constexpr f32 BoxScale = 165.0f;
+			{
+				Transform transform;
+				transform.setScaling(BoxScale,BoxScale, BoxScale);
+				transform.setRotationAngle(0, -M_PI / 10, 0);
+				const f32 angle = -M_PI / 10.0f;
+				const f32 tz = cos(angle) * (BoxScale / 2) - sin(angle) * (BoxScale / 2);
+				const f32 tx = sin(angle) * (BoxScale / 2) + cos(angle) * (BoxScale / 2);
+				Vec3 t(tx, BoxScale / 2, tz);
+				t += Vec3(130.0f, 0, 65.0f);
+				transform.setTranslation(t);
+
+				SurfaceProperty property{};
+				property.setAlbedo(Color::Silver);
+				world.addObject("RightBox", "AABB", "Lambert", transform, property);
+			}
+
+
+			{
+				Transform transform;
+				transform.setScaling(165.0f, 330.0, 165.0);
+				transform.setRotationAngle(0, M_PI / 12, 0);
+				const f32 angle = M_PI / 12.0f;
+				const f32 tz = cos(angle) * (BoxScale / 2) - sin(angle) * (BoxScale / 2);
+				const f32 tx = sin(angle) * (BoxScale / 2) + cos(angle) * (BoxScale / 2);
+				Vec3 t(tx, 330 / 2, tz);
+				t += Vec3(265.0f, 0, 295.0f);
+				transform.setTranslation(t);
+
+				SurfaceProperty property{};
+				property.setAlbedo(Color::Silver);
+				world.addObject("LeftBox", "AABB", "Lambert", transform, property);
+			}
+
+			{
+				Transform transform;
+				transform.setScaling(130.0f, 1.0, 105.0);
+				transform.setRotationAngle(0, 0, -M_PI);
+				Vec3 t(278, 554, 279.5);
+				transform.setTranslation(t);
+
+				SurfaceProperty property{};
+				property.setAlbedo(Color::White * 3);
+				world.addObject("CeilingLight", "Board", "DiffuseLight", transform, property);
+			}
 
 			printf("Object Num in World : %d\n", world.getObjectNum());
 		}
