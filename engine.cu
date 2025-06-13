@@ -25,13 +25,14 @@ __device__ Color castRayAndCalcColor(WorldRecord* worldRecord, const Ray& ray, c
 				record.normal = (invTransposeTransformMat * normal).extractXYZ().normalize();
 			}
             
-			Ray scattered;
+			Ray scatteredRay;
 			const Color emissionFromObject = record.material->emission(0, 0, record.position) * record.hitObject->getSurfaceProperty().getAlbedo();
 			Color albedo(0x000000);
-			if (record.material->scatter(currentRay, record, albedo, scattered))
+			f32 pdf = 0.0f;
+			if (record.material->scatter(currentRay, record, albedo, scatteredRay, pdf))
 			{
-				resultColor = emissionFromObject + resultColor* albedo;
-				currentRay = scattered;
+				resultColor = emissionFromObject + resultColor* albedo * record.material->scatteringPdf(ray, record, scatteredRay);
+				currentRay = scatteredRay;
 			}
 			else
 			{

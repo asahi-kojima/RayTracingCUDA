@@ -63,15 +63,14 @@ void RenderTarget::saveRenderResult(const std::string& path)
                 printf("=====================================");
                 printf("nan detected!");
                 printf("=====================================");
-                //color = Color(0, 0, 0);
             }
             Color gammaCorrectedColor = Color(sqrt(color[0]), sqrt(color[1]), sqrt(color[2]));
 
-            gammaCorrectedColor[0] = static_cast<f32>(static_cast<s32>(255.99 * gammaCorrectedColor[0]));
-            gammaCorrectedColor[1] = static_cast<f32>(static_cast<s32>(255.99 * gammaCorrectedColor[1]));
-            gammaCorrectedColor[2] = static_cast<f32>(static_cast<s32>(255.99 * gammaCorrectedColor[2]));
+            s32 r = static_cast<f32>(static_cast<s32>(255.99 * gammaCorrectedColor[0]));
+            s32 g = static_cast<f32>(static_cast<s32>(255.99 * gammaCorrectedColor[1]));
+            s32 b = static_cast<f32>(static_cast<s32>(255.99 * gammaCorrectedColor[2]));
 
-            stream << gammaCorrectedColor[0] << " " << gammaCorrectedColor[1] << " " << gammaCorrectedColor[2] << "\n";
+            stream << r << " " << g << " " << b << "\n";
         }
     }
     stream.close();

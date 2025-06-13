@@ -145,7 +145,7 @@ int main(int argc, char** argv)
 
 				SurfaceProperty property{};
 				property.setAlbedo(Color::Silver);
-				world.addObject("RightBox", "AABB", "Metal", transform, property);
+				world.addObject("RightBox", "AABB", "Lambert", transform, property);
 			}
 
 
@@ -162,12 +162,12 @@ int main(int argc, char** argv)
 
 				SurfaceProperty property{};
 				property.setAlbedo(Color::Silver);
-				world.addObject("LeftBox", "AABB", "Metal", transform, property);
+				world.addObject("LeftBox", "AABB", "Lambert", transform, property);
 			}
 
 			{
 				Transform transform;
-				constexpr f32 LightSizeScale = 0.5f;
+				constexpr f32 LightSizeScale = 0.3f;
 				transform.setScaling(555 * LightSizeScale, 1.0, 555 * LightSizeScale);
 				transform.setRotationAngle(0, 0, -M_PI);
 				Vec3 t(555 / 2, 554, 555 / 2);

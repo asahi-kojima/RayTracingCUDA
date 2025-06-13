@@ -5,7 +5,7 @@
 //======================================================
 // ランバート
 //======================================================
-bool Lambertian::scatter(const Ray &ray_in, const HitRecord &record, Color &attenuation, Ray &ray_scattered)
+bool Lambertian::scatter(const Ray &ray_in, const HitRecord &record, Color &attenuation, Ray &ray_scattered, f32& pdf)
 {
 	if (Vec3::dot(ray_in.direction(), record.normal) > 0)
 	{
@@ -15,14 +15,21 @@ bool Lambertian::scatter(const Ray &ray_in, const HitRecord &record, Color &atte
 	ray_scattered.direction() = target - record.position;
 	ray_scattered.origin() = record.position;
 	attenuation = record.hitObject->getSurfaceProperty().getAlbedo();
+	pdf = Vec3::dot(record.normal, ray_scattered.direction()) / M_PI;
 	return true;
+}
+
+f32 Lambertian::scatteringPdf(const Ray& incidentRay, const HitRecord& record, const Ray& scatterdRay) const
+{
+	const f32 cosine = Vec3::dot(record.normal, scatterdRay.direction().normalize());
+	return cosine > 0 ? cosine / M_PI : 0;
 }
 
 
 //======================================================
 // 金属
 //======================================================
-bool Metal::scatter(const Ray &ray_in, const HitRecord &record, Color &attenuation, Ray &ray_scattered)
+bool Metal::scatter(const Ray &ray_in, const HitRecord &record, Color &attenuation, Ray &ray_scattered, f32& pdf)
 {
 	Vec3 reflected_ray = Vec3::reflect(ray_in.direction(), record.normal);
 	ray_scattered = Ray(record.position, reflected_ray + fuzz * Vec3::generateRandomUnitVector() * 0.1f);
@@ -39,7 +46,7 @@ bool Metal::scatter(const Ray &ray_in, const HitRecord &record, Color &attenuati
 //======================================================
 // 誘電体
 //======================================================
-bool Dielectric::scatter(const Ray &ray_in, const HitRecord &record, Color &attenuation, Ray &ray_scattered)
+bool Dielectric::scatter(const Ray &ray_in, const HitRecord &record, Color &attenuation, Ray &ray_scattered, f32& pdf)
 {
 	attenuation = mGlassColor;
 
@@ -88,7 +95,7 @@ f32 Dielectric::reflect_probability(f32 cosine, f32 refIdx)
 //======================================================
 // 再帰性反射素材
 //======================================================
-bool Retroreflective::scatter(const Ray &ray_in, const HitRecord &record, Color &attenuation, Ray &ray_scattered)
+bool Retroreflective::scatter(const Ray &ray_in, const HitRecord &record, Color &attenuation, Ray &ray_scattered, f32& pdf)
 {
 	ray_scattered.direction() = -ray_in.direction();
 	ray_scattered.origin() = record.position;
@@ -102,7 +109,7 @@ bool Retroreflective::scatter(const Ray &ray_in, const HitRecord &record, Color 
 // 光源
 //======================================================
 
-bool SunLight::scatter(const Ray &ray_in, const HitRecord &record, Color &attenuation, Ray &ray_scattered)
+bool SunLight::scatter(const Ray &ray_in, const HitRecord &record, Color &attenuation, Ray &ray_scattered, f32& pdf)
 {
 	attenuation = albedo * mIntensity;
 	return false;
@@ -111,7 +118,7 @@ bool SunLight::scatter(const Ray &ray_in, const HitRecord &record, Color &attenu
 //======================================================
 // 重力場
 //======================================================
-bool GravitationalField::scatter(const Ray &ray_in, const HitRecord &record, Color &attenuation, Ray &ray_scattered)
+bool GravitationalField::scatter(const Ray &ray_in, const HitRecord &record, Color &attenuation, Ray &ray_scattered, f32& pdf)
 {
 	const f32 M = mGravityScale;
 	const f32 m = 1.0f;
@@ -168,7 +175,7 @@ bool GravitationalField::scatter(const Ray &ray_in, const HitRecord &record, Col
 //======================================================
 // 疑似重力場（敢えて計算ミスを入れている）
 //======================================================
-bool QuasiGravitationalField::scatter(const Ray &ray_in, const HitRecord &record, Color &attenuation, Ray &ray_scattered)
+bool QuasiGravitationalField::scatter(const Ray &ray_in, const HitRecord &record, Color &attenuation, Ray &ray_scattered, f32& pdf)
 {
 	const f32 M = mGravityScale;
 	const f32 m = 1.0f;
@@ -225,7 +232,7 @@ bool QuasiGravitationalField::scatter(const Ray &ray_in, const HitRecord &record
 //======================================================
 // 疑似重力場2（敢えて計算ミスを入れている）
 //======================================================
-bool QuasiGravitationalField2::scatter(const Ray &ray_in, const HitRecord &record, Color &attenuation, Ray &ray_scattered)
+bool QuasiGravitationalField2::scatter(const Ray &ray_in, const HitRecord &record, Color &attenuation, Ray &ray_scattered, f32& pdf)
 {
 	const f32 M = mGravityScale;
 	const f32 m = 1.0f;
@@ -282,7 +289,7 @@ bool QuasiGravitationalField2::scatter(const Ray &ray_in, const HitRecord &recor
 //======================================================
 // ラザフォード散乱
 //======================================================
-bool Rutherford::scatter(const Ray &ray_in, const HitRecord &record, Color &attenuation, Ray &ray_scattered)
+bool Rutherford::scatter(const Ray &ray_in, const HitRecord &record, Color &attenuation, Ray &ray_scattered, f32& pdf)
 {
 	const f32 M = mGravityScale;
 	const f32 m = 1.0f;
@@ -339,7 +346,7 @@ bool Rutherford::scatter(const Ray &ray_in, const HitRecord &record, Color &atte
 //======================================================
 // 疑似ラザフォード散乱
 //======================================================
-bool QuasiRutherford::scatter(const Ray &ray_in, const HitRecord &record, Color &attenuation, Ray &ray_scattered)
+bool QuasiRutherford::scatter(const Ray &ray_in, const HitRecord &record, Color &attenuation, Ray &ray_scattered, f32& pdf)
 {
 	const f32 M = mGravityScale;
 	const f32 m = 1.0f;
