@@ -67,3 +67,38 @@ const Transform& Object::getTransform() const
 {
     return mTransform;
 }
+
+const SurfaceProperty& Object::getSurfaceProperty() const
+{
+    return mSurfaceProperty;
+}
+
+Vec3 Object::getRandomPointOnSurface() const
+{
+    const Mat4& TransformMat= mTransform.getTransformMatrix();
+    Vec4 ramdomPointOnPrimitiveSurface(mPrimitivePtr->getRandomPointOnSurface(), 1);
+    return (TransformMat * ramdomPointOnPrimitiveSurface).extractXYZ();
+}
+
+Vec3 Object::getRandomPointOnSurfaceVisibleFrom(const Vec3& point, bool& isVisible) const
+{
+    Vec4 position(point, 1);
+    const Mat4& invTransformMat= mTransform.getInvTransformMatrix();
+    Vec3 localPosition = (invTransformMat * position).extractXYZ();
+
+    return mPrimitivePtr->getRandomPointOnSurfaceVisibleFrom(localPosition, isVisible);
+}
+
+void Object::calculateLightSampling(const Vec3& rayOrigin, const Transform& transform, Vec3& samplingPointOnSurface ,bool& isVisibleFromRayOrigin, f32& amplitude) const
+{
+    Vec4 position(rayOrigin, 1);
+    const Mat4& invTransformMat= mTransform.getInvTransformMatrix();
+    Vec3 localPosition = (invTransformMat * position).extractXYZ();
+
+    mPrimitivePtr->calculateLightSampling(localPosition, mTransform, samplingPointOnSurface, isVisibleFromRayOrigin, amplitude);
+
+    {
+        Vec4 position(samplingPointOnSurface, 1);
+        samplingPointOnSurface = (mTransform.getTransformMatrix() * position).extractXYZ();
+    }
+}

@@ -259,6 +259,56 @@ bool Board::isHit(const Ray &ray, const f32 t_min, const f32 t_max, HitRecord &r
 	return true;
 }
 
+Vec3 Board::getRandomPointOnSurface() const
+{
+	const f32 x = RandomGeneratorGPU::signed_uniform_real(-DefaultEdgeLength, DefaultEdgeLength);
+	const f32 z = RandomGeneratorGPU::signed_uniform_real(-DefaultEdgeLength, DefaultEdgeLength);
+	return Vec3(x, 0, z);
+}
+
+Vec3 Board::getRandomPointOnSurfaceVisibleFrom(const Vec3& point, bool& isVisible) const
+{
+	if (point[1] < 0)
+	{
+		isVisible = false;
+		return Vec3(0,0,0);
+	}
+
+	const f32 x = RandomGeneratorGPU::signed_uniform_real(-DefaultEdgeLength, DefaultEdgeLength);
+	const f32 z = RandomGeneratorGPU::signed_uniform_real(-DefaultEdgeLength, DefaultEdgeLength);
+	isVisible = true;
+	return Vec3(x, 0, z);
+}
+
+void Board::calculateLightSampling(const Vec3& rayOrigin, const Transform& transform, Vec3& samplingPointOnSurface, bool& isVisibleFromRayOrigin, f32& amplitude) const
+{
+	if (rayOrigin[1] < 0)
+	{
+		isVisibleFromRayOrigin = false;
+		return;
+	}
+
+	const f32 scaleX = transform.getScale(0);
+	const f32 scaleZ = transform.getScale(2);
+
+	const f32 area = (2 * DefaultEdgeLength) * scaleX * (2 * DefaultEdgeLength) * scaleZ;
+
+	const Vec3 randomPointOnSurface = getRandomPointOnSurface();
+	const Vec3 originToSurfacePoint = randomPointOnSurface - rayOrigin;
+	const f32 cos0 = -originToSurfacePoint[1];
+
+	if (cos0 < 0.0001f)
+	{
+		isVisibleFromRayOrigin = false;
+		return;
+	}
+
+	samplingPointOnSurface = randomPointOnSurface;
+	isVisibleFromRayOrigin = true;
+	amplitude = (transform.getTransformMatrix() * Vec4(originToSurfacePoint, 0)).extractXYZ().lengthSquared() / (area * cos0);
+}
+
+
 AABB Board::getAABB()
 {
 	return mAABB;

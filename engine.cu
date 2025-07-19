@@ -1,13 +1,16 @@
 #include <chrono>
 #include "engine.h"
 #include "bvh_node.h"
+#include "pdf.h"
 
 __device__ Color castRayAndCalcColor(WorldRecord* worldRecord, const Ray& ray, const u32 maxDepth)
 {
 	BvhNode* bvhRootNodePtr = worldRecord->getBvhRootNodeDevicePtr();
-	Color resultColor(0xFFFFFF);
+	Color resultColor(0x000000);
 	Ray currentRay = ray;
 	
+	Color albedoProd(0xFFFFFF);
+
 	for (u32 depth = 0; depth < maxDepth; depth++)
 	{
 		HitRecord record;
@@ -27,21 +30,47 @@ __device__ Color castRayAndCalcColor(WorldRecord* worldRecord, const Ray& ray, c
             
 			Ray scatteredRay;
 			const Color emissionFromObject = record.material->emission(0, 0, record.position) * record.hitObject->getSurfaceProperty().getAlbedo();
+			resultColor += emissionFromObject * albedoProd;
+
 			Color albedo(0x000000);
 			f32 pdf = 0.0f;
-			if (record.material->scatter(currentRay, record, albedo, scatteredRay, pdf))
+			if (bool isDiffuse = false;record.material->scatter(currentRay, record, albedo, scatteredRay, pdf, isDiffuse))
 			{
-				resultColor = emissionFromObject + resultColor* albedo * record.material->scatteringPdf(ray, record, scatteredRay);
-				currentRay = scatteredRay;
+				if (isDiffuse)
+				{
+					// Object* lightObject = worldRecord->getLightObjectDevicePtrList()[0];
+					
+					
+					// Vec3 samplingPointOnSurface;
+					// bool isVisible = false;
+					// f32 amplitude = 0.0f;
+					// lightObject->calculateLightSampling(record.position, Transform(), samplingPointOnSurface, isVisible, amplitude);
+					
+					// //散乱方向をランダムに決定する
+					// scatteredRay = Ray(record.position, (samplingPointOnSurface - record.position).normalize());
+					
+					CosinePdf cosinePdf(record.normal);
+					const Vec3 randomDirection = cosinePdf.generateRandomDirection();
+					scatteredRay = Ray(record.position, randomDirection);
+					const f32 amplitude = cosinePdf.value(scatteredRay.direction());
+					//その方向に対する散乱PDFとサンプリングPDFを決める
+					albedoProd *= (albedo * record.material->scatteringPdf(ray, record, scatteredRay) * (1.0f / (amplitude + (1e-9))));
+					currentRay = scatteredRay;
+				}
+				else
+				{
+					albedoProd *= albedo;
+					currentRay = scatteredRay;
+				}
 			}
 			else
 			{
-				return emissionFromObject * resultColor;
+				return resultColor;
 			}
 		}
 		else
 		{
-			return Color(0x000000);
+			return resultColor;
 		}
 	}
 

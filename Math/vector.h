@@ -109,3 +109,34 @@ public:
 private:
 	f32 mElements[4];
 };
+
+
+class ONB
+{
+public:
+	__device__ ONB(const Vec3& baseDirection) : mAxisZ(baseDirection.normalize())
+	{
+		if (fabs(mAxisZ[0]) > 0.1f)
+		{
+			mAxisX = Vec3::cross(Vec3::unitY(), mAxisZ).normalize();
+			mAxisY = Vec3::cross(mAxisZ, mAxisX);
+		}
+		else
+		{
+			mAxisY = Vec3::cross(mAxisZ, Vec3::unitX()).normalize();
+			mAxisX = Vec3::cross(mAxisY, mAxisZ);
+		}
+	}
+
+	__device__ Vec3 local(f32 elemX, f32 elemY, f32 elemZ) const
+	{
+		return (mAxisX * elemX + mAxisY * elemY + mAxisZ * elemZ);
+	}
+
+	__device__ Vec3 getAxisZ() const {return mAxisZ;}
+
+private:	
+	Vec3 mAxisX;
+	Vec3 mAxisY;
+	Vec3 mAxisZ;
+};

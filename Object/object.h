@@ -26,10 +26,11 @@ public:
 	__device__ __host__ virtual AABB getAABB();
     __device__ __host__ const Transform& getTransform() const;
 
-    __device__ const SurfaceProperty& getSurfaceProperty() const
-    {
-        return mSurfaceProperty;
-    }
+    __device__ const SurfaceProperty& getSurfaceProperty() const;
+
+    __device__ virtual Vec3 getRandomPointOnSurface() const;
+    __device__ virtual Vec3 getRandomPointOnSurfaceVisibleFrom(const Vec3& point, bool& isVisible) const;
+	__device__ virtual void calculateLightSampling(const Vec3& rayOrigin, const Transform& transform, Vec3& samplingPointOnSurface, bool& isVisibleFromRayOrigin, f32& amplitude) const;
 
 private:
     // 参照するプリミティブメッシュの名前とポインタ

@@ -22,6 +22,9 @@ public:
 
 	__device__ __host__ const Vec3& getTranslation() const;
 
+	__device__ __host__ f32 getScale(size_t i) const;
+	__device__ __host__ const Vec3& getScale() const;
+
 	__device__ __host__ static Transform translation(const Vec3& v);
 
 private:

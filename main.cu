@@ -145,7 +145,7 @@ int main(int argc, char** argv)
 
 				SurfaceProperty property{};
 				property.setAlbedo(Color::Silver);
-				world.addObject("RightBox", "AABB", "Lambert", transform, property);
+				world.addObject("RightBox", "AABB", "Metal", transform, property);
 			}
 
 
@@ -174,7 +174,7 @@ int main(int argc, char** argv)
 				transform.setTranslation(t);
 
 				SurfaceProperty property{};
-				property.setAlbedo(Color::White * 3);
+				property.setAlbedo(Color::White);
 				world.addLightObject("CeilingLight", "Board", "DiffuseLight", transform, property);
 			}
 

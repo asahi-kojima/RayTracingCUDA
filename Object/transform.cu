@@ -93,6 +93,22 @@ const Vec3& Transform::getTranslation() const
     return mTranslation;
 }
 
+f32 Transform::getScale(size_t i) const
+{
+    if (i >= 3)
+    {
+        assert(0);
+        printf("==============> Error");
+        exit(1);
+    }
+    return mScaling[i];
+}
+
+const Vec3& Transform::getScale() const
+{
+    return Vec3(mScaling[0], mScaling[1], mScaling[2]);
+}
+
 
 Transform Transform::translation(const Vec3& v)
 {

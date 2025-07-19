@@ -4,11 +4,12 @@
 #include "texture.h"
 
 struct HitRecord;
+class Object;
 
 class Material
 {
 public:
-	__device__ virtual bool scatter(const Ray& ray_in, const HitRecord& record, Color& attenuation, Ray& ray_scattered, f32& pdf) = 0;
+	__device__ virtual bool scatter(const Ray& ray_in, const HitRecord& record, Color& attenuation, Ray& ray_scattered, f32& pdf, bool& isDiffuse) = 0;
 	__device__ virtual Color emission(const f32 u, const f32 v, const Vec3& p) const { return Color(0,0,0); }
 	__device__ virtual f32 scatteringPdf(const Ray& ray, const HitRecord& record, const Ray& scatterdRay) const {return 0;}
 };
@@ -18,7 +19,7 @@ class Lambertian : public Material
 public:
 	__device__ Lambertian(Texture* texture) : mTexture(texture) {}
 	__device__ Lambertian(Color color) : mTexture(new ConstantTexture(color)) {}
-	__device__ virtual bool scatter(const Ray& ray_in, const HitRecord& record, Color& attenuation, Ray& ray_scattered, f32& pdf) override;
+	__device__ virtual bool scatter(const Ray& ray_in, const HitRecord& record, Color& attenuation, Ray& ray_scattered, f32& pdf, bool& isDiffuse) override;
 	__device__ virtual f32 scatteringPdf(const Ray& ray, const HitRecord& record, const Ray& scatterdRay) const;
 
 private:
@@ -34,7 +35,7 @@ public:
 	__device__ Metal(const Color& albedo, f32 fuzz = 0.0f) : mTexture(new ConstantTexture(albedo)), fuzz(fuzz <= 1.0f ? fuzz : 1) {}
 
 private:
-	__device__ virtual bool scatter(const Ray& ray_in, const HitRecord& record, Color& attenuation, Ray& ray_scattered, f32& pdf) override;
+	__device__ virtual bool scatter(const Ray& ray_in, const HitRecord& record, Color& attenuation, Ray& ray_scattered, f32& pdf, bool& isDiffuse) override;
 
 	Texture* mTexture;
 	f32 fuzz;
@@ -47,7 +48,7 @@ public:
 	__device__ Dielectric(f32 ref, Color color = Color(0xFFFFFF)) : refIdx(ref), mGlassColor(color) {}
 
 private:
-	__device__ virtual bool scatter(const Ray& ray_in, const HitRecord& record, Color& attenuation, Ray& ray_scattered, f32& pdf) override;
+	__device__ virtual bool scatter(const Ray& ray_in, const HitRecord& record, Color& attenuation, Ray& ray_scattered, f32& pdf, bool& isDiffuse) override;
 	__device__ static f32 reflect_probability(float cosine, float refIdx);
 
 
@@ -61,7 +62,7 @@ public:
 	__device__ BlackBody(){}
 
 private:
-	__device__ virtual bool scatter(const Ray& ray_in, const HitRecord& record, Color& attenuation, Ray& ray_scattered, f32& pdf) override
+	__device__ virtual bool scatter(const Ray& ray_in, const HitRecord& record, Color& attenuation, Ray& ray_scattered, f32& pdf, bool& isDiffuse) override
 	{
 		attenuation = Color(0x000000);
 		return false;
@@ -74,7 +75,7 @@ public:
 	__device__ Retroreflective(const Color& albedo) : albedo(albedo) {}
 
 private:
-	__device__ virtual bool scatter(const Ray& ray_in, const HitRecord& record, Color& attenuation, Ray& ray_scattered, f32& pdf) override;
+	__device__ virtual bool scatter(const Ray& ray_in, const HitRecord& record, Color& attenuation, Ray& ray_scattered, f32& pdf, bool& isDiffuse) override;
 
 	Color albedo;
 };
@@ -87,7 +88,7 @@ public:
 private:
 	Color albedo;
 	f32 mIntensity;
-	__device__ virtual bool scatter(const Ray& ray_in, const HitRecord& record, Color& attenuation, Ray& ray_scattered, f32& pdf) override;
+	__device__ virtual bool scatter(const Ray& ray_in, const HitRecord& record, Color& attenuation, Ray& ray_scattered, f32& pdf, bool& isDiffuse) override;
 };
 
 class DiffuseLight : public Material
@@ -96,7 +97,7 @@ public:
 	__device__ DiffuseLight()  {}
 
 private:
-	__device__ virtual bool scatter(const Ray& ray_in, const HitRecord& record, Color& attenuation, Ray& ray_scattered, f32& pdf) override {return false;}
+	__device__ virtual bool scatter(const Ray& ray_in, const HitRecord& record, Color& attenuation, Ray& ray_scattered, f32& pdf, bool& isDiffuse) override {return false;}
 	__device__ virtual Color emission(const f32 u, const f32 v, const Vec3& p) const override { return Color(1,1,1); }
 };
 
@@ -106,7 +107,7 @@ class GravitationalField : public Material
 public:
 	__device__ GravitationalField(f32 gravityScale, Vec3 center) :mGravityScale(gravityScale), mCenter(center) {}
 
-	__device__ virtual bool scatter(const Ray& ray_in, const HitRecord& record, Color& attenuation, Ray& ray_scattered, f32& pdf) override;
+	__device__ virtual bool scatter(const Ray& ray_in, const HitRecord& record, Color& attenuation, Ray& ray_scattered, f32& pdf, bool& isDiffuse) override;
 
 
 private:
@@ -120,7 +121,7 @@ class QuasiGravitationalField : public Material
 public:
 	__device__ QuasiGravitationalField(f32 gravityScale, Vec3 center) :mGravityScale(gravityScale), mCenter(center) {}
 
-	__device__ virtual bool scatter(const Ray& ray_in, const HitRecord& record, Color& attenuation, Ray& ray_scattered, f32& pdf) override;
+	__device__ virtual bool scatter(const Ray& ray_in, const HitRecord& record, Color& attenuation, Ray& ray_scattered, f32& pdf, bool& isDiffuse) override;
 
 
 private:
@@ -135,7 +136,7 @@ class QuasiGravitationalField2 : public Material
 public:
 	__device__ QuasiGravitationalField2(f32 gravityScale, Vec3 center) :mGravityScale(gravityScale), mCenter(center) {}
 
-	__device__ virtual bool scatter(const Ray& ray_in, const HitRecord& record, Color& attenuation, Ray& ray_scattered, f32& pdf) override;
+	__device__ virtual bool scatter(const Ray& ray_in, const HitRecord& record, Color& attenuation, Ray& ray_scattered, f32& pdf, bool& isDiffuse) override;
 
 
 private:
@@ -150,7 +151,7 @@ class Rutherford : public Material
 public:
 	__device__ Rutherford(f32 gravityScale, Vec3 center) :mGravityScale(gravityScale), mCenter(center) {}
 
-	__device__ virtual bool scatter(const Ray& ray_in, const HitRecord& record, Color& attenuation, Ray& ray_scattered, f32& pdf) override;
+	__device__ virtual bool scatter(const Ray& ray_in, const HitRecord& record, Color& attenuation, Ray& ray_scattered, f32& pdf, bool& isDiffuse) override;
 
 
 private:
@@ -165,7 +166,7 @@ class QuasiRutherford : public Material
 public:
 	__device__ QuasiRutherford(f32 gravityScale, Vec3 center) :mGravityScale(gravityScale), mCenter(center) {}
 
-	__device__ virtual bool scatter(const Ray& ray_in, const HitRecord& record, Color& attenuation, Ray& ray_scattered, f32& pdf) override;
+	__device__ virtual bool scatter(const Ray& ray_in, const HitRecord& record, Color& attenuation, Ray& ray_scattered, f32& pdf, bool& isDiffuse) override;
 
 
 private:

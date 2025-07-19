@@ -81,6 +81,10 @@ public:
 
 private:
 	__device__ bool isHit(const Ray& r, const f32 t_min, const f32 t_max, HitRecord& record) override;
+    __device__ virtual Vec3 getRandomPointOnSurface() const;
+	__device__ virtual Vec3 getRandomPointOnSurfaceVisibleFrom(const Vec3& point, bool& isVisible) const override;
+	__device__ virtual void calculateLightSampling(const Vec3& rayOrigin, const Transform& transform, Vec3& samplingPointOnSurface, bool& isVisibleFromRayOrigin, f32& amplitude) const;
+
 	__device__ __host__ AABB getAABB() override;
 
 	AABB mAABB;

@@ -75,11 +75,14 @@ inline std::normal_distribution<float> RandomGenerator::mNormalDist(0.0f, 1.0f);
 inline std::uniform_real_distribution<f32> RandomGenerator::mUniform0_1Dist(0.0f, 1.0f);
 
 
+class Vec3;
 class RandomGeneratorGPU
 {
 public:
 	__device__ static f32 uniform_real(f32 a = 0.0f, f32 b = 1.0f);
 	__device__ static f32 signed_uniform_real(f32 a = -1.0f, f32 b = 1.0f);
+	__device__ static Vec3 generateRandomDirectionOnUnitSphere(const Vec3& normal);
+	__device__ static Vec3 generateRandomDirectionOnUnitHemiSphere(const Vec3& normal);
 };
 
 
@@ -101,6 +104,9 @@ public:
 		cudaFree(p);
 	}
 };
+
+
+
 
 namespace aoba
 {
