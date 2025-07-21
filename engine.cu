@@ -44,7 +44,12 @@ __device__ Color castRayAndCalcColor(BvhNode* worldNode, const Ray& ray, const u
 			const f32 dx = direction[0];
 			const f32 dy = direction[1];
 			const f32 dz = direction[2];
-			const Color backgroundColor = Color(abs(sin(5 * (dx + 4 * dz))), abs(cos(9 * dy * dz)), abs(cos(dy * 5 + sin(dy * 3)) * sin(dx + dz * cos(dy * dy))));
+
+			const f32 r = abs(sin(5 * (dx + 4 * dz)));
+			const f32 g = abs(cos(9 * (dy + dz) - dx * dx));
+			const f32 b = abs(cos(dy * 5 + 9 * sin(dy * 3)) * sin(3 * dx + 29 * dz * cos(dy * dy)));
+
+			const Color backgroundColor = Color(r, g, b);
 			resultColor *= backgroundColor;
 
 			return resultColor;
@@ -73,8 +78,8 @@ __global__ void castRayToWorld(BvhNode* worldNode, Color* pixels, Camera* camera
 		for (u32 s = 0; s < sampleSize; s++)
 		{
 			const f32 samplingRange = 0.01f;
-		const f32 u = static_cast<f32>(id_w + RandomGeneratorGPU::signed_uniform_real() * samplingRange) * inv_screenSizeW;
-		const f32 v = static_cast<f32>(id_h + RandomGeneratorGPU::signed_uniform_real() * samplingRange) * inv_screenSizeH;
+			const f32 u = static_cast<f32>(id_w + RandomGeneratorGPU::signed_uniform_real() * samplingRange) * inv_screenSizeW;
+			const f32 v = static_cast<f32>(id_h + RandomGeneratorGPU::signed_uniform_real() * samplingRange) * inv_screenSizeH;
 			
 			Ray ray = camera->getRay(u, v);
 	

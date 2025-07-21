@@ -56,11 +56,11 @@ int main(int argc, char** argv)
 					Transform transform = Transform::translation(Vec3(RandomGenerator::signed_uniform_real() * 10, RandomGenerator::signed_uniform_real() * 10, -z));
 					// Transform transform = Transform::translation(Vec3(h, w, -z));
 					transform.setRotationAngle(Vec3::generateRandomUnitVector() * 10);
-					transform.setScaling(0.2f);
+					transform.setScaling(0.2f + RandomGenerator::uniform_real(-1, 1) * 0.1);
 
 					char* primitiveName = "AABB";
 					char* materialName = "Metal";
-					if (RandomGenerator::uniform_real() < 0.3)
+					if (RandomGenerator::uniform_real() < 0.8)
 					{
 						materialName = "Diamond";
 					} 
