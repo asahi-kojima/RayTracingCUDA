@@ -39,7 +39,7 @@ Object::Object(Hittable* pritmitivePtr, Material* materialPtr, const Transform& 
 
 
 
-bool Object::isHit(const Ray& ray, const f32 t_min, const f32 t_max, HitRecord& record)
+bool Object::isHit(const Ray& ray, const f32 t_min, const f32 t_max, HitRecord& record) const
 {
     const Mat4& invTransformMat= mTransform.getInvTransformMatrix();
     Ray rayTransformedIntoObjectSpace = ray.transformWith(invTransformMat);
@@ -51,7 +51,8 @@ bool Object::isHit(const Ray& ray, const f32 t_min, const f32 t_max, HitRecord& 
         return false;
     }
 
-
+    //衝突点などの情報はprimitivePtr->isHitのほうで格納している。
+    record.position = ray.pointAt(record.t);
     record.material = mMaterialPtr;
     record.hitObject = this;
 
@@ -80,25 +81,29 @@ Vec3 Object::getRandomPointOnSurface() const
     return (TransformMat * ramdomPointOnPrimitiveSurface).extractXYZ();
 }
 
-Vec3 Object::getRandomPointOnSurfaceVisibleFrom(const Vec3& point, bool& isVisible) const
-{
-    Vec4 position(point, 1);
-    const Mat4& invTransformMat= mTransform.getInvTransformMatrix();
-    Vec3 localPosition = (invTransformMat * position).extractXYZ();
 
-    return mPrimitivePtr->getRandomPointOnSurfaceVisibleFrom(localPosition, isVisible);
+
+f32 Object::getPdfValue(const Vec3& origin, const Vec3& direction) const
+{
+    //まずオブジェクトとヒットするか確認する。
+    Ray ray(origin, direction);
+    HitRecord record; 
+    if (!isHit(ray, 0, INFINITY, record))
+    {
+        return 0.0f;
+    }
+
+    //ヒットする場合はPDFを計算
+    return mPrimitivePtr->calcPdfValue(origin, direction, record.position, mTransform);
 }
 
-void Object::calculateLightSampling(const Vec3& rayOrigin, const Transform& transform, Vec3& samplingPointOnSurface ,bool& isVisibleFromRayOrigin, f32& amplitude) const
+
+Vec3 Object::generateRandomDirection(const Vec3& origin) const
 {
-    Vec4 position(rayOrigin, 1);
-    const Mat4& invTransformMat= mTransform.getInvTransformMatrix();
-    Vec3 localPosition = (invTransformMat * position).extractXYZ();
+    const Vec4 randomPointOnPrimitive(mPrimitivePtr->getRandomPointOnSurface(), 1);
+    const Mat4& transformMat = mTransform.getTransformMatrix();
 
-    mPrimitivePtr->calculateLightSampling(localPosition, mTransform, samplingPointOnSurface, isVisibleFromRayOrigin, amplitude);
+    const Vec3 worldRamdomPoint = (transformMat * randomPointOnPrimitive).extractXYZ();
 
-    {
-        Vec4 position(samplingPointOnSurface, 1);
-        samplingPointOnSurface = (mTransform.getTransformMatrix() * position).extractXYZ();
-    }
+    return (worldRamdomPoint - origin).normalize();
 }

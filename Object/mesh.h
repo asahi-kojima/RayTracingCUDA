@@ -62,7 +62,7 @@ public:
 
 	
 	private:
-	__device__ bool isHit(const Ray& r, const f32 t_min, const f32 t_max, HitRecord& record) override;
+	__device__ bool isHit(const Ray& r, const f32 t_min, const f32 t_max, HitRecord& record) const override;
 	__device__ __host__ AABB getAABB() override;
 
 	Vec3 mVertices[3];
@@ -79,7 +79,7 @@ public:
     SubMesh();
     ~SubMesh();
 
-    __device__ virtual bool isHit(const Ray& r, const f32 t_min, const f32 t_max, HitRecord& record) = 0;
+    __device__ virtual bool isHit(const Ray& r, const f32 t_min, const f32 t_max, HitRecord& record) const = 0;
 	__device__ __host__ virtual AABB getAABB() = 0;
 
 private:
@@ -93,7 +93,7 @@ public:
     Mesh();
     ~Mesh();
 
-    __device__ virtual bool isHit(const Ray& r, const f32 t_min, const f32 t_max, HitRecord& record) = 0;
+    __device__ virtual bool isHit(const Ray& r, const f32 t_min, const f32 t_max, HitRecord& record) const = 0;
 	__device__ __host__ virtual AABB getAABB() = 0;
 
 private:

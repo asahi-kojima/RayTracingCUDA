@@ -22,7 +22,7 @@ const Vec3&  AABB::getCenterPos() const
 	return mCenter;
 }
 
-bool AABB::isHit(const Ray &ray, const f32 t_min, const f32 t_max, HitRecord &record)
+bool AABB::isHit(const Ray &ray, const f32 t_min, const f32 t_max, HitRecord &record) const
 {
 	const Vec3 center = (mMaxPosition + mMinPosition) * 0.5f;
 	const Vec3 extention = (mMaxPosition - mMinPosition) * 0.5f;
@@ -172,7 +172,7 @@ bool AABB::isIntersecting(const Ray &ray,  f32 t_min,  f32 t_max) const
 
 
 
-bool Sphere::isHit(const Ray &r, const f32 t_min, const f32 t_max, HitRecord &record)
+bool Sphere::isHit(const Ray &r, const f32 t_min, const f32 t_max, HitRecord &record) const
 {
 	const Vec3 &direction = r.direction();
 	Vec3 oc = r.origin();
@@ -218,7 +218,7 @@ AABB Sphere::getAABB()
 
 
 
-bool Board::isHit(const Ray &ray, const f32 t_min, const f32 t_max, HitRecord &record)
+bool Board::isHit(const Ray &ray, const f32 t_min, const f32 t_max, HitRecord &record) const
 {
 	const  Vec3 vertex0(Vec3(-DefaultEdgeLength, 0, -DefaultEdgeLength));
 	const  Vec3 vertex1(Vec3(-DefaultEdgeLength, 0, +DefaultEdgeLength));
@@ -266,46 +266,57 @@ Vec3 Board::getRandomPointOnSurface() const
 	return Vec3(x, 0, z);
 }
 
-Vec3 Board::getRandomPointOnSurfaceVisibleFrom(const Vec3& point, bool& isVisible) const
-{
-	if (point[1] < 0)
-	{
-		isVisible = false;
-		return Vec3(0,0,0);
-	}
 
-	const f32 x = RandomGeneratorGPU::signed_uniform_real(-DefaultEdgeLength, DefaultEdgeLength);
-	const f32 z = RandomGeneratorGPU::signed_uniform_real(-DefaultEdgeLength, DefaultEdgeLength);
-	isVisible = true;
-	return Vec3(x, 0, z);
-}
 
-void Board::calculateLightSampling(const Vec3& rayOrigin, const Transform& transform, Vec3& samplingPointOnSurface, bool& isVisibleFromRayOrigin, f32& amplitude) const
+// void Board::calculateLightSampling(const Vec3& rayOrigin, const Transform& transform, Vec3& samplingPointOnSurface, bool& isVisibleFromRayOrigin, f32& amplitude) const
+// {
+// 	if (rayOrigin[1] < 0)
+// 	{
+// 		isVisibleFromRayOrigin = false;
+// 		return;
+// 	}
+
+// 	const f32 scaleX = transform.getScale(0);
+// 	const f32 scaleZ = transform.getScale(2);
+
+// 	const f32 area = (2 * DefaultEdgeLength) * scaleX * (2 * DefaultEdgeLength) * scaleZ;
+
+// 	const Vec3 randomPointOnSurface = getRandomPointOnSurface();
+// 	const Vec3 originToSurfacePoint = randomPointOnSurface - rayOrigin;
+// 	const f32 cos0 = -originToSurfacePoint[1];
+
+// 	if (cos0 < 0.0001f)
+// 	{
+// 		isVisibleFromRayOrigin = false;
+// 		return;
+// 	}
+
+// 	samplingPointOnSurface = randomPointOnSurface;
+// 	isVisibleFromRayOrigin = true;
+// 	amplitude = (transform.getTransformMatrix() * Vec4(originToSurfacePoint, 0)).extractXYZ().lengthSquared() / (area * cos0);
+// }
+
+
+f32 Board::calcPdfValue(const Vec3& origin, const Vec3& direction, const Vec3& surfacePoint, const Transform& transform) const
 {
-	if (rayOrigin[1] < 0)
-	{
-		isVisibleFromRayOrigin = false;
-		return;
-	}
+	Vec4 position(origin, 1);
+    const Mat4& invTransformMat= transform.getInvTransformMatrix();
+    const Vec3 localOrigin = (invTransformMat * position).extractXYZ();
+	// if (localPosition[1] < 0)
+	// {
+	// 	//return 0.0f;
+	// }
 
 	const f32 scaleX = transform.getScale(0);
 	const f32 scaleZ = transform.getScale(2);
-
 	const f32 area = (2 * DefaultEdgeLength) * scaleX * (2 * DefaultEdgeLength) * scaleZ;
 
-	const Vec3 randomPointOnSurface = getRandomPointOnSurface();
-	const Vec3 originToSurfacePoint = randomPointOnSurface - rayOrigin;
-	const f32 cos0 = -originToSurfacePoint[1];
+	const f32 distSquared = (surfacePoint - origin).lengthSquared();
+	const f32 cos0 = abs(localOrigin.normalize()[1]);
 
-	if (cos0 < 0.0001f)
-	{
-		isVisibleFromRayOrigin = false;
-		return;
-	}
+	const f32 pdf = distSquared / (cos0 * area);
 
-	samplingPointOnSurface = randomPointOnSurface;
-	isVisibleFromRayOrigin = true;
-	amplitude = (transform.getTransformMatrix() * Vec4(originToSurfacePoint, 0)).extractXYZ().lengthSquared() / (area * cos0);
+	return pdf;
 }
 
 

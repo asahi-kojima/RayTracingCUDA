@@ -139,6 +139,11 @@ Color& Color::operator/=(const f32 value)
 	return ((*this) *= (1.0f / value));
 }
 
+Vec3 Color::getRGB() const
+{
+	return mRGB;
+}
+
 
 __device__ void Color::printColor() const
 {

@@ -31,6 +31,8 @@ public:
 	__device__ __host__ Color& operator*=(const f32 value);
 	__device__ __host__ Color& operator/=(const f32 value);
 
+	__device__ __host__ Vec3 getRGB() const;
+
 	__device__ __host__ void printColor() const;
 
 	__device__ __host__ void clamp();

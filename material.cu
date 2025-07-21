@@ -55,7 +55,7 @@ bool Dielectric::scatter(const Ray &ray_in, const HitRecord &record, Color &atte
 	const Vec3& normal = record.normal;
 	const Vec3 direction = ray_in.direction().normalize();
 
-	const f32 signed_cos_theta = aoba::clamp(Vec3::dot(normal, direction), -1.0f, 1.0f);//cos_between_normal_and_direction;
+	const f32 signed_cos_theta = clamp<f32>(Vec3::dot(normal, direction), -1.0f, 1.0f);//cos_between_normal_and_direction;
 	const f32 cos_theta = fabsf(signed_cos_theta);
 	const f32 sin_theta = sqrt(1.0f - cos_theta * cos_theta + (1e-5));
 	

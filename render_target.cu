@@ -1,5 +1,11 @@
 #include "render_target.h"
 
+namespace
+{
+    
+}
+
+
 
 RenderTarget::RenderTarget(u32 resolutionWidth, u32 resolutionHeight, Color clearColor)
     : mResolutionWidth(resolutionWidth)
@@ -64,6 +70,9 @@ void RenderTarget::saveRenderResult(const std::string& path)
                 printf("nan detected!");
                 printf("=====================================");
             }
+            // color[0] = clamp<f32>(color[0], 0.0f, 1.0f);
+            // color[1] = clamp<f32>(color[1], 0.0f, 1.0f);
+            // color[2] = clamp<f32>(color[2], 0.0f, 1.0f);
             Color gammaCorrectedColor = Color(sqrt(color[0]), sqrt(color[1]), sqrt(color[2]));
 
             s32 r = static_cast<f32>(static_cast<s32>(255.99 * gammaCorrectedColor[0]));

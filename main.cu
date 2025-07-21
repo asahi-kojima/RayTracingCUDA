@@ -145,7 +145,7 @@ int main(int argc, char** argv)
 
 				SurfaceProperty property{};
 				property.setAlbedo(Color::Silver);
-				world.addObject("RightBox", "AABB", "Metal", transform, property);
+				world.addObject("RightBox", "AABB", "Lambert", transform, property);
 			}
 
 

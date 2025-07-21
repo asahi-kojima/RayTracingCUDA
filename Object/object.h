@@ -22,15 +22,16 @@ class Object : public Hittable
 {
 public:
     __device__ Object(Primitive* pritmitivePtr, Material* materialPtr, const Transform& transform = Transform(), const SurfaceProperty& surfacePropery = SurfaceProperty());
-	__device__ virtual bool isHit(const Ray& r, const f32 t_min, const f32 t_max, HitRecord& record);
+	__device__ virtual bool isHit(const Ray& r, const f32 t_min, const f32 t_max, HitRecord& record) const override;
 	__device__ __host__ virtual AABB getAABB();
     __device__ __host__ const Transform& getTransform() const;
 
     __device__ const SurfaceProperty& getSurfaceProperty() const;
 
     __device__ virtual Vec3 getRandomPointOnSurface() const;
-    __device__ virtual Vec3 getRandomPointOnSurfaceVisibleFrom(const Vec3& point, bool& isVisible) const;
-	__device__ virtual void calculateLightSampling(const Vec3& rayOrigin, const Transform& transform, Vec3& samplingPointOnSurface, bool& isVisibleFromRayOrigin, f32& amplitude) const;
+
+    __device__ virtual f32 getPdfValue(const Vec3& origin, const Vec3& direction) const;
+    __device__ virtual Vec3 generateRandomDirection(const Vec3& origin) const;
 
 private:
     // 参照するプリミティブメッシュの名前とポインタ

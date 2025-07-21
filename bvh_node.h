@@ -30,7 +30,7 @@ public:
     {
     }
     
-    __device__ virtual bool isHit(const Ray& r, const f32 t_min, const f32 t_max, HitRecord& record) ;
+    __device__ virtual bool isHit(const Ray& r, const f32 t_min, const f32 t_max, HitRecord& record) const override ;
     __device__ __host__ virtual AABB getAABB();
     
 private:

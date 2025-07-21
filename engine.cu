@@ -20,7 +20,7 @@ __device__ Color castRayAndCalcColor(WorldRecord* worldRecord, const Ray& ray, c
 			// その情報を基にレコードを正確に更新する。
 			{
 				//衝突座標の設定
-				record.position = currentRay.pointAt(record.t);
+				//record.position = currentRay.pointAt(record.t);//delete
 
 				//法線の設定
 				const Vec4 normal(record.normal, 0.0f);
@@ -38,23 +38,32 @@ __device__ Color castRayAndCalcColor(WorldRecord* worldRecord, const Ray& ray, c
 			{
 				if (isDiffuse)
 				{
-					// Object* lightObject = worldRecord->getLightObjectDevicePtrList()[0];
+					//ライト用のPDFを準備
+					Object* lightObject = worldRecord->getLightObjectDevicePtrList()[0];
+					ObjectPdf objectPdf(lightObject, record.position);
 					
-					
-					// Vec3 samplingPointOnSurface;
-					// bool isVisible = false;
-					// f32 amplitude = 0.0f;
-					// lightObject->calculateLightSampling(record.position, Transform(), samplingPointOnSurface, isVisible, amplitude);
-					
-					// //散乱方向をランダムに決定する
-					// scatteredRay = Ray(record.position, (samplingPointOnSurface - record.position).normalize());
-					
+					//拡散マテリアル用のPDFを準備
 					CosinePdf cosinePdf(record.normal);
-					const Vec3 randomDirection = cosinePdf.generateRandomDirection();
+
+					//混合密度を定義
+					MixturePdf mixturePdf(objectPdf, cosinePdf, 0.5);
+
+
+					const Vec3 randomDirection = mixturePdf.generateRandomDirection();
 					scatteredRay = Ray(record.position, randomDirection);
-					const f32 amplitude = cosinePdf.value(scatteredRay.direction());
-					//その方向に対する散乱PDFとサンプリングPDFを決める
-					albedoProd *= (albedo * record.material->scatteringPdf(ray, record, scatteredRay) * (1.0f / (amplitude + (1e-9))));
+					const f32 amplitude = mixturePdf.value(randomDirection);
+					if (amplitude < 0.0001f)
+					{
+						albedoProd *= 0.0f;
+					}
+					else
+					albedoProd *= (albedo * record.material->scatteringPdf(ray, record, scatteredRay) * (1.0f / (amplitude + (1e-8))));
+					if (albedoProd.getRGB().length() > 10.0)
+					{
+						// record.position.print_debug();
+						printf("albedo = %f, %f, %f\n amp = %f, %f, %f\n\n", albedoProd[0], albedoProd[1], albedoProd[2],
+							record.material->scatteringPdf(ray, record, scatteredRay),amplitude,record.material->scatteringPdf(ray, record, scatteredRay) * (1.0f / (amplitude + (1e-8))));
+					}
 					currentRay = scatteredRay;
 				}
 				else

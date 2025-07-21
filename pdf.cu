@@ -1,5 +1,5 @@
 #include "pdf.h"
-
+#include "Object/object.h"
 
 f32 CosinePdf::value(const Vec3& direction) const
 {
@@ -19,4 +19,35 @@ Vec3 CosinePdf::generateRandomDirection() const
     const Vec3 v = mOnb.local(x, y, z);
 
     return v;
+}
+
+
+
+f32 ObjectPdf::value(const Vec3& direction) const
+{
+    return mObject->getPdfValue(mOrigin, direction);
+}
+
+Vec3 ObjectPdf::generateRandomDirection() const
+{
+    return mObject->generateRandomDirection(mOrigin);
+}
+
+
+
+f32 MixturePdf::value(const Vec3& direction) const
+{
+    return mAlpha * mPdf0.value(direction) + (1.0f - mAlpha) * mPdf1.value(direction);
+}
+
+Vec3 MixturePdf::generateRandomDirection() const
+{
+    if (RandomGeneratorGPU::uniform_real() < mAlpha)
+    {
+        return mPdf0.generateRandomDirection();
+    }
+    else
+    {
+        return mPdf1.generateRandomDirection();
+    }
 }

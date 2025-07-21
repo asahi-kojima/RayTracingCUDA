@@ -34,7 +34,7 @@ public:
 	__device__ __host__ AABB tranformWith(const Mat4& transformMat) const;
 	
 private:
-	__device__ virtual bool isHit(const Ray& r, const f32 t_min, const f32 t_max, HitRecord& record) override;
+	__device__ virtual bool isHit(const Ray& r, const f32 t_min, const f32 t_max, HitRecord& record) const override;
 	__device__ __host__ virtual AABB getAABB() override { return *this; }
 
 
@@ -51,7 +51,7 @@ public:
 	__device__ Box() : mAABB(-Vec3(DefaultExtensionRange,DefaultExtensionRange,DefaultExtensionRange), Vec3(DefaultExtensionRange,DefaultExtensionRange,DefaultExtensionRange)){}
 
 private:
-	__device__ bool isHit(const Ray& r, const f32 t_min, const f32 t_max, HitRecord& record) override;
+	__device__ bool isHit(const Ray& r, const f32 t_min, const f32 t_max, HitRecord& record) const override;
 	__device__ __host__ AABB getAABB() override;
 
 	AABB mAABB;
@@ -66,7 +66,7 @@ public:
 
 
 private:
-	__device__ bool isHit(const Ray& r, const f32 t_min, const f32 t_max, HitRecord& record) override;
+	__device__ bool isHit(const Ray& r, const f32 t_min, const f32 t_max, HitRecord& record) const override;
 	__device__ __host__ AABB getAABB() override;
 
 	AABB mAABB;
@@ -80,10 +80,11 @@ public:
 
 
 private:
-	__device__ bool isHit(const Ray& r, const f32 t_min, const f32 t_max, HitRecord& record) override;
+	__device__ bool isHit(const Ray& r, const f32 t_min, const f32 t_max, HitRecord& record) const override;
+
     __device__ virtual Vec3 getRandomPointOnSurface() const;
-	__device__ virtual Vec3 getRandomPointOnSurfaceVisibleFrom(const Vec3& point, bool& isVisible) const override;
-	__device__ virtual void calculateLightSampling(const Vec3& rayOrigin, const Transform& transform, Vec3& samplingPointOnSurface, bool& isVisibleFromRayOrigin, f32& amplitude) const;
+
+	__device__ virtual f32 calcPdfValue(const Vec3& origin, const Vec3& direction, const Vec3& surfacePoint, const Transform& transform) const override;
 
 	__device__ __host__ AABB getAABB() override;
 

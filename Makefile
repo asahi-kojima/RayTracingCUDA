@@ -26,7 +26,7 @@ release: $(TARGET)
 	convert ./picture/result.ppm ./picture/hegh-resolution.png
 
 test:  $(TARGET)
-	./$(TARGET) 500 500 200 20 > log.txt
+	./$(TARGET) 500 500 1000 20 > log.txt
 	convert ./picture/result.ppm ./picture/result.png
 
 compile: $(TARGET)

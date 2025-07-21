@@ -1,7 +1,7 @@
 #include "bvh_node.h"
 #include "Object/object.h"
 
-bool BvhNode::isHit(const Ray& r, const f32 t_min, const f32 t_max, HitRecord& record)
+bool BvhNode::isHit(const Ray& r, const f32 t_min, const f32 t_max, HitRecord& record) const
 {
     if (mIsLeaf)
     {

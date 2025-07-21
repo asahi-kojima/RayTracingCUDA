@@ -2,7 +2,7 @@
 #include "object.h"
 
 
-bool Triangle::isHit(const Ray &ray, const f32 t_min, const f32 t_max, HitRecord &record)
+bool Triangle::isHit(const Ray &ray, const f32 t_min, const f32 t_max, HitRecord &record) const
 {
 	const Vec3 p1 = mVertices[1] - mVertices[0];
 	const Vec3 p2 = mVertices[2] - mVertices[0];
@@ -44,7 +44,7 @@ AABB Triangle::getAABB()
 	return mAABB;
 }
 
-bool SubMesh::isHit(const Ray& r, const f32 t_min, const f32 t_max, HitRecord& record)
+bool SubMesh::isHit(const Ray& r, const f32 t_min, const f32 t_max, HitRecord& record) const
 {
 
 }
@@ -52,7 +52,7 @@ bool SubMesh::isHit(const Ray& r, const f32 t_min, const f32 t_max, HitRecord& r
 
 
 
-bool Mesh::isHit(const Ray& r, const f32 t_min, const f32 t_max, HitRecord& record)
+bool Mesh::isHit(const Ray& r, const f32 t_min, const f32 t_max, HitRecord& record) const
 {
     f32 current_t_max = t_max;
     bool isHitWithSomething = false;
