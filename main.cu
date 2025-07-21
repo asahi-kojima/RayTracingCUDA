@@ -60,7 +60,7 @@ int main(int argc, char** argv)
 
 					char* primitiveName = "AABB";
 					char* materialName = "Metal";
-					if (RandomGenerator::uniform_real() < 0.5)
+					if (RandomGenerator::uniform_real() < 0.8)
 					{
 						materialName = "Diamond";
 					} 
