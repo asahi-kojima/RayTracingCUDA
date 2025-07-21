@@ -35,6 +35,8 @@ public:
 
 	__device__ __host__ void clamp();
 
+	__device__ __host__ bool isNan() const {return mRGB.isNan();}
+
 
 	static const Color White;
 	static const Color Black;

@@ -26,6 +26,10 @@ __device__ Color castRayAndCalcColor(BvhNode* worldNode, const Ray& ray, const u
 			Color albedo(0x000000);
 			if (record.material->scatter(currentRay, record, albedo, scattered))
 			{
+				if (resultColor.isNan())
+				{
+					resultColor.printColor();
+				}
 				resultColor *= albedo;
 				currentRay = scattered;
 			}
@@ -40,7 +44,7 @@ __device__ Color castRayAndCalcColor(BvhNode* worldNode, const Ray& ray, const u
 			const f32 dx = direction[0];
 			const f32 dy = direction[1];
 			const f32 dz = direction[2];
-			const Color backgroundColor = Color(abs(sin(dx + 4 * dz)), abs(cos(dy * dz)), abs(cos(dy + sin(dy * 3)) * sin(dx + dz * cos(dy * dy))));
+			const Color backgroundColor = Color(abs(sin(5 * (dx + 4 * dz))), abs(cos(9 * dy * dz)), abs(cos(dy * 5 + sin(dy * 3)) * sin(dx + dz * cos(dy * dy))));
 			resultColor *= backgroundColor;
 
 			return resultColor;

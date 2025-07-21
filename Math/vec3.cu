@@ -238,6 +238,12 @@ Vec3 Vec3::generateRandomUnitVector()
 	return Vec3(cos(phi) * sin0, sin(phi) * sin0, cos(theta));
 }
 
+bool Vec3::isNan() const
+{
+	return (isnan(mElements[0]) || isnan(mElements[1]) || isnan(mElements[2]));
+}
+
+
 //=================================================
 // ��������N���X�O�֐�
 //=================================================
