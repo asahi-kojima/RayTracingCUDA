@@ -47,6 +47,10 @@ void RenderTarget::saveRenderResult(const std::string& path)
         for (u32 i = 0; i < mResolutionWidth; i++)
         {
             Color color = mPixelArray[calcIndex(i, j)];
+            if (color.isNan())
+            {
+                printf("Nan detected!");
+            }
             maxIntensity = max(maxIntensity, color.r());
             maxIntensity = max(maxIntensity, color.g());
             maxIntensity = max(maxIntensity, color.b());
