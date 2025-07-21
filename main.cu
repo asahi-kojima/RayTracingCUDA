@@ -43,7 +43,7 @@ int main(int argc, char** argv)
 		{
 			for (s32 z = -1; z < 20; z++)
 			{
-				const s32 num = 30;
+				const s32 num = 20;
 				for (s32 i = 0; i < num * num; i++)
 				{
 					const s32 h = i / num - num/2;
@@ -60,7 +60,7 @@ int main(int argc, char** argv)
 
 					char* primitiveName = "AABB";
 					char* materialName = "Metal";
-					if (RandomGenerator::uniform_real() < 0)
+					if (RandomGenerator::uniform_real() < 0.7)
 					{
 						materialName = "Diamond";
 					} 
