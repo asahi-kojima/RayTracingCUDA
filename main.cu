@@ -41,7 +41,7 @@ int main(int argc, char** argv)
 	{
 		//オブジェクトの追加
 		{
-			for (s32 z = -2; z < 10; z++)
+			for (s32 z = -1; z < 10; z++)
 			{
 				const s32 num = 30;
 				for (s32 i = 0; i < num * num; i++)

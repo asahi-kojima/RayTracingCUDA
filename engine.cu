@@ -37,11 +37,11 @@ __device__ Color castRayAndCalcColor(BvhNode* worldNode, const Ray& ray, const u
 		else
 		{
 			Vec3 direction = currentRay.direction();
-			f32 length2 = direction.lengthSquared();
-			f32 direction_y = direction[1];
-	
-			f32 t = 0.5f * (direction_y * direction_y / length2 + 1.0f);
-			resultColor *= Color(0xFFFFFF) * (1.0f - t) + Color(0xF0FFFF) * t;
+			const f32 dx = direction[0];
+			const f32 dy = direction[1];
+			const f32 dz = direction[2];
+			const Color backgroundColor = Color(abs(sin(dx + 4 * dz)), abs(cos(dy * dz)), abs(cos(dy + sin(dy * 3)) * sin(dx + dz * cos(dy * dy))));
+			resultColor *= backgroundColor;
 
 			return resultColor;
 		}
