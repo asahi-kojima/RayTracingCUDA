@@ -51,7 +51,7 @@ bool Object::isHit(const Ray& ray, const f32 t_min, const f32 t_max, HitRecord& 
         return false;
     }
 
-
+    record.position = ray.pointAt(record.t);
     record.material = mMaterialPtr;
     record.hitObject = this;
 

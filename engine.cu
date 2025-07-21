@@ -15,8 +15,6 @@ __device__ Color castRayAndCalcColor(BvhNode* worldNode, const Ray& ray, const u
 			// レコードには本当に衝突したオブジェクトの情報が一部入っているので、
 			// その情報を基にレコードを正確に更新する。
 			{
-				//衝突座標の設定
-				record.position = currentRay.pointAt(record.t);
 
 				//法線の設定
 				const Vec4 normal(record.normal, 0.0f);

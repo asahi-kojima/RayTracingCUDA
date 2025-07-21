@@ -41,7 +41,7 @@ int main(int argc, char** argv)
 	{
 		//オブジェクトの追加
 		{
-			for (s32 z = -3; z < 10; z++)
+			for (s32 z = -2; z < 10; z++)
 			{
 				const s32 num = 30;
 				for (s32 i = 0; i < num * num; i++)
@@ -52,7 +52,9 @@ int main(int argc, char** argv)
 					if (h == 0 && w == 0)
 						continue;
 					
-					Transform transform = Transform::translation(Vec3(h, w, -z));
+					
+					Transform transform = Transform::translation(Vec3(RandomGenerator::signed_uniform_real() * 10, RandomGenerator::signed_uniform_real() * 10, -z));
+					// Transform transform = Transform::translation(Vec3(h, w, -z));
 					transform.setRotationAngle(Vec3::generateRandomUnitVector() * 10);
 					transform.setScaling(0.2f);
 
