@@ -41,7 +41,7 @@ int main(int argc, char** argv)
 	{
 		//オブジェクトの追加
 		{
-			for (s32 z = -1; z < 10; z++)
+			for (s32 z = -1; z < 20; z++)
 			{
 				const s32 num = 30;
 				for (s32 i = 0; i < num * num; i++)
@@ -60,12 +60,12 @@ int main(int argc, char** argv)
 
 					char* primitiveName = "AABB";
 					char* materialName = "Metal";
-					if (RandomGenerator::uniform_real() < 0.8)
+					if (RandomGenerator::uniform_real() < 0.5)
 					{
 						materialName = "Diamond";
 					} 
 
-					std::string objectName = "SphereObject"; objectName += std::to_string(i) += std::to_string(z);
+					std::string objectName = "SphereObject"; objectName += std::to_string(i) += std::string("-") += std::to_string(z);
 
 					SurfaceProperty property{};
 					property.setAlbedo(Color(RandomGenerator::uniform_int(0, 0xFFFFFF)));
