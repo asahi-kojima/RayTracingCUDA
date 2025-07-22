@@ -45,9 +45,9 @@ __device__ Color castRayAndCalcColor(BvhNode* worldNode, const Ray& ray, const u
 			const f32 dy = direction[1];
 			const f32 dz = direction[2];
 
-			const f32 r = abs(cos(9 * (dx + dy) - dz * dz));
-			const f32 g = abs(cos(9 * (dy + dz) - dx * dx));
-			const f32 b = abs(cos(9 * (dz + dx) - dy * dy));
+			const f32 r = abs(cos(4 * (dy + dz) - dx * 2 * sin(dx * 4)) * (dx + 1) / 2.0f + sin(dx + dy * 8 - dz * sin(3 * dx) * 4) * (1 - dx) / 2.0f);
+			const f32 g = abs(cos(4 * (dy + dz) - dx * 2 * sin(dx * 4)) * (dx + 1) / 2.0f + sin(dx + dy * 8 - dz * sin(3 * dx) * 4) * (1 - dx) / 2.0f);
+			const f32 b = abs(cos(4 * (dy + dz) - dx * 2 * sin(dx * 4)) * (dx + 1) / 2.0f);
 
 			const Color backgroundColor = Color(r, g, b);
 			resultColor *= backgroundColor;
