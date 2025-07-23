@@ -62,7 +62,7 @@ void RenderTarget::saveRenderResult(const std::string& path)
         for (u32 i = 0; i < mResolutionWidth; i++)
         {
             Color color = mPixelArray[calcIndex(i, j)];
-            color = Color(sqrt(color[0]), sqrt(color[1]), sqrt(color[2]));
+            color = Color(sqrt(color[0] / maxIntensity), sqrt(color[1] / maxIntensity), sqrt(color[2] / maxIntensity));
             color[0] = static_cast<f32>(static_cast<s32>(255.99 * color[0]));
             color[1] = static_cast<f32>(static_cast<s32>(255.99 * color[1]));
             color[2] = static_cast<f32>(static_cast<s32>(255.99 * color[2]));

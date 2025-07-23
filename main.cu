@@ -43,58 +43,34 @@ int main(int argc, char** argv)
 		{
 			for (s32 z = -1; z < 10; z++)
 			{
-				const s32 num = 30;
+				const s32 num = 15;
 				for (s32 i = 0; i < num * num; i++)
 				{
-					const s32 h = i / num - num/2;
-					const s32 w = i % num - num/2;
-
-					if (h == 0 && w == 0)
-						continue;
 					
-					
-					Transform transform = Transform::translation(Vec3(RandomGenerator::signed_uniform_real() * 10, RandomGenerator::signed_uniform_real() * 10, -z));
-					// Transform transform = Transform::translation(Vec3(h, w, -z));
-					transform.setRotationAngle(Vec3::generateRandomUnitVector() * 10);
-					transform.setScaling(0.2f + RandomGenerator::uniform_real(-1, 1) * 0.1);
-
-					char* primitiveName = "AABB";
-					char* materialName = "Metal";
-					if (RandomGenerator::uniform_real() < 0.5)
+					const Vec3 angle = Vec3::generateRandomUnitVector() * 2 * M_PI;
+					Transform transform = Transform::translation(Vec3(RandomGenerator::signed_uniform_real() * 4, RandomGenerator::signed_uniform_real() * 4, -z));
+					f32 baseScale = 0.2f + RandomGenerator::uniform_real() * 0.1f;
+					f32 scale = 0.8;
+					for (s32 zz = 0; zz < 3; zz++)
 					{
-						materialName = "Diamond";
-					} 
+						//Transform transform = Transform::translation(Vec3::zero());
+						transform.setRotationAngle(angle);
+						transform.setScaling(baseScale *= scale);
 
-					std::string objectName = "SphereObject"; objectName += std::to_string(i) += std::string("-") += std::to_string(z);
+						char* primitiveName = "AABB";
+						char* materialName = "Diamond";
+						if (RandomGenerator::uniform_real() < 0.5)
+						{
+							materialName = "Metal";
+						}
+						std::string objectName = "SphereObject"; objectName += std::string("-") += std::to_string(z) += std::string("-") += std::to_string(zz)+= std::string("-") += std::to_string(i);
 
-					SurfaceProperty property{};
-					property.setAlbedo(Color(RandomGenerator::uniform_int(0, 0xFFFFFF)));
-					//world.addObject(objectName.c_str(), primitiveName, materialName, transform,property);
+						SurfaceProperty property{};
+						property.setAlbedo(Color::White);
+						world.addObject(objectName.c_str(), primitiveName, materialName, transform,property);
+						
+					}
 				}
-			}
-
-			const Vec3 angle = Vec3::generateRandomUnitVector() * 2 * M_PI;
-			f32 baseScale = 1.0f;
-			f32 scale = 0.8;
-			for (s32 z = 0; z < 10; z++)
-			{
-				Transform transform = Transform::translation(Vec3::zero());
-				transform.setRotationAngle(angle);
-				transform.setScaling(baseScale *= scale);
-
-				char* primitiveName = "AABB";
-				char* materialName = "Water";
-				if (RandomGenerator::uniform_real() < 0.5)
-				{
-					materialName = "Diamond";
-				} 
-
-				std::string objectName = "SphereObject"; objectName += std::string("-") += std::to_string(z);
-
-				SurfaceProperty property{};
-				property.setAlbedo(Color::White);
-				world.addObject(objectName.c_str(), primitiveName, materialName, transform,property);
-				
 			}
 
 			printf("Object Num in World : %d\n", world.getObjectNum());
