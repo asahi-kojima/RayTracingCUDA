@@ -71,10 +71,9 @@ bool Dielectric::scatter(const Ray &ray_in, const HitRecord &record, Color &atte
 	//屈折する場合
 	else
 	{
-		const Vec3 refracted_ray_direction = -sqrt(1 - ni_over_nt * ni_over_nt * sin_theta * sin_theta + (1e-7)) * outword_normal + ni_over_nt * (direction + cos_theta * outword_normal);
+		const Vec3 refracted_ray_direction = -sqrt(1 - ni_over_nt * ni_over_nt * sin_theta * sin_theta > 0 ? 1 - ni_over_nt * ni_over_nt * sin_theta * sin_theta : 0.0f) * outword_normal + ni_over_nt * (direction + cos_theta * outword_normal);
 		ray_scattered = Ray(position, refracted_ray_direction);
 	}
-
 	return true;
 }
 
