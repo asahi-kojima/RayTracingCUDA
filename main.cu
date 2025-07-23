@@ -51,7 +51,7 @@ int main(int argc, char** argv)
 					Transform transform = Transform::translation(Vec3(RandomGenerator::signed_uniform_real() * 4, RandomGenerator::signed_uniform_real() * 4, -z));
 					f32 baseScale = 0.2f + RandomGenerator::uniform_real() * 0.1f;
 					f32 scale = 0.8;
-					for (s32 zz = 0; zz < 3; zz++)
+					for (s32 zz = 0; zz < 1; zz++)
 					{
 						//Transform transform = Transform::translation(Vec3::zero());
 						transform.setRotationAngle(angle);
@@ -66,7 +66,7 @@ int main(int argc, char** argv)
 						std::string objectName = "SphereObject"; objectName += std::string("-") += std::to_string(z) += std::string("-") += std::to_string(zz)+= std::string("-") += std::to_string(i);
 
 						SurfaceProperty property{};
-						property.setAlbedo(Color::White);
+						property.setAlbedo(Color(RandomGenerator::uniform_int(0, 0xFFFFFF)));
 						world.addObject(objectName.c_str(), primitiveName, materialName, transform,property);
 						
 					}

@@ -42,11 +42,11 @@ __device__ Color castRayAndCalcColor(BvhNode* worldNode, const Ray& ray, const u
 			const f32 dz = direction[2];
 
 			const f32 sines = 
-			sin(200 * (dx + dy)) * 
-			sin(200 * (dy - dx));
-			const Color backgroundColor = (sines > 0 ? Color(0x00FF) : Color(0x000000));
-			const Color harmonics = Color(0xFFFFFF) * abs(sin(dz * 50));
-			resultColor *= (backgroundColor + harmonics);
+			sin(200 * (dx + dy));
+			const Color backgroundColor = (sines > 0 ? Color(0x00FF) : Color(0x444444));
+			Vec3 lightDirection = Vec3(0.4, 0.3, 1).normalize();
+			const Color heghLight = Color(0xFFFFFF) * powf(fmaxf(Vec3::dot(lightDirection, direction), 0), 30);
+			resultColor *= (backgroundColor + heghLight * 3);
 
 			return resultColor;
 		}
