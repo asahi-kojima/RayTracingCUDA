@@ -51,7 +51,7 @@ int main(int argc, char** argv)
 					Transform transform = Transform::translation(Vec3(RandomGenerator::signed_uniform_real() * 4, RandomGenerator::signed_uniform_real() * 4, -z));
 					f32 baseScale = 0.2f + RandomGenerator::uniform_real() * 0.1f;
 					f32 scale = 0.8;
-					for (s32 zz = 0; zz < 1; zz++)
+					for (s32 zz = 0; zz < 3; zz++)
 					{
 						//Transform transform = Transform::translation(Vec3::zero());
 						transform.setRotationAngle(angle);
@@ -59,7 +59,7 @@ int main(int argc, char** argv)
 
 						char* primitiveName = "AABB";
 						char* materialName = "Diamond";
-						if (RandomGenerator::uniform_real() < 0.5)
+						if (RandomGenerator::uniform_real() < 0.1)
 						{
 							materialName = "Metal";
 						}
