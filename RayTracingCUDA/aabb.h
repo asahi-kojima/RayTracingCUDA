@@ -6,7 +6,6 @@
 class AABB
 {
 public:
-	AABB() = default;
 	AABB(const Vec3& minPosition, const Vec3& maxPosition)
 		: mMinPosition(minPosition)
 		, mMaxPosition(maxPosition)
