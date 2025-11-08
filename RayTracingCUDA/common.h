@@ -21,7 +21,7 @@ struct Result
 	bool isSuccess;
 	std::string message;
 
-	Result(bool isSuccess = true) : isSuccess{ isSuccess }, message{ "" } {}
+	Result(bool isSuccess = false) : isSuccess{ isSuccess }, message{ "" } {}
 	Result(bool isSuccess, const std::string& message) : isSuccess(isSuccess), message(message){}
 
 	operator bool() const { return isSuccess; }
