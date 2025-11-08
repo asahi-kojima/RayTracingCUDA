@@ -111,6 +111,7 @@ int main()
 		result = scene.addGroup(group3, generateRandomTransform());
 		result = scene.addGroup(group3, generateRandomTransform());
 		result = scene.addGroup(group3, generateRandomTransform());
+		result = scene.addGroup(group0);
 	}
 
 
