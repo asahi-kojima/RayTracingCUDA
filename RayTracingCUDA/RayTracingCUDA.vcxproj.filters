@@ -1,0 +1,119 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="src">
+      <UniqueIdentifier>{de1268cd-5ae5-4260-b6a9-fa3da6a02b40}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\math">
+      <UniqueIdentifier>{6b36c722-60c1-45a0-96c8-7aaf5da39e54}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\object">
+      <UniqueIdentifier>{d185ecf9-5bea-4953-8fa2-7002071c05b3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="header">
+      <UniqueIdentifier>{6ee86112-c8b8-42f8-a0cd-6ae75ce87fd6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\util">
+      <UniqueIdentifier>{9884ca1f-fa4f-44f3-ad35-39a12ab28485}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="header\cpu">
+      <UniqueIdentifier>{b2899379-4932-4f73-bbe5-b8d8e2d05d4b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="header\gpu">
+      <UniqueIdentifier>{ef6ad77d-24f0-4483-9a21-8e776313c229}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="header\both">
+      <UniqueIdentifier>{47cccede-c8e4-4014-83d8-4fdc978d8ce2}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <CudaCompile Include="util.cu">
+      <Filter>src</Filter>
+    </CudaCompile>
+    <CudaCompile Include="vec3.cu">
+      <Filter>src\math</Filter>
+    </CudaCompile>
+    <CudaCompile Include="vec4.cu">
+      <Filter>src\math</Filter>
+    </CudaCompile>
+    <CudaCompile Include="transform.cu">
+      <Filter>src\math</Filter>
+    </CudaCompile>
+    <CudaCompile Include="matrix.cu">
+      <Filter>src\math</Filter>
+    </CudaCompile>
+    <CudaCompile Include="triangle.cu">
+      <Filter>src\object</Filter>
+    </CudaCompile>
+    <CudaCompile Include="mesh.cu">
+      <Filter>src\object</Filter>
+    </CudaCompile>
+    <CudaCompile Include="color.cu">
+      <Filter>src\util</Filter>
+    </CudaCompile>
+    <CudaCompile Include="main.cu">
+      <Filter>src</Filter>
+    </CudaCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="common.h">
+      <Filter>header</Filter>
+    </ClInclude>
+    <ClInclude Include="matrix.h">
+      <Filter>header</Filter>
+    </ClInclude>
+    <ClInclude Include="util.h">
+      <Filter>header</Filter>
+    </ClInclude>
+    <ClInclude Include="vector.h">
+      <Filter>header</Filter>
+    </ClInclude>
+    <ClInclude Include="triangle.h">
+      <Filter>header</Filter>
+    </ClInclude>
+    <ClInclude Include="mesh.h">
+      <Filter>header</Filter>
+    </ClInclude>
+    <ClInclude Include="aabb.h">
+      <Filter>header</Filter>
+    </ClInclude>
+    <ClInclude Include="geometry_generator.h">
+      <Filter>header</Filter>
+    </ClInclude>
+    <ClInclude Include="vertex.h">
+      <Filter>header</Filter>
+    </ClInclude>
+    <ClInclude Include="bvh.h">
+      <Filter>header</Filter>
+    </ClInclude>
+    <ClInclude Include="color.h">
+      <Filter>header</Filter>
+    </ClInclude>
+    <ClInclude Include="transform.h">
+      <Filter>header\cpu</Filter>
+    </ClInclude>
+    <ClInclude Include="typeinfo.h">
+      <Filter>header\both</Filter>
+    </ClInclude>
+    <ClInclude Include="object_and_group.h">
+      <Filter>header\cpu</Filter>
+    </ClInclude>
+    <ClInclude Include="scene.h">
+      <Filter>header\cpu</Filter>
+    </ClInclude>
+    <ClInclude Include="material.h">
+      <Filter>header\both</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="geometry_generator.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="scene.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="object_and_group.cpp">
+      <Filter>src\object</Filter>
+    </ClCompile>
+  </ItemGroup>
+</Project>
