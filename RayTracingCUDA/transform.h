@@ -1,7 +1,7 @@
 #pragma once
 #include "matrix.h"
 
-//CPU
+//Matrix x vector‚ÌŒ`®‚ğÌ—p‚µ‚Ä‚¢‚éB
 struct Transform
 {
 public:
@@ -27,9 +27,9 @@ public:
 	const Vec3& getTranslation() const;
 
 	static Transform identity();
-	static Transform scaling(const Vec3& v);
-	static Transform rotation(const Vec3& v);
-	static Transform translation(const Vec3& v);
+	static Transform scaling(const Vec3& v = Vec3::one());
+	static Transform rotation(const Vec3& v = Vec3::zero());
+	static Transform translation(const Vec3& v = Vec3::zero());
 
 private:
 	void calcTransformMatrix();

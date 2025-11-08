@@ -2,6 +2,8 @@
 #include <cassert>
 #include "common.h"
 
+//https://learn.microsoft.com/ja-jp/windows/win32/numerics_h/float3-structure
+
 class Vec3
 {
 public:
@@ -55,6 +57,8 @@ public:
 	__device__ __host__ static inline Vec3 unitZ() { return Vec3(0.0f, 0.0f, 1.0f); };
 
 	__device__ __host__ bool isNan() const;
+
+	float3 toFloat3() const { return float3{mElements[0], mElements[1], mElements[2]}; }
 
 #ifdef _DEBUG
 	__device__ __host__ void debugPrint(const char* message = "") const;

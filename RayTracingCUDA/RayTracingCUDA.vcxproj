@@ -116,6 +116,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="geometry_generator.cpp" />
+    <ClCompile Include="mesh.cpp" />
     <ClCompile Include="object_and_group.cpp" />
     <ClCompile Include="scene.cpp" />
   </ItemGroup>

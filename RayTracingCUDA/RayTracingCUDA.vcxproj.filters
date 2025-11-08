@@ -71,13 +71,7 @@
     <ClInclude Include="triangle.h">
       <Filter>header</Filter>
     </ClInclude>
-    <ClInclude Include="mesh.h">
-      <Filter>header</Filter>
-    </ClInclude>
     <ClInclude Include="aabb.h">
-      <Filter>header</Filter>
-    </ClInclude>
-    <ClInclude Include="geometry_generator.h">
       <Filter>header</Filter>
     </ClInclude>
     <ClInclude Include="vertex.h">
@@ -104,6 +98,12 @@
     <ClInclude Include="material.h">
       <Filter>header\both</Filter>
     </ClInclude>
+    <ClInclude Include="mesh.h">
+      <Filter>header\cpu</Filter>
+    </ClInclude>
+    <ClInclude Include="geometry_generator.h">
+      <Filter>header\cpu</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="geometry_generator.cpp">
@@ -114,6 +114,9 @@
     </ClCompile>
     <ClCompile Include="object_and_group.cpp">
       <Filter>src\object</Filter>
+    </ClCompile>
+    <ClCompile Include="mesh.cpp">
+      <Filter>src</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>
