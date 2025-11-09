@@ -188,7 +188,7 @@ Mesh GeometryGenerator::sphereGenerator(const u32 stackCount, const u32 sliceCou
 	}
 
 
-	u32 southPoleIndex = static_cast<u32>(indexArray.size() - 1);
+	u32 southPoleIndex = static_cast<u32>(vertexArray.size() - 1);
 
 	baseIndex = southPoleIndex - ringVertexCount;
 

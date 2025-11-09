@@ -1,5 +1,4 @@
 #pragma once
-#include <cassert>
 #include "common.h"
 
 //https://learn.microsoft.com/ja-jp/windows/win32/numerics_h/float3-structure

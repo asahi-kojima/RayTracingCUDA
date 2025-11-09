@@ -9,24 +9,7 @@
 #include "scene.h"
 #include "util.h"
 
-struct DeviceInstanceRecord
-{
-	Mat4 transform;
-	Mat4 invTransform;
-	AABB aabbInWorld;
 
-	u32 blasIndex;
-
-	u32 vertexOffset;
-	u32 indexOffset;
-
-	u32 materialID;
-};
-
-struct BVHNode
-{
-	AABB aabb;
-};
 
 Transform generateRandomTransform(const f32 scale = 1.0f)
 {
@@ -99,6 +82,7 @@ int main()
 		result = group3.addChildObject(object4);
 	}
 
+	
 	{
 		result = scene.addObject(object0);
 		result = scene.addObject(object1);
@@ -114,6 +98,24 @@ int main()
 		result = scene.addGroup(group0);
 	}
 
+	for (u32 i = 0; i < 100; i++)
+	{
+		result = scene.addObject(object0,generateRandomTransform(), object0.getName() + std::to_string(i));
+		result = scene.addObject(object1,generateRandomTransform(), object1.getName() + std::to_string(i));
+		result = scene.addObject(object2,generateRandomTransform(), object2.getName() + std::to_string(i));
+		result = scene.addObject(object3, generateRandomTransform(), object3.getName() + std::to_string(i));
+
+		result = scene.addGroup(group0, generateRandomTransform(), object0.getName() + std::to_string(i));
+		result = scene.addGroup(group1, generateRandomTransform(), group1.getName() + std::to_string(i));
+		result = scene.addGroup(group2, generateRandomTransform(), group2.getName() + std::to_string(i));
+		result = scene.addGroup(group3, generateRandomTransform(), group3.getName() + std::to_string(i));
+		result = scene.addGroup(group3, generateRandomTransform(), group3.getName() + std::to_string(i));
+		result = scene.addGroup(group3, generateRandomTransform(), group3.getName() + std::to_string(i));
+		result = scene.addGroup(group0, generateRandomTransform(), object0.getName() + std::to_string(i));
+	}
 
 
+	result = scene.build();
+	
+	//cudaDeviceSynchronize();
 }

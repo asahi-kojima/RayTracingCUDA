@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <vector>
 #include <string>
+#include <cassert>
 #include <cuda_runtime.h>
 #include <device_launch_parameters.h>
 

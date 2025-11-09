@@ -45,9 +45,6 @@
     <CudaCompile Include="triangle.cu">
       <Filter>src\object</Filter>
     </CudaCompile>
-    <CudaCompile Include="mesh.cu">
-      <Filter>src\object</Filter>
-    </CudaCompile>
     <CudaCompile Include="color.cu">
       <Filter>src\util</Filter>
     </CudaCompile>

@@ -221,10 +221,12 @@ Vec3 Vec3::reflect(const Vec3& v, const Vec3& n)
 	return v - 2 * dot(v, n) * n;
 }
 
+#ifdef _DEBUG
 void Vec3::debugPrint(const char* message) const
 {
 	printf("vector = (%f, %f, %f) : %s\n", mElements[0], mElements[1], mElements[2], message);
 }
+#endif
 
 Vec3 Vec3::generateRandomUnitVector()
 {

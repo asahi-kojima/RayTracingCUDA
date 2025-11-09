@@ -9,6 +9,11 @@ Object::Object(const std::string& objectName, const std::string& meshName, const
 {
 }
 
+void Object::updateTransform()
+{
+	mTransform.updateTransformMatrices();
+}
+
 
 Group::Group(const std::string& name, const Transform& transform)
 	: mName(name)
@@ -18,25 +23,16 @@ Group::Group(const std::string& name, const Transform& transform)
 {
 }
 
-void Group::setTransform(const Transform& transform)
-{
-	mTransform = transform;
-}
 
-Transform Group::getTransform() const
-{
-	return mTransform;
-}
-
-Transform& Group::getTransform()
-{
-	return mTransform;
-}
-
-Result Group::addChildObject(const Object& object, const Transform& transform)
+Result Group::addChildObject(const Object& object, const Transform& transform, const std::string& newName)
 {
 	Object tmpObject = object;
 	tmpObject.setTransform(transform);
+
+	if (newName != std::string(""))
+	{
+		tmpObject.setName(newName);
+	}
 
 	//既にグループ内の同じ階層に同名のオブジェクトかグループがないか確認し、
 	//あれば名前に通し番号を付ける: object -> object_1みたいに。
@@ -66,10 +62,15 @@ Result Group::addChildObject(const Object& object, const Transform& transform)
 	return true;
 }
 
-Result Group::addChildGroup(const Group& group, const Transform& transform)
+Result Group::addChildGroup(const Group& group, const Transform& transform, const std::string& newName)
 {
 	Group tmpGroup = group;
 	tmpGroup.setTransform(transform);
+
+	if (newName != std::string(""))
+	{
+		tmpGroup.setName(newName);
+	}
 
 	//既にグループ内の同じ階層に同名のオブジェクトかグループがないか確認し、
 	//あれば名前に通し番号を付ける: object -> object_1みたいに。
@@ -99,6 +100,17 @@ Result Group::addChildGroup(const Group& group, const Transform& transform)
 	return true;
 }
 
+u32 Group::getDescendantObjectCount() const
+{
+	u32 childCount = mChildObjectArray.size();
+	for (const Group& childGroup : mChildGroupArray)
+	{
+		childCount += childGroup.getDescendantObjectCount();
+	}
+
+	return childCount;
+}
+
 void Group::getAllMeshNamesChildrenHave(std::vector<std::string>& nameArray) const
 {
 	for (const auto& object : mChildObjectArray)
@@ -122,6 +134,21 @@ void Group::getAllMateialNamesChildrenHave(std::vector<std::string>& nameArray) 
 	for (const auto& group : mChildGroupArray)
 	{
 		group.getAllMateialNamesChildrenHave(nameArray);
+	}
+}
+
+void Group::updateAllChildrenTransform()
+{
+	mTransform.updateTransformMatrices();
+
+	for (auto& object : mChildObjectArray)
+	{
+		object.updateTransform();
+	}
+
+	for (auto& group : mChildGroupArray)
+	{
+		group.updateAllChildrenTransform();
 	}
 }
 
