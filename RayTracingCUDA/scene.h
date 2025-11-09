@@ -80,8 +80,6 @@ struct RayTracingDataOnCPU
 
 
 
-
-
 class Scene
 {
 public:
@@ -120,7 +118,12 @@ private:
 
 
 	void buildVertexIndexBlas();
-	u32 buildBVHNode(const Mesh& mesh, std::vector<uint3>& sortedIndexArray);
-	void recursiveBuildInstanceData(std::vector<DeviceInstanceData>& instanceDataArray, const Group& group, const Mat4& currentTransformMat, const Mat4& currentInvTransformMat);
+	u32 buildBlasBVHNode(const Mesh& mesh, std::vector<uint3>& sortedIndexArray);
+
 	void buildInstanceData();
+	void recursiveBuildInstanceData(std::vector<DeviceInstanceData>& instanceDataArray, const Group& group, const Mat4& currentTransformMat, const Mat4& currentInvTransformMat);
+
+
+	void buildTlasBVHNode();
+	u32 buildTlasBVHNodeRecursively(const u32 start, const u32 end);
 };

@@ -117,6 +117,10 @@ Result Scene::build()
 	std::cout << "===================================================" << std::endl;
 	std::cout << std::format("There exists {} obects in this Scene", mRootGroup.getDescendantObjectCount()) << std::endl;
 
+
+	std::cout << "===================================================" << std::endl;
+	std::cout << "       Prepare Essetial Data For RayTracing        " << std::endl;
+	std::cout << "===================================================" << std::endl;
 	/*
 		以下を埋めていくことを念頭に進める。
 		// Meshに対応
@@ -159,7 +163,7 @@ Result Scene::build()
 	// ----------------------------------------------------
 	buildVertexIndexBlas();
 
-	
+
 	// ----------------------------------------------------
 	// (2) Materialのコピー
 	// ----------------------------------------------------
@@ -171,6 +175,16 @@ Result Scene::build()
 	// ----------------------------------------------------
 	buildInstanceData();
 
+
+	// ----------------------------------------------------
+	// (4) TLASの構築
+	// ----------------------------------------------------
+	buildTlasBVHNode();
+
+	std::cout << "===================================================" << std::endl;
+	std::cout << "                 Data Copy Start                   " << std::endl;
+	std::cout << "===================================================" << std::endl;
+	std::cout << std::format("There exists {} obects in this Scene", mRootGroup.getDescendantObjectCount()) << std::endl;
 
 	return Result();
 }
@@ -200,7 +214,7 @@ void Scene::buildVertexIndexBlas()
 		std::vector<uint3> sortdIndexArray;
 
 		// MeshからBLASを構築する
-		const u32 blasRootNode = buildBVHNode(mesh, sortdIndexArray);
+		const u32 blasRootNode = buildBlasBVHNode(mesh, sortdIndexArray);
 
 		BlasInfo blasInfo;
 		{
@@ -237,7 +251,7 @@ namespace
 		Vec3 centroid;
 	};
 
-	u32 buildBVHNodeRecursively(std::vector<BVHNode>& nodeArray, const Mesh& mesh, std::vector<PrimitiveInfo>& primitiveInfoArray, const u32 start, const u32 end)
+	u32 buildBlasBVHNodeRecursively(std::vector<BVHNode>& nodeArray, const Mesh& mesh, std::vector<PrimitiveInfo>& primitiveInfoArray, const u32 start, const u32 end)
 	{
 		const u32 nodeIndex = nodeArray.size();
 		nodeArray.emplace_back();
@@ -301,8 +315,8 @@ namespace
 			midium = start + primitiveCount / 2;
 		}
 
-		const u32 leftChildOffset = buildBVHNodeRecursively(nodeArray, mesh, primitiveInfoArray, start, midium);
-		const u32 rightChildOffset = buildBVHNodeRecursively(nodeArray, mesh, primitiveInfoArray, midium, end);
+		const u32 leftChildOffset = buildBlasBVHNodeRecursively(nodeArray, mesh, primitiveInfoArray, start, midium);
+		const u32 rightChildOffset = buildBlasBVHNodeRecursively(nodeArray, mesh, primitiveInfoArray, midium, end);
 
 		nodeArray[nodeIndex].primitiveCount = 0;
 		nodeArray[nodeIndex].leftChildOffset = leftChildOffset;
@@ -313,7 +327,7 @@ namespace
 }
 
 
-u32 Scene::buildBVHNode(const Mesh& mesh, std::vector<uint3>& sortedIndexArray)
+u32 Scene::buildBlasBVHNode(const Mesh& mesh, std::vector<uint3>& sortedIndexArray)
 {
 	const std::vector<Vertex>& vertexArray = mesh.getVertexArray();
 	const std::vector<uint3>& indexArray = mesh.getIndexArrayAsUint3();
@@ -333,7 +347,7 @@ u32 Scene::buildBVHNode(const Mesh& mesh, std::vector<uint3>& sortedIndexArray)
 	}
 
 
-	const u32 rootBvhNodeIndex = buildBVHNodeRecursively(mRayTracingDataOnCPU.blasArray, mesh, primitiveInfoArray, 0, primitiveInfoArray.size());
+	const u32 rootBvhNodeIndex = buildBlasBVHNodeRecursively(mRayTracingDataOnCPU.blasArray, mesh, primitiveInfoArray, 0, primitiveInfoArray.size());
 
 	sortedIndexArray.resize(primitiveInfoArray.size());
 	for (u32 i = 0; i < primitiveInfoArray.size(); i++)
@@ -347,23 +361,42 @@ u32 Scene::buildBVHNode(const Mesh& mesh, std::vector<uint3>& sortedIndexArray)
 
 
 //=========================================================================================
-// 
+// インスタンスデータ構築のための関数
 //=========================================================================================
+void Scene::buildInstanceData()
+{
+	Mat4 transformMat = mRootGroup.getTransform().getTransformMatrix();
+	Mat4 invTransformMat = mRootGroup.getTransform().getInvTransformMatrix();
+	
+	recursiveBuildInstanceData(mRayTracingDataOnCPU.instanceDataArray, mRootGroup, transformMat, invTransformMat);
+
+
+}
+
 void Scene::recursiveBuildInstanceData(std::vector<DeviceInstanceData>& instanceDataArray, const Group& group, const Mat4& currentTransformMat, const Mat4& currentInvTransformMat)
 {
 	for (const Object& childObject : group.getChildObjectArray())
 	{
 		Mat4 transformMat = childObject.getTransform().getTransformMatrix();
 		Mat4 invTransformMat = childObject.getTransform().getInvTransformMatrix();
+		
+		const u32 meshID = mMeshNameToIdMap[childObject.getMeshName()];
+		const u32 materialID = mMaterialNameToIdMap[childObject.getMaterialName()];
+
+		AABB referenceMeshAABB = mMeshArray[meshID].getAABB();
+
+		const BlasInfo& blasInfo = mRayTracingDataOnCPU.blasInfoArray[meshID];
+
+
 		DeviceInstanceData instanceData
 		{
 			currentTransformMat * transformMat,
 			invTransformMat * currentInvTransformMat,
-			mMeshArray[mMeshNameToIdMap[childObject.getMeshName()]].getAABB(),
-			1,
-			2,
-			3,
-			4
+			AABB::transformAABB(referenceMeshAABB, currentTransformMat * transformMat),
+			blasInfo.blasRootNodeIndex,
+			blasInfo.vertexOffset,
+			blasInfo.indexOffset,
+			materialID
 		};
 		instanceDataArray.push_back(instanceData);
 	}
@@ -376,12 +409,90 @@ void Scene::recursiveBuildInstanceData(std::vector<DeviceInstanceData>& instance
 	}
 }
 
-void Scene::buildInstanceData()
+
+
+//=========================================================================================
+// TLAS構築のための関数
+//=========================================================================================
+void Scene::buildTlasBVHNode()
 {
-	Mat4 transformMat = mRootGroup.getTransform().getTransformMatrix();
-	Mat4 invTransformMat = mRootGroup.getTransform().getInvTransformMatrix();
-	std::vector<DeviceInstanceData> instanceDataArray;
-	recursiveBuildInstanceData(instanceDataArray, mRootGroup, transformMat, invTransformMat);
+	buildTlasBVHNodeRecursively(0, mRayTracingDataOnCPU.instanceDataArray.size());
+}
+
+u32 Scene::buildTlasBVHNodeRecursively(const u32 start, const u32 end)
+{
+	std::vector<BVHNode>& tlasArray = mRayTracingDataOnCPU.tlasArray;
+	std::vector<DeviceInstanceData>& instanceDataArray = mRayTracingDataOnCPU.instanceDataArray;
 
 
+	const u32 nodeIndex = tlasArray.size();
+	tlasArray.emplace_back();
+
+	const u32 primitiveCount = end - start;
+
+	AABB aabb = AABB::generateAbsolutelyWrappedAABB();
+	for (auto iter = instanceDataArray.begin(), end = instanceDataArray.end(); iter != end; iter++)
+	{
+		aabb = AABB::generateWrapingAABB(aabb, iter->aabb);
+	}
+
+	tlasArray[nodeIndex].aabb = aabb;
+
+	//------------------------------------------------------------------------------
+	// 末端であればここでリターン
+	//------------------------------------------------------------------------------
+	const u32 maxPrimitiveCount = 4;
+	if (primitiveCount <= maxPrimitiveCount)
+	{
+		tlasArray[nodeIndex].primitiveCount = primitiveCount;
+		tlasArray[nodeIndex].firstPrimitiveOffset = start;
+		return nodeIndex;
+	}
+
+	//------------------------------------------------------------------------------
+	// 分割をしていく
+	//------------------------------------------------------------------------------
+	AABB centroidAABB = AABB::generateAbsolutelyWrappedAABB();
+	for (u32 i = start; i < end; i++)
+	{
+		const Vec3 centroid = (instanceDataArray[i].aabb.getMaxPosition() + instanceDataArray[i].aabb.getMinPosition()) / 2.0f;
+		centroidAABB = AABB::generateWrapingAABB(centroidAABB, centroid);
+	}
+
+	//------------------------------------------------------------------------------
+	// 一番空間的に広がっている軸を探す
+	//------------------------------------------------------------------------------
+	const u32 splitAxis = centroidAABB.getMostExtendingAxis();
+	const f32 splitPoint = (centroidAABB.getMinPosition()[splitAxis] + centroidAABB.getMaxPosition()[splitAxis]) / 2.0f;
+
+	//------------------------------------------------------------------------------
+	// プリミティブ配列のソートを行う。
+	//------------------------------------------------------------------------------
+	auto midiumIter = std::partition(
+		instanceDataArray.begin() + start,
+		instanceDataArray.begin() + end,
+		[splitAxis, splitPoint](const DeviceInstanceData& instanceData)
+		{
+			const Vec3 centroid = (instanceData.aabb.getMaxPosition() + instanceData.aabb.getMinPosition()) / 2.0f;
+			return centroid[splitAxis] < splitPoint;
+		}
+	);
+
+
+	u32 midium = std::distance(instanceDataArray.begin(), midiumIter);
+
+	//分割が上手くできなかったとき
+	if (midium == start || midium == end)
+	{
+		midium = start + primitiveCount / 2;
+	}
+
+	const u32 leftChildIndex = buildTlasBVHNodeRecursively(start, midium);
+	const u32 rightChildIndex = buildTlasBVHNodeRecursively(midium, end);
+
+	tlasArray[nodeIndex].primitiveCount = 0;
+	tlasArray[nodeIndex].leftChildOffset = leftChildIndex;
+	tlasArray[nodeIndex].rightChildOffset = rightChildIndex;
+	
+	return nodeIndex;
 }
