@@ -241,7 +241,7 @@ namespace
 	{
 		const u32 nodeIndex = nodeArray.size();
 		nodeArray.emplace_back();
-		BVHNode& currentNode = nodeArray[nodeIndex];
+		//BVHNode& currentNode = nodeArray[nodeIndex];
 
 		const u32 primitiveCount = end - start;
 
@@ -253,7 +253,7 @@ namespace
 		{
 			aabb = AABB::generateWrapingAABB(aabb, primitiveInfoArray[i].aabb);
 		}
-		currentNode.aabb = aabb;
+		nodeArray[nodeIndex].aabb = aabb;
 
 		//------------------------------------------------------------------------------
 		// ññí[Ç≈Ç†ÇÍÇŒÇ±Ç±Ç≈ÉäÉ^Å[Éì
@@ -261,8 +261,8 @@ namespace
 		const u32 maxPrimitiveCount = 4;
 		if (primitiveCount <= maxPrimitiveCount)
 		{
-			currentNode.primitiveCount = primitiveCount;
-			currentNode.firstPrimitiveOffset = start;
+			nodeArray[nodeIndex].primitiveCount = primitiveCount;
+			nodeArray[nodeIndex].firstPrimitiveOffset = start;
 			return nodeIndex;
 		}
 
@@ -304,9 +304,9 @@ namespace
 		const u32 leftChildOffset = buildBVHNodeRecursively(nodeArray, mesh, primitiveInfoArray, start, midium);
 		const u32 rightChildOffset = buildBVHNodeRecursively(nodeArray, mesh, primitiveInfoArray, midium, end);
 
-		currentNode.primitiveCount = 0;
-		currentNode.leftChildOffset = leftChildOffset;
-		currentNode.rightChildOffset = rightChildOffset;
+		nodeArray[nodeIndex].primitiveCount = 0;
+		nodeArray[nodeIndex].leftChildOffset = leftChildOffset;
+		nodeArray[nodeIndex].rightChildOffset = rightChildOffset;
 
 		return nodeIndex;
 	}
