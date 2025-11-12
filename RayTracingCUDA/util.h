@@ -1,5 +1,6 @@
 #pragma once
 #include <random>
+#include <cuda_runtime.h>
 #include "typeinfo.h"
 
 
@@ -76,52 +77,23 @@ public:
 };
 
 
-//
-//class RandomGeneratorGPU
+
+class RandomGeneratorGPU
+{
+public:
+	__device__ static f32 uniform_real(f32 a = 0.0f, f32 b = 1.0f);
+	__device__ static f32 signed_uniform_real(f32 a = -1.0f, f32 b = 1.0f);
+};
+
+
+
+// COUTION: This function may not work correctly for CUDA device code because of std::abs and std::numeric_limits.
+inline __device__ __host__ bool isEqualF32(f32 a, f32 b)
+{
+	return (std::abs(a - b) <= std::numeric_limits<f32>::epsilon());
+}
+
+//inline float3 operator*(const float3& v, const float3& w)//delete
 //{
-//public:
-//	__device__ static f32 uniform_real(f32 a = 0.0f, f32 b = 1.0f);
-//	__device__ static f32 signed_uniform_real(f32 a = -1.0f, f32 b = 1.0f);
-//};
-//
-//
-//class Managed
-//{
-//public:
-//	void* operator new(size_t allocate_size)
-//	{
-//		void* p;
-//		cudaMallocManaged((void**)&p, allocate_size);
-//		cudaDeviceSynchronize();
-//
-//		return p;
-//	}
-//
-//	void operator delete(void* p)
-//	{
-//		cudaDeviceSynchronize();
-//		cudaFree(p);
-//	}
-//};
-//
-//
-//#include <curand_kernel.h>
-//#include "common.h"
-//#include "util.h"
-//
-//extern __device__ curandState s[32];
-//
-//f32 RandomGeneratorGPU::uniform_real(f32 a, f32 b)
-//{
-//	const f32 rnd = curand_uniform(&s[(threadIdx.x + blockIdx.x) % 32]);
-//	return a + (b - a) * rnd;
+//	return float3{ v.x * w.x, v.y * w.y, v.z * w.z };
 //}
-//
-//f32 RandomGeneratorGPU::signed_uniform_real(f32 a, f32 b)
-//{
-//	const f32 rnd = curand_uniform(&s[(threadIdx.x + blockIdx.x) % 32]);
-//	return a + (b - a) * rnd;
-//}
-//
-//
-//

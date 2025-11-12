@@ -3,11 +3,13 @@
 #include "mesh.h"
 #include "material.h"
 #include "object_and_group.h"
+#include "camera.h"
 
 struct DeviceInstanceData
 {
 	Mat4 transformMat;
 	Mat4 invTransformMat;
+	Mat4 normalTransformMat;
 	AABB aabb;
 
 	u32 blasRootNodeIndex;
@@ -29,24 +31,6 @@ struct BVHNode
 	u32 primitiveCount;
 };
 
-// RayTracingをGPUで行うにあたり必要なデータ
-// これを準備すれば十分である。
-struct RayTracingDataOnGPU
-{
-	// Meshに対応
-	float3* vertexArray;
-	uint3* indexArray;
-
-	// マテリアルに対応
-	Material* materialArray;
-
-	// オブジェクトに対応：どのメッシュ/マテリアルを使うかなど。
-	DeviceInstanceData* instanceDataArray;
-
-	// TLAS/BLAS
-	BVHNode* blasArray;
-	BVHNode* tlasArray;
-};
 
 struct BlasInfo//delete
 {
@@ -61,6 +45,7 @@ struct RayTracingDataOnCPU
 	// Meshに対応
 	std::vector<float3> vertexArray;
 	std::vector<uint3> indexArray;
+	std::vector<float3> normalArray;
 
 	// マテリアルに対応
 	std::vector<Material> materialArray;
@@ -79,7 +64,52 @@ struct RayTracingDataOnCPU
 
 
 
+struct GpuRayTracingLaunchParams
+{
+	//--------------------------------------
+	// シーンを構成するオブジェクト関係
+	//--------------------------------------
+	// Meshに対応
+	float3* vertexArray;
+	uint3* indexArray;
+	float3* normalArray;
 
+	// マテリアルに対応
+	Material* materialArray;
+
+	// オブジェクトに対応：どのメッシュ/マテリアルを使うかなど。
+	DeviceInstanceData* instanceDataArray;
+
+	// TLAS/BLAS
+	BVHNode* blasArray;
+	BVHNode* tlasArray;
+
+
+	u32 vertexCount = 0;
+	u32 indexCount = 0;
+	u32 normalCount = 0;
+	u32 materialCount = 0;
+	u32 instanceCount = 0;
+	u32 blasCount = 0;
+	u32 tlasCount = 0;
+
+	u32 pixelSizeVertical;
+	u32 pixelSizeHorizontal;
+
+	f32 invPixelSizeVertical;
+	f32 invPixelSizeHorizontal;
+
+	Color* renderTargetImageArray;
+
+	u32 frameCount;
+
+	Camera camera;
+};
+
+/// <summary>
+/// 現状では固定のメモリ領域上に構築することを前提としているシーンデータ
+/// 動的に必要なメモリが変わる状況には後に対応予定である。
+/// </summary>
 class Scene
 {
 public:
@@ -96,7 +126,9 @@ public:
 	Result addGroup(const Group& group, const Transform& transform = Transform::identity(), const std::string& newName = std::string(""));
 
 	Result build();
+	Result initLaunchParams();
 	Result render();
+	Result update();
 
 private:
 	// GPU上でのレイトレーシングとは独立して存在するデータ
@@ -111,8 +143,9 @@ private:
 	//ここからRayTracingに関係したセクション
 	// GPU上でレイトレーシングをするために必要なデータ
 	RayTracingDataOnCPU mRayTracingDataOnCPU;
-	RayTracingDataOnGPU mRayTracingDataOnGPU;
 
+	GpuRayTracingLaunchParams mRayTracingLaunchParamsOnCPU;
+	GpuRayTracingLaunchParams gpuRayTracingLaunchParamsHostSide;
 
 	//GPUレイトレーシングで必要になるデータを作るためのサブデータやヘルパー関数達
 
@@ -121,7 +154,7 @@ private:
 	u32 buildBlasBVHNode(const Mesh& mesh, std::vector<uint3>& sortedIndexArray);
 
 	void buildInstanceData();
-	void recursiveBuildInstanceData(std::vector<DeviceInstanceData>& instanceDataArray, const Group& group, const Mat4& currentTransformMat, const Mat4& currentInvTransformMat);
+	void recursiveBuildInstanceData(std::vector<DeviceInstanceData>& instanceDataArray, const Group& group, const Mat4& currentTransformMat, const Mat4& currentInvTransformMat, const Mat4& currentInvTransposedTransformMat);
 
 
 	void buildTlasBVHNode();

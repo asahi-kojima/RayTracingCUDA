@@ -2,6 +2,8 @@
 #include "common.h"
 #include "matrix.h"
 #include "vector.h"
+#include "ray.h"
+#include "util.h"
 
 class AABB
 {
@@ -14,6 +16,64 @@ public:
 
 	const Vec3& getMinPosition() const { return mMinPosition; }
 	const Vec3& getMaxPosition() const { return mMaxPosition; }
+
+	__device__ __host__ void printAABB() const
+	{
+		printf("(%f, %f, %f) -> (%f, %f, %f)\n", mMinPosition[0], mMinPosition[1], mMinPosition[2], mMaxPosition[0], mMaxPosition[1], mMaxPosition[2]);//delete
+	}
+
+	struct AABBIntersectionResult
+	{
+		bool isIntersected;
+		f32 tmin;
+		f32 tmax;
+
+		__device__ AABBIntersectionResult(bool isIntersected = false, f32 tmin = 0.0f, f32 tmax = 0.0f)
+			: isIntersected(isIntersected)
+			, tmin(tmin)
+			, tmax(tmax)
+		{
+		}
+		__device__ operator bool() const { return isIntersected; }
+	};
+
+	__device__ __host__ AABBIntersectionResult doIntersect(const Ray& ray) const
+	{
+		f32 tmin = ray.tmin();
+		f32 tmax = ray.tmax();
+
+		const Vec3& origin = ray.origin();
+		const Vec3& direction = ray.direction();
+		for (u32 i = 0; i < 3; i++)
+		{
+			const f32 inv = 1.0f / direction[i];
+			if (isEqualF32(inv, 0.0f))
+			{
+				//TODO
+				printf("0 Detected\n");
+			}
+
+			const f32 ith_origin = origin[i];
+			f32 t0 = (mMinPosition[i] - ith_origin) * inv;
+			f32 t1 = (mMaxPosition[i] - ith_origin) * inv;
+			if (inv < 0.0f)
+			{
+				f32 tmp = t0;
+				t0 = t1;
+				t1 = tmp;
+			}
+			
+			tmin = (t0 > tmin ? t0 : tmin);
+			tmax = (t1 < tmax ? t1 : tmax);
+			if (tmax <= tmin)
+			{
+				return AABBIntersectionResult{false};
+			}
+		}
+		
+
+		return AABBIntersectionResult{true, tmin, tmax};
+	}
 
 	u32 getMostExtendingAxis() const
 	{
@@ -36,7 +96,7 @@ public:
 	static AABB generateAbsolutelyWrappedAABB()
 	{
 		constexpr f32 maxF32 = std::numeric_limits<f32>::max();
-		constexpr f32 minF32 = std::numeric_limits<f32>::min();
+		constexpr f32 minF32 = -maxF32;
 		Vec3 minPos{maxF32, maxF32, maxF32};
 		Vec3 maxPos{minF32, minF32, minF32};
 		return AABB(minPos, maxPos);

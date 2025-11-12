@@ -9,6 +9,18 @@
 #include "scene.h"
 #include "util.h"
 
+//TODO: move to util.h
+#include <curand_kernel.h>
+constexpr u32 RANDOM_GENERATOR_STATE_COUNT = 32;
+__device__ curandState s[32];
+
+__global__ void setup_gpu()
+{
+	for (u32 i = 0; i < 32; i++)
+	{
+		curand_init(static_cast<unsigned long long>(i), 0, 0, &s[i]);
+	}
+}
 
 
 Transform generateRandomTransform(const f32 scale = 1.0f)
@@ -23,12 +35,16 @@ Transform generateRandomTransform(const f32 scale = 1.0f)
 
 int main()
 {
-	Mesh sphereMesh = GeometryGenerator::sphereGenerator();
-	Mesh boxMesh = GeometryGenerator::boxGenerator();
-	Mesh geoSphereMesh = GeometryGenerator::geoSphereGenerator(2);
+	ONCE_ON_GPU(setup_gpu)();
 
-	Material material0{Color::Bronze, 1.0f, 0.0};
-	Material material1{Color::Green, 1.0f, 0.0};
+	Mesh sphereMesh = GeometryGenerator::geoSphereGenerator(1);
+	Mesh boxMesh = GeometryGenerator::boxGenerator();
+	Mesh geoSphereMesh2 = GeometryGenerator::geoSphereGenerator(2);
+	Mesh geoSphereMesh3 = GeometryGenerator::geoSphereGenerator(3);
+	Mesh geoSphereMesh4 = GeometryGenerator::geoSphereGenerator(4);
+
+	Material material0{Color::Bronze, 1.0f, 0.0, 1.0f};
+	Material material1{Color::Green, 1.0f, 0.0, 0.0f};
 
 	Scene scene;
 	{
@@ -39,14 +55,20 @@ int main()
 
 		scene.addMesh("sphere", sphereMesh);
 		scene.addMesh("box", boxMesh);
-		scene.addMesh("geoSphere", geoSphereMesh);
+		scene.addMesh("geoSphere2", geoSphereMesh2);
+		scene.addMesh("geoSphere3", geoSphereMesh3);
+		scene.addMesh("geoSphere4", geoSphereMesh4);
 	}
 
 	Object object0{"object0", "sphere", "glass"};
 	Object object1{"object1", "box", "metal"};
-	Object object2{"object2", "geoSphere", "air"};
-	Object object3{"object2", "geoSphere", "air", generateRandomTransform() };
-	Object object4{"object2_1", "geoSphere", "air", generateRandomTransform()};
+	Object object2{"object2", "geoSphere2", "air"};
+	Object object3{"object2", "geoSphere2", "air", generateRandomTransform() };
+	Object object4{"object2_1", "geoSphere2", "air", generateRandomTransform()};
+
+	Object object5{"object2_1", "geoSphere3", "air", generateRandomTransform()};
+	Object object6{"object2_1", "geoSphere3", "air", generateRandomTransform()};
+	Object object7{"object2_1", "geoSphere3", "metal", generateRandomTransform()};
 
 	Result result;
 	Group group0("group0");
@@ -77,9 +99,9 @@ int main()
 	
 	Group group3("group3", generateRandomTransform());
 	{
-		result = group3.addChildObject(object2);
-		result = group3.addChildObject(object3);
-		result = group3.addChildObject(object4);
+		result = group3.addChildObject(object5);
+		result = group3.addChildObject(object6);
+		result = group3.addChildObject(object7);
 	}
 
 	
@@ -116,6 +138,7 @@ int main()
 
 
 	result = scene.build();
-	
+	result = scene.initLaunchParams();
+	result = scene.render();
 	//cudaDeviceSynchronize();
 }

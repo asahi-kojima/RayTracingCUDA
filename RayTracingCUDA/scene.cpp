@@ -1,6 +1,7 @@
 #include <format>
 #include <algorithm>
 #include <iostream>
+#include "util.h"
 #include "scene.h"
 
 namespace
@@ -62,13 +63,13 @@ Result Scene::addObject(const Object& object, const Transform& transform, const 
 	const std::string& meshName = object.getMeshName();
 	if (mMeshNameToIdMap.count(meshName) == 0)
 	{
-		return Result(false, std::format("Specified mesh [%s] does not exist in the scene.", meshName.c_str()));
+		return Result(false, std::format("Specified mesh [{}] does not exist in the scene.", meshName.c_str()));
 	}
 
 	const std::string& materialName = object.getMaterialName();
 	if (mMaterialNameToIdMap.count(materialName) == 0)
 	{
-		return Result(false, std::format("Specified Material [%s] does not exist in the scene.", materialName.c_str()));
+		return Result(false, std::format("Specified Material [{}] does not exist in the scene.", materialName.c_str()));
 
 	}
 
@@ -116,6 +117,8 @@ Result Scene::build()
 	std::cout << "               Scene Build Start                   " << std::endl;
 	std::cout << "===================================================" << std::endl;
 	std::cout << std::format("There exists {} obects in this Scene", mRootGroup.getDescendantObjectCount()) << std::endl;
+	std::cout << std::format("There exists {} meshed in this Scene", mMeshArray.size()) << std::endl;
+	std::cout << std::format("There exists {} materials in this Scene", mMaterialArray.size()) << std::endl;
 
 
 	std::cout << "===================================================" << std::endl;
@@ -150,6 +153,7 @@ Result Scene::build()
 	// ----------------------------------------------------
 	mRayTracingDataOnCPU.vertexArray.resize(0);
 	mRayTracingDataOnCPU.indexArray.resize(0);
+	mRayTracingDataOnCPU.normalArray.resize(0);
 	mRayTracingDataOnCPU.materialArray.resize(0);
 	mRayTracingDataOnCPU.instanceDataArray.resize(0);
 	mRayTracingDataOnCPU.blasArray.resize(0);
@@ -181,22 +185,15 @@ Result Scene::build()
 	// ----------------------------------------------------
 	buildTlasBVHNode();
 
-	std::cout << "===================================================" << std::endl;
-	std::cout << "                 Data Copy Start                   " << std::endl;
-	std::cout << "===================================================" << std::endl;
-	std::cout << std::format("There exists {} obects in this Scene", mRootGroup.getDescendantObjectCount()) << std::endl;
+
 
 	return Result();
 }
 
-Result Scene::render()
-{
-	//TLAS‚Ì’Tõ
 
-	//Object‚Ìƒ[ƒJƒ‹‹óŠÔ‚ÉˆÚs‚µABLAS‚ð’Tõ‚·‚é
 
-	return Result();
-}
+
+
 
 
 //=========================================================================================
@@ -235,6 +232,13 @@ void Scene::buildVertexIndexBlas()
 		{
 			uint3 index = sortdIndexArray[triangleID];
 			mRayTracingDataOnCPU.indexArray.push_back(index);
+
+			// –@üƒf[ƒ^‚à‚±‚±‚ÅŠi”[‚µ‚Ä‚¨‚­
+			const Vec3& v0 = vertexArray[index.x].position;
+			const Vec3& v1 = vertexArray[index.y].position;
+			const Vec3& v2 = vertexArray[index.z].position;
+			Vec3 normal = Vec3::normalize(Vec3::cross(v1 - v0, v2 - v0));
+			mRayTracingDataOnCPU.normalArray.push_back(normal.toFloat3());
 		}
 
 		mRayTracingDataOnCPU.blasInfoArray.push_back(blasInfo);
@@ -367,18 +371,20 @@ void Scene::buildInstanceData()
 {
 	Mat4 transformMat = mRootGroup.getTransform().getTransformMatrix();
 	Mat4 invTransformMat = mRootGroup.getTransform().getInvTransformMatrix();
+	Mat4 invTransposedTransformMat = mRootGroup.getTransform().getInvTransposeTransformMatrix();
 	
-	recursiveBuildInstanceData(mRayTracingDataOnCPU.instanceDataArray, mRootGroup, transformMat, invTransformMat);
+	recursiveBuildInstanceData(mRayTracingDataOnCPU.instanceDataArray, mRootGroup, transformMat, invTransformMat, invTransposedTransformMat);
 
 
 }
 
-void Scene::recursiveBuildInstanceData(std::vector<DeviceInstanceData>& instanceDataArray, const Group& group, const Mat4& currentTransformMat, const Mat4& currentInvTransformMat)
+void Scene::recursiveBuildInstanceData(std::vector<DeviceInstanceData>& instanceDataArray, const Group& group, const Mat4& currentTransformMat, const Mat4& currentInvTransformMat, const Mat4& currentInvTransposedTransformMat)
 {
 	for (const Object& childObject : group.getChildObjectArray())
 	{
 		Mat4 transformMat = childObject.getTransform().getTransformMatrix();
 		Mat4 invTransformMat = childObject.getTransform().getInvTransformMatrix();
+		Mat4 invTransposedTransformMat = childObject.getTransform().getInvTransposeTransformMatrix();
 		
 		const u32 meshID = mMeshNameToIdMap[childObject.getMeshName()];
 		const u32 materialID = mMaterialNameToIdMap[childObject.getMaterialName()];
@@ -392,6 +398,7 @@ void Scene::recursiveBuildInstanceData(std::vector<DeviceInstanceData>& instance
 		{
 			currentTransformMat * transformMat,
 			invTransformMat * currentInvTransformMat,
+			currentInvTransposedTransformMat* invTransposedTransformMat,
 			AABB::transformAABB(referenceMeshAABB, currentTransformMat * transformMat),
 			blasInfo.blasRootNodeIndex,
 			blasInfo.vertexOffset,
@@ -405,7 +412,8 @@ void Scene::recursiveBuildInstanceData(std::vector<DeviceInstanceData>& instance
 	{
 		Mat4 transformMat = childGroup.getTransform().getTransformMatrix();
 		Mat4 invTransformMat = childGroup.getTransform().getInvTransformMatrix();
-		recursiveBuildInstanceData(instanceDataArray, childGroup, currentTransformMat * transformMat, invTransformMat * currentInvTransformMat);
+		Mat4 invTransposedTransformMat = childGroup.getTransform().getInvTransposeTransformMatrix();
+		recursiveBuildInstanceData(instanceDataArray, childGroup, currentTransformMat * transformMat, invTransformMat * currentInvTransformMat, currentInvTransposedTransformMat * invTransposedTransformMat);
 	}
 }
 
@@ -430,8 +438,9 @@ u32 Scene::buildTlasBVHNodeRecursively(const u32 start, const u32 end)
 
 	const u32 primitiveCount = end - start;
 
+	// TODO : AABB‚ðe‚Å‚àŒvŽZ‚µ‚ÄAŽq‚Å‚à“¯‚¶ŒvŽZ‚ð‚µ‚Ä‚¢‚éBŽq‚©‚ç“n‚µ‚Ä‚à‚ç‚Á‚Ä‡ŽZ‚µ‚½‚Ù‚¤‚ª‚¢‚¢B
 	AABB aabb = AABB::generateAbsolutelyWrappedAABB();
-	for (auto iter = instanceDataArray.begin(), end = instanceDataArray.end(); iter != end; iter++)
+	for (auto iter = instanceDataArray.begin() + start; iter != (instanceDataArray.begin() + end); iter++)
 	{
 		aabb = AABB::generateWrapingAABB(aabb, iter->aabb);
 	}

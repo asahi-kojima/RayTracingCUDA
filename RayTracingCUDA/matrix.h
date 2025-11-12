@@ -104,7 +104,7 @@ public:
     __device__ __host__ static Mat4 generateTranslation(const Vec3& v);
 
     //------------------------------------------------------------
-    // •½sˆÚ“®s—ñ‚ğì¬‚·‚é
+    // ‰ñ“]s—ñ‚ğì¬‚·‚é
     //------------------------------------------------------------
     __device__ __host__ static Mat4 generateRotation(f32 angleX, f32 angleY, f32 angleZ);
     __device__ __host__ static Mat4 generateInverseRotation(f32 angleX, f32 angleY, f32 angleZ);

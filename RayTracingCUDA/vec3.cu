@@ -2,7 +2,7 @@
 #include <math.h>
 #include <random>
 #include "vector.h"
-
+#include "util.h"
 f32& Vec3::operator[](size_t i)
 {
 #ifdef DEBUG
@@ -230,16 +230,15 @@ void Vec3::debugPrint(const char* message) const
 
 Vec3 Vec3::generateRandomUnitVector()
 {
-//#ifdef __CUDA_ARCH__
-//	const f32 phi = 2 * M_PI * RandomGeneratorGPU::uniform_real();
-//	const f32 theta = M_PI * RandomGeneratorGPU::uniform_real();
-//#else
-//	const f32 phi = 2 * M_PI * RandomGenerator::uniform_real();
-//	const f32 theta = M_PI * RandomGenerator::uniform_real();
-//#endif
-	//const f32 sin0 = sin(theta);
-	//return Vec3(cos(phi) * sin0, sin(phi) * sin0, cos(theta));
-	return Vec3::zero();
+#ifdef __CUDA_ARCH__
+	const f32 phi = 2 * M_PI * RandomGeneratorGPU::uniform_real();
+	const f32 theta = M_PI * RandomGeneratorGPU::uniform_real();
+#else
+	const f32 phi = 2 * M_PI * RandomGenerator::uniform_real();
+	const f32 theta = M_PI * RandomGenerator::uniform_real();
+#endif
+	const f32 sin0 = sin(theta);
+	return Vec3(cos(phi) * sin0, sin(phi) * sin0, cos(theta));
 }
 
 bool Vec3::isNan() const

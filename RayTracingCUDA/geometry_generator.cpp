@@ -136,14 +136,14 @@ Mesh GeometryGenerator::sphereGenerator(const u32 stackCount, const u32 sliceCou
 	std::vector<Vertex> vertexArray;
 	vertexArray.push_back(topVertex);
 
-	f32 dTheta = M_PI / stackCount;
+	f32 dTheta = M_PI / (stackCount + 1);
 	f32 dPhi = 2.0f * M_PI / sliceCount;
 
 	for (u32 i = 0; i < stackCount; i++)
 	{
-		f32 theta = i * dTheta;
+		f32 theta = (i + 1) * dTheta;
 
-		for (u32 j = 0; j <= sliceCount; j++)
+		for (u32 j = 0; j < sliceCount; j++)
 		{
 			f32 phi = j * dPhi;
 			Vertex v;
@@ -162,12 +162,13 @@ Mesh GeometryGenerator::sphereGenerator(const u32 stackCount, const u32 sliceCou
 	}
 	vertexArray.push_back(bottomVertex);
 
+
 	std::vector<u32> indexArray;
-	for (u32 i = 0; i <= sliceCount; i++)
+	for (u32 i = 0; i < sliceCount; i++)
 	{
 		indexArray.push_back(0);
 		indexArray.push_back(i + 1);
-		indexArray.push_back(i);
+		indexArray.push_back((i + 2) % sliceCount);
 	}
 
 

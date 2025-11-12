@@ -27,9 +27,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <CudaCompile Include="util.cu">
-      <Filter>src</Filter>
-    </CudaCompile>
     <CudaCompile Include="vec3.cu">
       <Filter>src\math</Filter>
     </CudaCompile>
@@ -42,13 +39,19 @@
     <CudaCompile Include="matrix.cu">
       <Filter>src\math</Filter>
     </CudaCompile>
-    <CudaCompile Include="triangle.cu">
-      <Filter>src\object</Filter>
-    </CudaCompile>
     <CudaCompile Include="color.cu">
       <Filter>src\util</Filter>
     </CudaCompile>
     <CudaCompile Include="main.cu">
+      <Filter>src</Filter>
+    </CudaCompile>
+    <CudaCompile Include="scene.cu">
+      <Filter>src</Filter>
+    </CudaCompile>
+    <CudaCompile Include="util.cu">
+      <Filter>src\util</Filter>
+    </CudaCompile>
+    <CudaCompile Include="camera.cu">
       <Filter>src</Filter>
     </CudaCompile>
   </ItemGroup>
@@ -65,16 +68,7 @@
     <ClInclude Include="vector.h">
       <Filter>header</Filter>
     </ClInclude>
-    <ClInclude Include="triangle.h">
-      <Filter>header</Filter>
-    </ClInclude>
     <ClInclude Include="aabb.h">
-      <Filter>header</Filter>
-    </ClInclude>
-    <ClInclude Include="vertex.h">
-      <Filter>header</Filter>
-    </ClInclude>
-    <ClInclude Include="bvh.h">
       <Filter>header</Filter>
     </ClInclude>
     <ClInclude Include="color.h">
@@ -101,19 +95,28 @@
     <ClInclude Include="geometry_generator.h">
       <Filter>header\cpu</Filter>
     </ClInclude>
+    <ClInclude Include="ray.h">
+      <Filter>header\both</Filter>
+    </ClInclude>
+    <ClInclude Include="camera.h">
+      <Filter>header\both</Filter>
+    </ClInclude>
+    <ClInclude Include="vertex.h">
+      <Filter>header\cpu</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="geometry_generator.cpp">
-      <Filter>src</Filter>
+    <ClCompile Include="object_and_group.cpp">
+      <Filter>src\object</Filter>
     </ClCompile>
     <ClCompile Include="scene.cpp">
       <Filter>src</Filter>
     </ClCompile>
-    <ClCompile Include="object_and_group.cpp">
+    <ClCompile Include="mesh.cpp">
       <Filter>src\object</Filter>
     </ClCompile>
-    <ClCompile Include="mesh.cpp">
-      <Filter>src</Filter>
+    <ClCompile Include="geometry_generator.cpp">
+      <Filter>src\object</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

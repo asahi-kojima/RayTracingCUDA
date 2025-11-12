@@ -59,6 +59,7 @@
       <TargetMachinePlatform>64</TargetMachinePlatform>
       <CodeGeneration>compute_120,sm_120</CodeGeneration>
       <GenerateRelocatableDeviceCode>true</GenerateRelocatableDeviceCode>
+      <AdditionalOptions>-std=c++17 %(AdditionalOptions)</AdditionalOptions>
     </CudaCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -81,23 +82,25 @@
       <TargetMachinePlatform>64</TargetMachinePlatform>
       <CodeGeneration>compute_120,sm_120</CodeGeneration>
       <GenerateRelocatableDeviceCode>true</GenerateRelocatableDeviceCode>
+      <AdditionalOptions>-std=c++17 %(AdditionalOptions)</AdditionalOptions>
     </CudaCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <CudaCompile Include="camera.cu" />
     <CudaCompile Include="color.cu" />
     <CudaCompile Include="main.cu">
       <FileType>Document</FileType>
     </CudaCompile>
     <CudaCompile Include="matrix.cu" />
+    <CudaCompile Include="scene.cu" />
     <CudaCompile Include="transform.cu" />
-    <CudaCompile Include="triangle.cu" />
     <CudaCompile Include="util.cu" />
     <CudaCompile Include="vec3.cu" />
     <CudaCompile Include="vec4.cu" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="aabb.h" />
-    <ClInclude Include="bvh.h" />
+    <ClInclude Include="camera.h" />
     <ClInclude Include="color.h" />
     <ClInclude Include="common.h" />
     <ClInclude Include="geometry_generator.h" />
@@ -105,9 +108,9 @@
     <ClInclude Include="material.h" />
     <ClInclude Include="matrix.h" />
     <ClInclude Include="mesh.h" />
+    <ClInclude Include="ray.h" />
     <ClInclude Include="scene.h" />
     <ClInclude Include="transform.h" />
-    <ClInclude Include="triangle.h" />
     <ClInclude Include="typeinfo.h" />
     <ClInclude Include="util.h" />
     <ClInclude Include="vector.h" />

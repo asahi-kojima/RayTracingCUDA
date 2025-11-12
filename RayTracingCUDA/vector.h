@@ -6,8 +6,10 @@
 class Vec3
 {
 public:
-	__device__ __host__ Vec3(f32 x = 0, f32 y = 0, f32 z = 0) : mElements{ x, y, z } {}
+	__device__ __host__ Vec3() = default;
+	__device__ __host__ Vec3(f32 x, f32 y, f32 z) : mElements{ x, y, z } {}
 	__device__ __host__ Vec3(const Vec3& v) : mElements{ v[0], v[1], v[2] } {}
+	__device__ __host__ Vec3(const float3& v) : mElements{ v.x, v.y, v.z } {}
 
 	__device__ __host__  f32 x() const { return mElements[0]; }
 	__device__ __host__  f32 y() const { return mElements[1]; }
@@ -50,14 +52,14 @@ public:
 	__device__ __host__ static Vec3 generateRandomUnitVector();
 
 	__device__ __host__ static inline Vec3 zero() { return Vec3(0.0f, 0.0f, 0.0f); };
-	__device__ __host__ static inline Vec3 one() { return Vec3(1.0f, 1.0f, 1.0f); };
+	__device__ __host__ static inline Vec3 one() { return Vec3(1.0f, 1.0f, 1.0f).normalize(); };
 	__device__ __host__ static inline Vec3 unitX() { return Vec3(1.0f, 0.0f, 0.0f); };
 	__device__ __host__ static inline Vec3 unitY() { return Vec3(0.0f, 1.0f, 0.0f); };
 	__device__ __host__ static inline Vec3 unitZ() { return Vec3(0.0f, 0.0f, 1.0f); };
 
 	__device__ __host__ bool isNan() const;
 
-	float3 toFloat3() const { return float3{mElements[0], mElements[1], mElements[2]}; }
+	__device__ __host__ float3 toFloat3() const { return float3{mElements[0], mElements[1], mElements[2]}; }
 
 #ifdef _DEBUG
 	__device__ __host__ void debugPrint(const char* message = "") const;
