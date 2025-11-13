@@ -31,20 +31,26 @@ struct BVHNode
 	u32 primitiveCount;
 };
 
+struct PrimitiveInfo
+{
+	u32 primitiveID;
+	AABB aabb;
+	Vec3 centroid;
+};
 
 struct BlasInfo//delete
 {
 	u32 vertexOffset;
-	u32 indexOffset;
+	u32 triangleIndexOffset;
 	u32 blasRootNodeIndex;
 };
 
-// RayTracingDataOnGPUへのコピーを念頭に置いているので、基本同じ構造を持つ
+
 struct RayTracingDataOnCPU
 {
 	// Meshに対応
 	std::vector<float3> vertexArray;
-	std::vector<uint3> indexArray;
+	std::vector<uint3>  triangleIndexArray;
 	std::vector<float3> normalArray;
 
 	// マテリアルに対応
@@ -71,8 +77,8 @@ struct GpuRayTracingLaunchParams
 	//--------------------------------------
 	// Meshに対応
 	float3* vertexArray;
-	uint3* indexArray;
-	float3* normalArray;
+	uint3* triangleIndexArray; // Triangleを指定するためのID＝ポリゴンのID
+	float3* normalArray; // ↑のポリゴンの法線
 
 	// マテリアルに対応
 	Material* materialArray;
@@ -144,14 +150,15 @@ private:
 	// GPU上でレイトレーシングをするために必要なデータ
 	RayTracingDataOnCPU mRayTracingDataOnCPU;
 
-	GpuRayTracingLaunchParams mRayTracingLaunchParamsOnCPU;
-	GpuRayTracingLaunchParams gpuRayTracingLaunchParamsHostSide;
+
+	GpuRayTracingLaunchParams mGpuRayTracingLaunchParamsHostSide;
 
 	//GPUレイトレーシングで必要になるデータを作るためのサブデータやヘルパー関数達
 
 
 	void buildVertexIndexBlas();
 	u32 buildBlasBVHNode(const Mesh& mesh, std::vector<uint3>& sortedIndexArray);
+	u32 buildBlasBVHNodeRecursively(std::vector<BVHNode>& nodeArray, const Mesh& mesh, std::vector<PrimitiveInfo>& primitiveInfoArray, const u32 start, const u32 end);
 
 	void buildInstanceData();
 	void recursiveBuildInstanceData(std::vector<DeviceInstanceData>& instanceDataArray, const Group& group, const Mat4& currentTransformMat, const Mat4& currentInvTransformMat, const Mat4& currentInvTransposedTransformMat);

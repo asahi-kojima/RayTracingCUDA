@@ -17,16 +17,16 @@ Result Scene::initLaunchParams()
 
 	//GpuRayTracingLaunchParams gpuRayTracingLaunchParamsHostSide;
 
-	CHECK(cudaMalloc(&gpuRayTracingLaunchParamsHostSide.vertexArray,       sizeof(float3)             * mRayTracingDataOnCPU.vertexArray.size()));
-	CHECK(cudaMalloc(&gpuRayTracingLaunchParamsHostSide.indexArray,        sizeof(uint3)              * mRayTracingDataOnCPU.indexArray.size()));
-	CHECK(cudaMalloc(&gpuRayTracingLaunchParamsHostSide.normalArray,       sizeof(float3)              * mRayTracingDataOnCPU.normalArray.size()));
-	CHECK(cudaMalloc(&gpuRayTracingLaunchParamsHostSide.materialArray,     sizeof(Material)           * mRayTracingDataOnCPU.materialArray.size()));
-	CHECK(cudaMalloc(&gpuRayTracingLaunchParamsHostSide.instanceDataArray, sizeof(DeviceInstanceData) * mRayTracingDataOnCPU.instanceDataArray.size()));
-	CHECK(cudaMalloc(&gpuRayTracingLaunchParamsHostSide.blasArray,         sizeof(BVHNode)            * mRayTracingDataOnCPU.blasArray.size()));
-	CHECK(cudaMalloc(&gpuRayTracingLaunchParamsHostSide.tlasArray,         sizeof(BVHNode)            * mRayTracingDataOnCPU.tlasArray.size()));
+	CHECK(cudaMalloc(&mGpuRayTracingLaunchParamsHostSide.vertexArray,       sizeof(float3)             * mRayTracingDataOnCPU.vertexArray.size()));
+	CHECK(cudaMalloc(&mGpuRayTracingLaunchParamsHostSide.triangleIndexArray,        sizeof(uint3)              * mRayTracingDataOnCPU.triangleIndexArray.size()));
+	CHECK(cudaMalloc(&mGpuRayTracingLaunchParamsHostSide.normalArray,       sizeof(float3)              * mRayTracingDataOnCPU.normalArray.size()));
+	CHECK(cudaMalloc(&mGpuRayTracingLaunchParamsHostSide.materialArray,     sizeof(Material)           * mRayTracingDataOnCPU.materialArray.size()));
+	CHECK(cudaMalloc(&mGpuRayTracingLaunchParamsHostSide.instanceDataArray, sizeof(DeviceInstanceData) * mRayTracingDataOnCPU.instanceDataArray.size()));
+	CHECK(cudaMalloc(&mGpuRayTracingLaunchParamsHostSide.blasArray,         sizeof(BVHNode)            * mRayTracingDataOnCPU.blasArray.size()));
+	CHECK(cudaMalloc(&mGpuRayTracingLaunchParamsHostSide.tlasArray,         sizeof(BVHNode)            * mRayTracingDataOnCPU.tlasArray.size()));
 
 	printf("vertex   array malloc : %8d byte\n", sizeof(float3)             * mRayTracingDataOnCPU.vertexArray.size());
-	printf("index    array malloc : %8d byte\n", sizeof(uint3)              * mRayTracingDataOnCPU.indexArray.size());
+	printf("index    array malloc : %8d byte\n", sizeof(uint3)              * mRayTracingDataOnCPU.triangleIndexArray.size());
 	printf("normal   array malloc : %8d byte\n", sizeof(float3)             * mRayTracingDataOnCPU.normalArray.size());
 	printf("material array malloc : %8d byte\n", sizeof(Material)           * mRayTracingDataOnCPU.materialArray.size());
 	printf("instance array malloc : %8d byte\n", sizeof(DeviceInstanceData) * mRayTracingDataOnCPU.instanceDataArray.size());
@@ -34,39 +34,39 @@ Result Scene::initLaunchParams()
 	printf("tlas     array malloc : %8d byte\n", sizeof(BVHNode)            * mRayTracingDataOnCPU.tlasArray.size());
 
 
-	CHECK(cudaMemcpy(gpuRayTracingLaunchParamsHostSide.vertexArray,       mRayTracingDataOnCPU.vertexArray.data(),       sizeof(float3)             * mRayTracingDataOnCPU.vertexArray.size(),       cudaMemcpyHostToDevice));
-	CHECK(cudaMemcpy(gpuRayTracingLaunchParamsHostSide.indexArray,        mRayTracingDataOnCPU.indexArray.data(),        sizeof(uint3)              * mRayTracingDataOnCPU.indexArray.size(),        cudaMemcpyHostToDevice));
-	CHECK(cudaMemcpy(gpuRayTracingLaunchParamsHostSide.normalArray,       mRayTracingDataOnCPU.normalArray.data(),       sizeof(float3)             * mRayTracingDataOnCPU.normalArray.size(),       cudaMemcpyHostToDevice));
-	CHECK(cudaMemcpy(gpuRayTracingLaunchParamsHostSide.materialArray,     mRayTracingDataOnCPU.materialArray.data(),     sizeof(Material)           * mRayTracingDataOnCPU.materialArray.size(),     cudaMemcpyHostToDevice));
-	CHECK(cudaMemcpy(gpuRayTracingLaunchParamsHostSide.instanceDataArray, mRayTracingDataOnCPU.instanceDataArray.data(), sizeof(DeviceInstanceData) * mRayTracingDataOnCPU.instanceDataArray.size(), cudaMemcpyHostToDevice));
-	CHECK(cudaMemcpy(gpuRayTracingLaunchParamsHostSide.blasArray,         mRayTracingDataOnCPU.blasArray.data(),         sizeof(BVHNode)            * mRayTracingDataOnCPU.blasArray.size(),         cudaMemcpyHostToDevice));
-	CHECK(cudaMemcpy(gpuRayTracingLaunchParamsHostSide.tlasArray,         mRayTracingDataOnCPU.tlasArray.data(),         sizeof(BVHNode)            * mRayTracingDataOnCPU.tlasArray.size(),         cudaMemcpyHostToDevice));
+	CHECK(cudaMemcpy(mGpuRayTracingLaunchParamsHostSide.vertexArray,       mRayTracingDataOnCPU.vertexArray.data(),       sizeof(float3)             * mRayTracingDataOnCPU.vertexArray.size(),       cudaMemcpyHostToDevice));
+	CHECK(cudaMemcpy(mGpuRayTracingLaunchParamsHostSide.triangleIndexArray,        mRayTracingDataOnCPU.triangleIndexArray.data(),        sizeof(uint3)              * mRayTracingDataOnCPU.triangleIndexArray.size(),        cudaMemcpyHostToDevice));
+	CHECK(cudaMemcpy(mGpuRayTracingLaunchParamsHostSide.normalArray,       mRayTracingDataOnCPU.normalArray.data(),       sizeof(float3)             * mRayTracingDataOnCPU.normalArray.size(),       cudaMemcpyHostToDevice));
+	CHECK(cudaMemcpy(mGpuRayTracingLaunchParamsHostSide.materialArray,     mRayTracingDataOnCPU.materialArray.data(),     sizeof(Material)           * mRayTracingDataOnCPU.materialArray.size(),     cudaMemcpyHostToDevice));
+	CHECK(cudaMemcpy(mGpuRayTracingLaunchParamsHostSide.instanceDataArray, mRayTracingDataOnCPU.instanceDataArray.data(), sizeof(DeviceInstanceData) * mRayTracingDataOnCPU.instanceDataArray.size(), cudaMemcpyHostToDevice));
+	CHECK(cudaMemcpy(mGpuRayTracingLaunchParamsHostSide.blasArray,         mRayTracingDataOnCPU.blasArray.data(),         sizeof(BVHNode)            * mRayTracingDataOnCPU.blasArray.size(),         cudaMemcpyHostToDevice));
+	CHECK(cudaMemcpy(mGpuRayTracingLaunchParamsHostSide.tlasArray,         mRayTracingDataOnCPU.tlasArray.data(),         sizeof(BVHNode)            * mRayTracingDataOnCPU.tlasArray.size(),         cudaMemcpyHostToDevice));
 	
 
-	gpuRayTracingLaunchParamsHostSide.vertexCount   = mRayTracingDataOnCPU.vertexArray.size();
-	gpuRayTracingLaunchParamsHostSide.indexCount    = mRayTracingDataOnCPU.indexArray.size();
-	gpuRayTracingLaunchParamsHostSide.normalCount   = mRayTracingDataOnCPU.normalArray.size();
-	gpuRayTracingLaunchParamsHostSide.materialCount = mRayTracingDataOnCPU.materialArray.size();
-	gpuRayTracingLaunchParamsHostSide.instanceCount = mRayTracingDataOnCPU.instanceDataArray.size();
-	gpuRayTracingLaunchParamsHostSide.blasCount     = mRayTracingDataOnCPU.blasArray.size();
-	gpuRayTracingLaunchParamsHostSide.tlasCount     = mRayTracingDataOnCPU.tlasArray.size();
+	mGpuRayTracingLaunchParamsHostSide.vertexCount   = mRayTracingDataOnCPU.vertexArray.size();
+	mGpuRayTracingLaunchParamsHostSide.indexCount    = mRayTracingDataOnCPU.triangleIndexArray.size();
+	mGpuRayTracingLaunchParamsHostSide.normalCount   = mRayTracingDataOnCPU.normalArray.size();
+	mGpuRayTracingLaunchParamsHostSide.materialCount = mRayTracingDataOnCPU.materialArray.size();
+	mGpuRayTracingLaunchParamsHostSide.instanceCount = mRayTracingDataOnCPU.instanceDataArray.size();
+	mGpuRayTracingLaunchParamsHostSide.blasCount     = mRayTracingDataOnCPU.blasArray.size();
+	mGpuRayTracingLaunchParamsHostSide.tlasCount     = mRayTracingDataOnCPU.tlasArray.size();
 
 
-	gpuRayTracingLaunchParamsHostSide.pixelSizeVertical = 500;
-	gpuRayTracingLaunchParamsHostSide.pixelSizeHorizontal = 500;
-	gpuRayTracingLaunchParamsHostSide.invPixelSizeVertical = 1.0f / static_cast<f32>(gpuRayTracingLaunchParamsHostSide.pixelSizeVertical);
-	gpuRayTracingLaunchParamsHostSide.invPixelSizeHorizontal = 1.0f / static_cast<f32>(gpuRayTracingLaunchParamsHostSide.pixelSizeHorizontal);
+	mGpuRayTracingLaunchParamsHostSide.pixelSizeVertical = 500;
+	mGpuRayTracingLaunchParamsHostSide.pixelSizeHorizontal = 500;
+	mGpuRayTracingLaunchParamsHostSide.invPixelSizeVertical = 1.0f / static_cast<f32>(mGpuRayTracingLaunchParamsHostSide.pixelSizeVertical);
+	mGpuRayTracingLaunchParamsHostSide.invPixelSizeHorizontal = 1.0f / static_cast<f32>(mGpuRayTracingLaunchParamsHostSide.pixelSizeHorizontal);
 
 
-	CHECK(cudaMalloc(&gpuRayTracingLaunchParamsHostSide.renderTargetImageArray, sizeof(Color) * gpuRayTracingLaunchParamsHostSide.pixelSizeVertical * gpuRayTracingLaunchParamsHostSide.pixelSizeHorizontal));
+	CHECK(cudaMalloc(&mGpuRayTracingLaunchParamsHostSide.renderTargetImageArray, sizeof(Color) * mGpuRayTracingLaunchParamsHostSide.pixelSizeVertical * mGpuRayTracingLaunchParamsHostSide.pixelSizeHorizontal));
 
 
-	gpuRayTracingLaunchParamsHostSide.frameCount = 0;
+	mGpuRayTracingLaunchParamsHostSide.frameCount = 0;
 
-	Camera camera{Vec3(0, 0, 3), Vec3::zero(), Vec3::unitY(), 20, 1};
-	gpuRayTracingLaunchParamsHostSide.camera = camera;
+	Camera camera{Vec3(10, 10, 10), Vec3::zero(), Vec3::unitY(), 20, 1};
+	mGpuRayTracingLaunchParamsHostSide.camera = camera;
 
-	cudaMemcpyToSymbol(gGpuRayTracingLaunchParams, &gpuRayTracingLaunchParamsHostSide, sizeof(GpuRayTracingLaunchParams));
+	cudaMemcpyToSymbol(gGpuRayTracingLaunchParams, &mGpuRayTracingLaunchParamsHostSide, sizeof(GpuRayTracingLaunchParams));
 
 	KERNEL_ERROR_CHECKER;
 
@@ -119,6 +119,7 @@ namespace
 		__device__ operator bool() const { return isIntersected; }
 	};
 }
+
 __device__ TriangleIntersectionResult intersectionTriangle(const Ray& ray, const float3& v0, const float3& v1, const float3& v2)
 {
 	const Vec3 p1 = Vec3(v1) - Vec3(v0);
@@ -158,7 +159,7 @@ __device__ TriangleIntersectionResult intersectionTriangle(const Ray& ray, const
 }
 
 
-__device__ s32 traceBlasTree(Ray& ray, const u32 blasRootIndex)
+__device__ s32 traceBlasTree(Ray& ray, const u32 blasRootIndex, const u32 vertexOffset, const u32 indexOffset)
 {
 	AABB::AABBIntersectionResult aabbHitResult;
 
@@ -188,26 +189,22 @@ __device__ s32 traceBlasTree(Ray& ray, const u32 blasRootIndex)
 		{
 			// BLASのリーフノードに到達 = メッシュの中の数個の三角形まで到達
 			// 三角形との衝突判定を行う
+			// ここでカレントノードが持っているfirstPrimitiveOffsetとprimitiveCountは一個のメッシュ内の三角形に対してのもの（全メッシュの配列内のインデックスではない
+			// つまりtriangleIndexはローカルな三角形インデックス
 			for (u32 triangleIndex = currentNode.firstPrimitiveOffset, end = currentNode.firstPrimitiveOffset + currentNode.primitiveCount; triangleIndex < end; triangleIndex++)
 			{
-				const uint3& index = gGpuRayTracingLaunchParams.indexArray[triangleIndex];
-				const float3& v0 = gGpuRayTracingLaunchParams.vertexArray[index.x];
-				const float3& v1 = gGpuRayTracingLaunchParams.vertexArray[index.y];
-				const float3& v2 = gGpuRayTracingLaunchParams.vertexArray[index.z];
+				const uint3& index = gGpuRayTracingLaunchParams.triangleIndexArray[triangleIndex + indexOffset];//offsetがいる
+				const float3& v0   = gGpuRayTracingLaunchParams.vertexArray[index.x + vertexOffset];
+				const float3& v1   = gGpuRayTracingLaunchParams.vertexArray[index.y + vertexOffset];
+				const float3& v2   = gGpuRayTracingLaunchParams.vertexArray[index.z + vertexOffset];
 
 				if (TriangleIntersectionResult triangleIntersectionResult{}; triangleIntersectionResult = intersectionTriangle(ray, v0, v1, v2))
 				{
-					//printf("Triangle Hit = %d\n", triangleIndex);
 					//ray.tmax()に衝突点の情報が入っている
 					ray.tmax() = triangleIntersectionResult.t;
 					closestTriangleID = triangleIndex;
-					if (closestTriangleID < 0) //delete
-						printf("%d -- %d -- %d\n", closestTriangleID, currentNode.firstPrimitiveOffset, currentNode.firstPrimitiveOffset + currentNode.primitiveCount);
 				}
 			}
-			
-			//TODO;
-			//printf("Hit at Blas Leaf : %d, %d\n", currentNode.firstPrimitiveOffset, currentNode.primitiveCount);
 		}
 		else
 		{
@@ -271,18 +268,26 @@ __device__ HitRecord traceTlasTree(Ray ray)
 
 				if (aabbHitResult = currentInstanceData.aabb.doIntersect(ray))
 				{
-					//--------------------------------------------------------------
+					//--------------------------------------------------------------------------------------
 					// 衝突したのでrayのtmaxを更新する
-					//--------------------------------------------------------------
+					//--------------------------------------------------------------------------------------
 					ray.tmax() = aabbHitResult.tmax;
 
+					//--------------------------------------------------------------------------------------
 					// インスタンスのAABBに衝突したので、これからインスタンスが参照するBLASツリーを探索する
-					//printf("Hit at leaf node [%d, %d, %d, %d] \n", instanceID, currentInstanceData.vertexOffset, currentInstanceData.indexOffset, currentInstanceData.blasRootNodeIndex); //delete
+					//--------------------------------------------------------------------------------------
 					const u32 blasRootIndex = currentInstanceData.blasRootNodeIndex;
-
+					
+					//--------------------------------------------------------------------------------------
+					// メッシュのローカル空間にレイを変換する
+					//--------------------------------------------------------------------------------------
 					Ray localRay = ray.transformWith(currentInstanceData.invTransformMat);
-					const s32 tmpClosestTriangleID = traceBlasTree(localRay, blasRootIndex);
-
+					
+					//--------------------------------------------------------------------------------------
+					// BLASツリーの探索
+					//--------------------------------------------------------------------------------------
+					const s32 tmpClosestTriangleID = traceBlasTree(localRay, blasRootIndex, currentInstanceData.vertexOffset, currentInstanceData.indexOffset);
+					
 					if (tmpClosestTriangleID >= 0)
 					{
 						// 三角形に衝突したのでパラメータ上限を更新
@@ -290,7 +295,6 @@ __device__ HitRecord traceTlasTree(Ray ray)
 
 						closestInstanceID = instanceID;
 						closestTriangleID = tmpClosestTriangleID;
-						//printf("%d -> %d\n", closestInstanceID, closestTriangleID);
 					}
 				}
 			}
@@ -325,6 +329,7 @@ __device__ HitRecord traceTlasTree(Ray ray)
 		hitRecord.isHit = true;
 		hitRecord.t = ray.tmax();
 		hitRecord.hitPoint = ray.pointAt(hitRecord.t).toFloat3();
+		
 		hitRecord.hitPointNormal = gGpuRayTracingLaunchParams.normalArray[closestTriangleID];
 		{
 			const Mat4& transform = gGpuRayTracingLaunchParams.instanceDataArray[closestInstanceID].transformMat;
@@ -334,7 +339,7 @@ __device__ HitRecord traceTlasTree(Ray ray)
 			const Mat4& normalTransform = gGpuRayTracingLaunchParams.instanceDataArray[closestInstanceID].normalTransformMat;
 
 			hitRecord.hitPointNormal = (normalTransform * Vec4(hitRecord.hitPointNormal, 0)).extractXYZ().normalize().toFloat3();
-
+			
 			const Vec3& direction = ray.direction();
 			const Vec3 normal = Vec3(hitRecord.hitPointNormal);
 			if (Vec3::dot(direction, normal) > 0)
@@ -426,7 +431,8 @@ __device__ Color tracePath(Ray ray)
 			break;
 		}
 	}
-	
+
+
 	return Color(pathRadiance.x, pathRadiance.y, pathRadiance.z);
 }
 
@@ -487,8 +493,8 @@ Result Scene::render()
 
     dim3 block(16, 16);
     dim3 grid(
-    (gpuRayTracingLaunchParamsHostSide.pixelSizeHorizontal + block.x - 1) / block.x,
-    (gpuRayTracingLaunchParamsHostSide.pixelSizeVertical + block.y - 1) / block.y);
+    (mGpuRayTracingLaunchParamsHostSide.pixelSizeHorizontal + block.x - 1) / block.x,
+    (mGpuRayTracingLaunchParamsHostSide.pixelSizeVertical + block.y - 1) / block.y);
 
     raytracingKernel <<<grid, block >>> ();
     KERNEL_ERROR_CHECKER;
@@ -505,13 +511,13 @@ Result Scene::render()
 
 
 
-	const u32 ScreenWidth = gpuRayTracingLaunchParamsHostSide.pixelSizeHorizontal;
-	const u32 ScreenHeight = gpuRayTracingLaunchParamsHostSide.pixelSizeVertical;
+	const u32 ScreenWidth = mGpuRayTracingLaunchParamsHostSide.pixelSizeHorizontal;
+	const u32 ScreenHeight = mGpuRayTracingLaunchParamsHostSide.pixelSizeVertical;
 
 	Color* renderTarget;
 	renderTarget = new Color[ScreenWidth * ScreenHeight];
 
-	cudaMemcpy(renderTarget, gpuRayTracingLaunchParamsHostSide.renderTargetImageArray, sizeof(Color) * ScreenWidth * ScreenHeight, cudaMemcpyDeviceToHost);
+	cudaMemcpy(renderTarget, mGpuRayTracingLaunchParamsHostSide.renderTargetImageArray, sizeof(Color) * ScreenWidth * ScreenHeight, cudaMemcpyDeviceToHost);
 
 	std::ofstream outputFile("renderResult.ppm");
 	outputFile << "P3\n" << ScreenWidth << " " << ScreenHeight << "\n255\n";

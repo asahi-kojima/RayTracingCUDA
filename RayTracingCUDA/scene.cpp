@@ -152,7 +152,7 @@ Result Scene::build()
 	// (0) CPU側の情報の消去
 	// ----------------------------------------------------
 	mRayTracingDataOnCPU.vertexArray.resize(0);
-	mRayTracingDataOnCPU.indexArray.resize(0);
+	mRayTracingDataOnCPU.triangleIndexArray.resize(0);
 	mRayTracingDataOnCPU.normalArray.resize(0);
 	mRayTracingDataOnCPU.materialArray.resize(0);
 	mRayTracingDataOnCPU.instanceDataArray.resize(0);
@@ -215,9 +215,9 @@ void Scene::buildVertexIndexBlas()
 
 		BlasInfo blasInfo;
 		{
-			blasInfo.vertexOffset = mRayTracingDataOnCPU.vertexArray.size();
-			blasInfo.indexOffset = mRayTracingDataOnCPU.indexArray.size();
-			blasInfo.blasRootNodeIndex = blasRootNode;
+			blasInfo.vertexOffset        = mRayTracingDataOnCPU.vertexArray.size();
+			blasInfo.triangleIndexOffset = mRayTracingDataOnCPU.triangleIndexArray.size();
+			blasInfo.blasRootNodeIndex   = blasRootNode;
 		}
 
 		// このメッシュの頂点データの格納
@@ -231,7 +231,7 @@ void Scene::buildVertexIndexBlas()
 		for (u32 triangleID = 0; triangleID < sortdIndexArray.size(); triangleID++)
 		{
 			uint3 index = sortdIndexArray[triangleID];
-			mRayTracingDataOnCPU.indexArray.push_back(index);
+			mRayTracingDataOnCPU.triangleIndexArray.push_back(index);
 
 			// 法線データもここで格納しておく
 			const Vec3& v0 = vertexArray[index.x].position;
@@ -246,121 +246,122 @@ void Scene::buildVertexIndexBlas()
 }
 
 
-namespace
+	
+
+
+
+u32 Scene::buildBlasBVHNode(const Mesh& mesh, std::vector<uint3>& sortedTriangleIndexArray)
 {
-	struct PrimitiveInfo
-	{
-		u32 primitiveID;
-		AABB aabb;
-		Vec3 centroid;
-	};
-
-	u32 buildBlasBVHNodeRecursively(std::vector<BVHNode>& nodeArray, const Mesh& mesh, std::vector<PrimitiveInfo>& primitiveInfoArray, const u32 start, const u32 end)
-	{
-		const u32 nodeIndex = nodeArray.size();
-		nodeArray.emplace_back();
-		//BVHNode& currentNode = nodeArray[nodeIndex];
-
-		const u32 primitiveCount = end - start;
-
-		//------------------------------------------------------------------------------
-		// このノードが管理するAABBを計算する : ([start, end)を包括するAABBを算出)
-		//------------------------------------------------------------------------------
-		AABB aabb = AABB::generateAbsolutelyWrappedAABB();
-		for (u32 i = start; i < end; i++)
-		{
-			aabb = AABB::generateWrapingAABB(aabb, primitiveInfoArray[i].aabb);
-		}
-		nodeArray[nodeIndex].aabb = aabb;
-
-		//------------------------------------------------------------------------------
-		// 末端であればここでリターン
-		//------------------------------------------------------------------------------
-		const u32 maxPrimitiveCount = 4;
-		if (primitiveCount <= maxPrimitiveCount)
-		{
-			nodeArray[nodeIndex].primitiveCount = primitiveCount;
-			nodeArray[nodeIndex].firstPrimitiveOffset = start;
-			return nodeIndex;
-		}
-
-		//------------------------------------------------------------------------------
-		// 分割をしていく
-		//------------------------------------------------------------------------------
-		AABB centroidAABB = AABB::generateAbsolutelyWrappedAABB();
-		for (u32 i = start; i < end; i++)
-		{
-			centroidAABB = AABB::generateWrapingAABB(centroidAABB, primitiveInfoArray[i].centroid);
-		}
-
-		//------------------------------------------------------------------------------
-		// 一番空間的に広がっている軸を探す
-		//------------------------------------------------------------------------------
-		const u32 splitAxis = centroidAABB.getMostExtendingAxis();
-		const f32 splitPoint = (centroidAABB.getMinPosition()[splitAxis] + centroidAABB.getMaxPosition()[splitAxis]) / 2.0f;
-
-		//------------------------------------------------------------------------------
-		// プリミティブ配列のソートを行う。
-		//------------------------------------------------------------------------------
-		auto midiumIter = std::partition(
-			primitiveInfoArray.begin() + start, 
-			primitiveInfoArray.begin() + end, 
-			[splitAxis, splitPoint](const PrimitiveInfo& primitiveInfo)
-			{
-				return primitiveInfo.centroid[splitAxis] < splitPoint;
-			}
-		);
-
-		u32 midium = std::distance(primitiveInfoArray.begin(), midiumIter);
-
-		//分割が上手くできなかったとき
-		if (midium == start || midium == end)
-		{
-			midium = start + primitiveCount / 2;
-		}
-
-		const u32 leftChildOffset = buildBlasBVHNodeRecursively(nodeArray, mesh, primitiveInfoArray, start, midium);
-		const u32 rightChildOffset = buildBlasBVHNodeRecursively(nodeArray, mesh, primitiveInfoArray, midium, end);
-
-		nodeArray[nodeIndex].primitiveCount = 0;
-		nodeArray[nodeIndex].leftChildOffset = leftChildOffset;
-		nodeArray[nodeIndex].rightChildOffset = rightChildOffset;
-
-		return nodeIndex;
-	}
-}
-
-
-u32 Scene::buildBlasBVHNode(const Mesh& mesh, std::vector<uint3>& sortedIndexArray)
-{
-	const std::vector<Vertex>& vertexArray = mesh.getVertexArray();
-	const std::vector<uint3>& indexArray = mesh.getIndexArrayAsUint3();
+	const std::vector<Vertex>& vertexArray         = mesh.getVertexArray();
+	const std::vector<uint3>&  triangleIndexArray  = mesh.getIndexArrayAsUint3();
 
 	
 	//ここでいうプリミティブとはメッシュを構成する三角形の事である。
-	std::vector<PrimitiveInfo> primitiveInfoArray(indexArray.size());
+	std::vector<PrimitiveInfo> primitiveInfoArray(triangleIndexArray.size());
 
-	for (u32 i = 0; i < indexArray.size(); i++)
+	for (u32 i = 0; i < triangleIndexArray.size(); i++)
 	{
 		primitiveInfoArray[i].primitiveID = i;
 		primitiveInfoArray[i].aabb = generateAABBFromTriangle(
-			vertexArray[indexArray[i].x].position, 
-			vertexArray[indexArray[i].y].position, 
-			vertexArray[indexArray[i].z].position);
+			vertexArray[triangleIndexArray[i].x].position, 
+			vertexArray[triangleIndexArray[i].y].position, 
+			vertexArray[triangleIndexArray[i].z].position);
 		primitiveInfoArray[i].centroid = (primitiveInfoArray[i].aabb.getMinPosition() + primitiveInfoArray[i].aabb.getMaxPosition()) / 2.0f;
 	}
 
 
-	const u32 rootBvhNodeIndex = buildBlasBVHNodeRecursively(mRayTracingDataOnCPU.blasArray, mesh, primitiveInfoArray, 0, primitiveInfoArray.size());
+	const u32 rootBvhNodeIndex = buildBlasBVHNodeRecursively(
+		mRayTracingDataOnCPU.blasArray, 
+		mesh, 
+		primitiveInfoArray, 
+		0,
+		primitiveInfoArray.size());
 
-	sortedIndexArray.resize(primitiveInfoArray.size());
+	sortedTriangleIndexArray.resize(primitiveInfoArray.size());
 	for (u32 i = 0; i < primitiveInfoArray.size(); i++)
 	{
 		u32 originalPrimitiveID = primitiveInfoArray[i].primitiveID;
-		sortedIndexArray[i] = indexArray[originalPrimitiveID];
+		sortedTriangleIndexArray[i] = triangleIndexArray[originalPrimitiveID];
 	}
 
 	return rootBvhNodeIndex;
+}
+
+
+
+
+
+u32 Scene::buildBlasBVHNodeRecursively(std::vector<BVHNode>& nodeArray, const Mesh& mesh, std::vector<PrimitiveInfo>& primitiveInfoArray, const u32 start, const u32 end)
+{
+	const u32 nodeIndex = nodeArray.size();
+	nodeArray.emplace_back();
+
+	const u32 primitiveCount = end - start;
+
+	//------------------------------------------------------------------------------
+	// このノードが管理するAABBを計算する : ([start, end)を包括するAABBを算出)
+	//------------------------------------------------------------------------------
+	AABB aabb = AABB::generateAbsolutelyWrappedAABB();
+	for (u32 i = start; i < end; i++)
+	{
+		aabb = AABB::generateWrapingAABB(aabb, primitiveInfoArray[i].aabb);
+	}
+	nodeArray[nodeIndex].aabb = aabb;
+
+	//------------------------------------------------------------------------------
+	// 末端であればここでリターン
+	//------------------------------------------------------------------------------
+	const u32 maxPrimitiveCount = 4;
+	if (primitiveCount <= maxPrimitiveCount)
+	{
+		nodeArray[nodeIndex].primitiveCount = primitiveCount;
+		nodeArray[nodeIndex].firstPrimitiveOffset = start;
+		return nodeIndex;
+	}
+
+	//------------------------------------------------------------------------------
+	// 分割をしていく
+	//------------------------------------------------------------------------------
+	AABB centroidAABB = AABB::generateAbsolutelyWrappedAABB();
+	for (u32 i = start; i < end; i++)
+	{
+		centroidAABB = AABB::generateWrapingAABB(centroidAABB, primitiveInfoArray[i].centroid);
+	}
+
+	//------------------------------------------------------------------------------
+	// 一番空間的に広がっている軸を探す
+	//------------------------------------------------------------------------------
+	const u32 splitAxis = centroidAABB.getMostExtendingAxis();
+	const f32 splitPoint = (centroidAABB.getMinPosition()[splitAxis] + centroidAABB.getMaxPosition()[splitAxis]) / 2.0f;
+
+	//------------------------------------------------------------------------------
+	// プリミティブ配列のソートを行う。
+	//------------------------------------------------------------------------------
+	auto midiumIter = std::partition(
+		primitiveInfoArray.begin() + start,
+		primitiveInfoArray.begin() + end,
+		[splitAxis, splitPoint](const PrimitiveInfo& primitiveInfo)
+		{
+			return primitiveInfo.centroid[splitAxis] < splitPoint;
+		}
+	);
+
+	u32 midium = std::distance(primitiveInfoArray.begin(), midiumIter);
+
+	//分割が上手くできなかったとき
+	if (midium == start || midium == end)
+	{
+		midium = start + primitiveCount / 2;
+	}
+
+	const u32 leftChildOffset = buildBlasBVHNodeRecursively(nodeArray, mesh, primitiveInfoArray, start, midium);
+	const u32 rightChildOffset = buildBlasBVHNodeRecursively(nodeArray, mesh, primitiveInfoArray, midium, end);
+
+	nodeArray[nodeIndex].primitiveCount = 0;
+	nodeArray[nodeIndex].leftChildOffset = leftChildOffset;
+	nodeArray[nodeIndex].rightChildOffset = rightChildOffset;
+
+	return nodeIndex;
 }
 
 
@@ -382,11 +383,11 @@ void Scene::recursiveBuildInstanceData(std::vector<DeviceInstanceData>& instance
 {
 	for (const Object& childObject : group.getChildObjectArray())
 	{
-		Mat4 transformMat = childObject.getTransform().getTransformMatrix();
-		Mat4 invTransformMat = childObject.getTransform().getInvTransformMatrix();
-		Mat4 invTransposedTransformMat = childObject.getTransform().getInvTransposeTransformMatrix();
+		const Mat4& transformMat              = childObject.getTransform().getTransformMatrix();
+		const Mat4& invTransformMat           = childObject.getTransform().getInvTransformMatrix();
+		const Mat4& invTransposedTransformMat = childObject.getTransform().getInvTransposeTransformMatrix();
 		
-		const u32 meshID = mMeshNameToIdMap[childObject.getMeshName()];
+		const u32 meshID     = mMeshNameToIdMap[childObject.getMeshName()];
 		const u32 materialID = mMaterialNameToIdMap[childObject.getMaterialName()];
 
 		AABB referenceMeshAABB = mMeshArray[meshID].getAABB();
@@ -402,7 +403,7 @@ void Scene::recursiveBuildInstanceData(std::vector<DeviceInstanceData>& instance
 			AABB::transformAABB(referenceMeshAABB, currentTransformMat * transformMat),
 			blasInfo.blasRootNodeIndex,
 			blasInfo.vertexOffset,
-			blasInfo.indexOffset,
+			blasInfo.triangleIndexOffset,
 			materialID
 		};
 		instanceDataArray.push_back(instanceData);
@@ -410,9 +411,9 @@ void Scene::recursiveBuildInstanceData(std::vector<DeviceInstanceData>& instance
 
 	for (const Group& childGroup : group.getChildGroupArray())
 	{
-		Mat4 transformMat = childGroup.getTransform().getTransformMatrix();
-		Mat4 invTransformMat = childGroup.getTransform().getInvTransformMatrix();
-		Mat4 invTransposedTransformMat = childGroup.getTransform().getInvTransposeTransformMatrix();
+		const Mat4& transformMat              = childGroup.getTransform().getTransformMatrix();
+		const Mat4& invTransformMat           = childGroup.getTransform().getInvTransformMatrix();
+		const Mat4& invTransposedTransformMat = childGroup.getTransform().getInvTransposeTransformMatrix();
 		recursiveBuildInstanceData(instanceDataArray, childGroup, currentTransformMat * transformMat, invTransformMat * currentInvTransformMat, currentInvTransposedTransformMat * invTransposedTransformMat);
 	}
 }
