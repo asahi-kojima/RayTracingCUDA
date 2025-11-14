@@ -9,16 +9,17 @@ namespace
 
 	AABB generateAABBFromTriangle(const Vec3& v0, const Vec3& v1, const Vec3& v2)
 	{
+		const f32 padding = 1e-5f;
 		Vec3 minPosition{
-			std::min({v0[0], v1[0], v2[0]}),
-			std::min({v0[1], v1[1], v2[1]}),
-			std::min({v0[2], v1[2], v2[2]})
+			std::min({v0[0], v1[0], v2[0]})- padding,
+			std::min({v0[1], v1[1], v2[1]})- padding,
+			std::min({v0[2], v1[2], v2[2]})- padding
 		};
 		
 		Vec3 maxPosition{
-			std::max({v0[0], v1[0], v2[0]}),
-			std::max({v0[1], v1[1], v2[1]}),
-			std::max({v0[2], v1[2], v2[2]})
+			std::max({v0[0], v1[0], v2[0]}) + padding,
+			std::max({v0[1], v1[1], v2[1]}) + padding,
+			std::max({v0[2], v1[2], v2[2]}) + padding
 		};
 
 		return AABB{minPosition, maxPosition};
@@ -207,7 +208,7 @@ void Scene::buildVertexIndexBlas()
 	//--------------------------------------------------------------------
 	for (const auto& mesh : mMeshArray)
 	{
-		const std::vector<Vertex>& vertexArray = mesh.getVertexArray();
+		const std::vector<Vertex>& meshVertexArray = mesh.getVertexArray();
 		std::vector<uint3> sortdIndexArray;
 
 		// MeshからBLASを構築する
@@ -221,7 +222,7 @@ void Scene::buildVertexIndexBlas()
 		}
 
 		// このメッシュの頂点データの格納
-		for (const auto& vertex : vertexArray)
+		for (const auto& vertex : meshVertexArray)
 		{
 			float3 vertexPosition = vertex.position.toFloat3();
 			mRayTracingDataOnCPU.vertexArray.push_back(vertexPosition);
@@ -234,9 +235,9 @@ void Scene::buildVertexIndexBlas()
 			mRayTracingDataOnCPU.triangleIndexArray.push_back(index);
 
 			// 法線データもここで格納しておく
-			const Vec3& v0 = vertexArray[index.x].position;
-			const Vec3& v1 = vertexArray[index.y].position;
-			const Vec3& v2 = vertexArray[index.z].position;
+			const Vec3& v0 = meshVertexArray[index.x].position;
+			const Vec3& v1 = meshVertexArray[index.y].position;
+			const Vec3& v2 = meshVertexArray[index.z].position;
 			Vec3 normal = Vec3::normalize(Vec3::cross(v1 - v0, v2 - v0));
 			mRayTracingDataOnCPU.normalArray.push_back(normal.toFloat3());
 		}

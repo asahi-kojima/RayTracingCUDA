@@ -143,7 +143,7 @@ public:
 	static AABB transformAABB(const AABB& aabb, const Mat4& mat)
 	{
 		Vec3 minPosition(std::numeric_limits<f32>::max(), std::numeric_limits<f32>::max(), std::numeric_limits<f32>::max());
-		Vec3 maxPosition(std::numeric_limits<f32>::min(), std::numeric_limits<f32>::min(), std::numeric_limits<f32>::min());
+		Vec3 maxPosition(-std::numeric_limits<f32>::max(), -std::numeric_limits<f32>::max(), -std::numeric_limits<f32>::max());
 		for (s32 xi = 0; xi < 2; xi++)
 		{
 			for (s32 yi = 0; yi < 2; yi++)

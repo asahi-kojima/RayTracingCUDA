@@ -65,6 +65,71 @@ void subDivide(std::vector<Vertex>& vertexArray, std::vector<u32>& indexArray)
 }
 
 
+Mesh GeometryGenerator::tetrahedronGenerator()
+{
+	std::vector<Vec3> positions
+	{
+		Vec3(0.0f,      +1.0f, 0.0f),
+		Vec3(0,         -0.5f, +std::sqrtf(3) / 2.0f),
+		Vec3(+3.0f / 4, -0.5f, -std::sqrtf(3) / 4.0f),
+		Vec3(-3.0f / 4, -0.5f, -std::sqrtf(3) / 4.0f)
+	};
+
+
+
+	std::vector<Vertex> vertexArray;
+
+	for (u32 i = 0; i < 4; i++) 
+	{
+		vertexArray.emplace_back(positions[i], positions[i].normalize());
+	}
+	
+	std::vector<u32> indexArray
+	{
+		0, 1, 2, 
+		0, 3, 1,
+		0, 2, 3,
+		1, 3, 2
+	};
+
+	return Mesh(vertexArray, indexArray);
+}
+
+Mesh GeometryGenerator::octahedronGenerator()
+{
+	std::vector<Vec3> positions
+	{
+		Vec3(0.0f, +1.0f,  0.0f),
+		Vec3(0.0f,  0.0f, +1.0f),
+		Vec3(+1.0f, 0.0f,  0.0f),
+		Vec3(0.0f,  0.0f, -1.0f),
+		Vec3(-1.0f, 0.0f,  0.0f),
+		Vec3(0.0f, -1.0f,  0.0f)
+	};
+
+
+	std::vector<Vertex> vertexArray;
+
+	for (u32 i = 0; i < 6; ++i)
+	{
+		vertexArray.emplace_back(positions[i], positions[i].normalize());
+	}
+
+	std::vector<u32> indexArray
+	{
+		0, 1, 2,
+		0, 2, 3,
+		0, 3, 4,
+		0, 4, 1,
+		5, 2, 1,
+		5, 3, 2,
+		5, 4, 3,
+		5, 1, 4
+	};
+
+	return Mesh(vertexArray, indexArray);
+}
+
 Mesh GeometryGenerator::boxGenerator()
 {
 	const f32 halfEdgeLength = 1.0f;
@@ -132,75 +197,69 @@ Mesh GeometryGenerator::sphereGenerator(const u32 stackCount, const u32 sliceCou
 	Vertex topVertex(0.0f, +radius, 0.0f, 0.0f, +1.0f, 0.0f);
 	Vertex bottomVertex(0.0f, -radius, 0.0f, 0.0f, -1.0f, 0.0f);
 
-
 	std::vector<Vertex> vertexArray;
 	vertexArray.push_back(topVertex);
 
-	f32 dTheta = M_PI / (stackCount + 1);
-	f32 dPhi = 2.0f * M_PI / sliceCount;
+	const f32 dTheta = M_PI / (stackCount + 1);
+	const f32 dPhi   = 2.0f * M_PI / sliceCount;
 
+	// 中間のスタック（極以外）
 	for (u32 i = 0; i < stackCount; i++)
 	{
 		f32 theta = (i + 1) * dTheta;
-
 		for (u32 j = 0; j < sliceCount; j++)
 		{
 			f32 phi = j * dPhi;
 			Vertex v;
-
-			v.position[0] = radius * sinf(theta) * sinf(phi);
-			v.position[1] = radius * sinf(theta) * cosf(phi);
-			v.position[2] = radius * cosf(theta);
-
-			v.normal[0] = sinf(theta) * sinf(phi);
-			v.normal[1] = sinf(theta) * cosf(phi);
-			v.normal[2] = cosf(theta);
-
-
+			v.position[0] = radius * sinf(theta) * cosf(phi);
+			v.position[1] = radius * cosf(theta);
+			v.position[2] = radius * sinf(theta) * sinf(phi);
+			v.normal[0] = sinf(theta) * cosf(phi);
+			v.normal[1] = cosf(theta);
+			v.normal[2] = sinf(theta) * sinf(phi);
 			vertexArray.push_back(v);
 		}
 	}
 	vertexArray.push_back(bottomVertex);
 
-
 	std::vector<u32> indexArray;
+
+
 	for (u32 i = 0; i < sliceCount; i++)
 	{
 		indexArray.push_back(0);
-		indexArray.push_back(i + 1);
-		indexArray.push_back((i + 2) % sliceCount);
+		indexArray.push_back(1 + i);
+		indexArray.push_back(1 + (i + 1) % sliceCount);
 	}
 
-
-	u32 baseIndex = 1;
-	u32 ringVertexCount = sliceCount + 1;
-	for (u32 i = 0; i < stackCount - 2; i++)
+	for (u32 i = 0; i < stackCount - 1; i++)
 	{
 		for (u32 j = 0; j < sliceCount; j++)
 		{
-			indexArray.push_back(baseIndex + (i + 0) * ringVertexCount + (j + 0));
-			indexArray.push_back(baseIndex + (i + 0) * ringVertexCount + (j + 1));
-			indexArray.push_back(baseIndex + (i + 1) * ringVertexCount + (j + 0));
+			u32 current = 1 + i * sliceCount + j;
+			u32 next = 1 + i * sliceCount + (j + 1) % sliceCount;
+			u32 below = 1 + (i + 1) * sliceCount + j;
+			u32 belowNext = 1 + (i + 1) * sliceCount + (j + 1) % sliceCount;
 
-			indexArray.push_back(baseIndex + (i + 1) * ringVertexCount + (j + 0));
-			indexArray.push_back(baseIndex + (i + 0) * ringVertexCount + (j + 1));
-			indexArray.push_back(baseIndex + (i + 1) * ringVertexCount + (j + 1));
+			indexArray.push_back(current);
+			indexArray.push_back(below);
+			indexArray.push_back(next);
+
+			indexArray.push_back(next);
+			indexArray.push_back(below);
+			indexArray.push_back(belowNext);
 		}
 	}
 
 
 	u32 southPoleIndex = static_cast<u32>(vertexArray.size() - 1);
-
-	baseIndex = southPoleIndex - ringVertexCount;
-
+	u32 baseIndex = southPoleIndex - sliceCount;
 	for (u32 i = 0; i < sliceCount; i++)
 	{
 		indexArray.push_back(southPoleIndex);
+		indexArray.push_back(baseIndex + (i + 1) % sliceCount);
 		indexArray.push_back(baseIndex + i);
-		indexArray.push_back(baseIndex + i + 1);
 	}
-
-
 
 	return Mesh(vertexArray, indexArray);
 }
@@ -230,7 +289,7 @@ Mesh GeometryGenerator::geoSphereGenerator(const u32 subDivisionScale)
 
 
 
-	for (u32 i = 0; i < std::min<u32>(subDivisionScale, 5u); i++)
+	for (s32 i = 0; i < std::min<u32>(subDivisionScale, 5u); i++)
 	{
 		subDivide(vertexArray, indexArray);
 	}

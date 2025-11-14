@@ -23,12 +23,12 @@ __global__ void setup_gpu()
 }
 
 
-Transform generateRandomTransform(const f32 scale = 1.0f)
+Transform generateRandomTransform(const f32 scale = 100.0f)
 {
 	Transform transform;
 	transform.setTranslation(Vec3(RandomGenerator::signed_uniform_real(), RandomGenerator::signed_uniform_real(), RandomGenerator::signed_uniform_real()) * scale);
 	transform.setRotation(Vec3(RandomGenerator::signed_uniform_real(), RandomGenerator::signed_uniform_real(), RandomGenerator::signed_uniform_real()) * 10);
-	transform.setScaling(scale * 0.1);
+	transform.setScaling(1);
 	return transform;
 }
 
@@ -37,32 +37,44 @@ int main()
 {
 	ONCE_ON_GPU(setup_gpu)();
 
-	Mesh sphereMesh = GeometryGenerator::geoSphereGenerator(1);
+	Mesh sphereMesh = GeometryGenerator::sphereGenerator();
+	Mesh tetrahedronMesh = GeometryGenerator::tetrahedronGenerator();
+	Mesh octahedronMesh = GeometryGenerator::octahedronGenerator();
 	Mesh boxMesh = GeometryGenerator::boxGenerator();
+	Mesh geoSphereMesh0 = GeometryGenerator::geoSphereGenerator(0);
+	Mesh geoSphereMesh1 = GeometryGenerator::geoSphereGenerator(1);
 	Mesh geoSphereMesh2 = GeometryGenerator::geoSphereGenerator(2);
 	Mesh geoSphereMesh3 = GeometryGenerator::geoSphereGenerator(3);
 	Mesh geoSphereMesh4 = GeometryGenerator::geoSphereGenerator(4);
 
 	Material material0{Color::Bronze, 1.0f, 0.0, 1.0f};
 	Material material1{Color::Green, 1.0f, 0.0, 0.0f};
+	Material material2{Color::Red, 1.0f, 0.0, 0.0f};
 
 	Scene scene;
 	{
 		scene.addMaterial("glass", material0);
 		scene.addMaterial("metal", material0);
 		scene.addMaterial("air", material1);
+		scene.addMaterial("diamond", material2);
 
 
+		scene.addMesh("octahedron", octahedronMesh);
+		scene.addMesh("geoSphere0", geoSphereMesh0);
+		scene.addMesh("geoSphere1", geoSphereMesh1);
 		scene.addMesh("sphere", sphereMesh);
 		scene.addMesh("box", boxMesh);
+		scene.addMesh("tetrahedron", tetrahedronMesh);
 		scene.addMesh("geoSphere2", geoSphereMesh2);
 		scene.addMesh("geoSphere3", geoSphereMesh3);
 		scene.addMesh("geoSphere4", geoSphereMesh4);
 	}
 
+	Object object{"tetra", "tetrahedron", "diamond"};
+	Object objectocta{"octa", "octahedron", "diamond"};
 	Object object0{"object0", "sphere", "glass"};
 	Object object1{"object1", "box", "air"};
-	Object object2{"object2", "geoSphere2", "air"};
+	Object object2{"object2", "octahedron", "glass"};
 	Object object3{"object2", "geoSphere2", "air", generateRandomTransform() };
 	Object object4{"object2_1", "geoSphere2", "air", generateRandomTransform()};
 
@@ -72,7 +84,15 @@ int main()
 
 	Result result;
 
-	scene.addObject(object1);
+	f32 scale = 3.0f;
+	Transform trans = Transform::scaling(Vec3(scale, scale, scale));
+	trans.setTranslation(Vec3(0, 0, 0));
+	scene.addObject(object2, trans);
+	scene.addObject(objectocta, Transform::translation(Vec3(3, 0, 0)));
+	scene.addObject(object2, Transform::translation(Vec3(-3, 0, 0)));
+	scene.addObject(object2, Transform::translation(Vec3(0, -3, 0)));
+
+
 	//Group group0("group0");
 	//{
 	//	result = group0.addChildObject(object0);
@@ -142,5 +162,5 @@ int main()
 	result = scene.build();
 	result = scene.initLaunchParams();
 	result = scene.render();
-	//cudaDeviceSynchronize();
+	cudaDeviceSynchronize();
 }

@@ -52,8 +52,8 @@ Result Scene::initLaunchParams()
 	mGpuRayTracingLaunchParamsHostSide.tlasCount     = mRayTracingDataOnCPU.tlasArray.size();
 
 
-	mGpuRayTracingLaunchParamsHostSide.pixelSizeVertical = 500;
-	mGpuRayTracingLaunchParamsHostSide.pixelSizeHorizontal = 500;
+	mGpuRayTracingLaunchParamsHostSide.pixelSizeVertical = 1000;
+	mGpuRayTracingLaunchParamsHostSide.pixelSizeHorizontal = 1000;
 	mGpuRayTracingLaunchParamsHostSide.invPixelSizeVertical = 1.0f / static_cast<f32>(mGpuRayTracingLaunchParamsHostSide.pixelSizeVertical);
 	mGpuRayTracingLaunchParamsHostSide.invPixelSizeHorizontal = 1.0f / static_cast<f32>(mGpuRayTracingLaunchParamsHostSide.pixelSizeHorizontal);
 
@@ -63,7 +63,8 @@ Result Scene::initLaunchParams()
 
 	mGpuRayTracingLaunchParamsHostSide.frameCount = 0;
 
-	Camera camera{Vec3(10, 10, 10), Vec3::zero(), Vec3::unitY(), 20, 1};
+	const f32 diff = 3.1f;
+	Camera camera{Vec3(10, 3, 30), Vec3::zero(), Vec3::unitY(), 20, 1};
 	mGpuRayTracingLaunchParamsHostSide.camera = camera;
 
 	cudaMemcpyToSymbol(gGpuRayTracingLaunchParams, &mGpuRayTracingLaunchParamsHostSide, sizeof(GpuRayTracingLaunchParams));
@@ -73,11 +74,6 @@ Result Scene::initLaunchParams()
 
 	return Result();
 }
-
-
-
-
-
 
 
 
@@ -102,6 +98,31 @@ struct HitRecord
 
 namespace
 {
+	__device__ float3 operator+(const float3& v, const float3& w)//delete
+	{
+		return float3{ v.x + w.x, v.y + w.y, v.z + w.z };
+	}
+
+	__device__ __host__ float3 operator*(const float3& v, const f32 s)//delete
+	{
+		return float3{ v.x * s, v.y * s, v.z * s };
+	}
+
+	__device__ __host__ float3 operator*(const float3& v, const float3& w)//delete
+	{
+		return float3{ v.x * w.x, v.y * w.y, v.z * w.z };
+	}
+
+
+	__device__ __host__ float3& operator+=(float3& v, const float3& w)//delete
+	{
+		v.x += w.x;
+		v.y += w.y;
+		v.z += w.z;
+		return v;
+	}
+
+
 	struct TriangleIntersectionResult
 	{
 		bool isIntersected;
@@ -131,19 +152,19 @@ __device__ TriangleIntersectionResult intersectionTriangle(const Ray& ray, const
 	const Vec3 a2 = p2;
 
 	const Vec3 cross1x2 = Vec3::cross(a1, a2);
-	const Vec3 cross2x0 = Vec3::cross(a2, a0);
-	const Vec3 cross0x1 = Vec3::cross(a0, a1);
 
 	const f32 det = Vec3::dot(cross1x2, a0);
 	if (isEqualF32(det, 0.0f))
 	{
 		return TriangleIntersectionResult{false};
 	}
+
+	const Vec3 cross2x0 = Vec3::cross(a2, a0);
+	const Vec3 cross0x1 = Vec3::cross(a0, a1);
 	
-	
-	const f32 t = Vec3::dot(cross1x2, v0ToO) / det;
+	const f32 t     = Vec3::dot(cross1x2, v0ToO) / det;
 	const f32 alpha = Vec3::dot(cross2x0, v0ToO) / det;
-	const f32 beta = Vec3::dot(cross0x1, v0ToO) / det;
+	const f32 beta  = Vec3::dot(cross0x1, v0ToO) / det;
 
 	const f32 tmin = ray.tmin();
 	const f32 tmax = ray.tmax();
@@ -152,6 +173,40 @@ __device__ TriangleIntersectionResult intersectionTriangle(const Ray& ray, const
 	{
 		return TriangleIntersectionResult{ false };
 	}
+
+	bool isCulling = false;//TODO
+
+	return TriangleIntersectionResult{ true, t, alpha, beta };
+}
+
+
+__device__ TriangleIntersectionResult testintersectionTriangle(const Ray& ray, const float3& v0, const float3& v1, const float3& v2)
+{
+	const Vec3 p1 = Vec3(v1) - Vec3(v0);
+	const Vec3 p2 = Vec3(v2) - Vec3(v0);
+	const Vec3 v0ToO = ray.origin() - Vec3(v0);
+
+	const Vec3 a0 = -ray.direction();
+	const Vec3 a1 = p1;
+	const Vec3 a2 = p2;
+
+	const Vec3 cross1x2 = Vec3::cross(a1, a2);
+
+	const f32 det = Vec3::dot(cross1x2, a0);
+	if (isEqualF32(det, 0.0f))
+	{
+		return TriangleIntersectionResult{ false };
+	}
+
+	const Vec3 cross2x0 = Vec3::cross(a2, a0);
+	const Vec3 cross0x1 = Vec3::cross(a0, a1);
+
+	const f32 t = Vec3::dot(cross1x2, v0ToO) / det;
+	const f32 alpha = Vec3::dot(cross2x0, v0ToO) / det;
+	const f32 beta = Vec3::dot(cross0x1, v0ToO) / det;
+
+	const f32 tmin = ray.tmin();
+	const f32 tmax = ray.tmax();
 
 	bool isCulling = false;//TODO
 
@@ -176,39 +231,37 @@ __device__ s32 traceBlasTree(Ray& ray, const u32 blasRootIndex, const u32 vertex
 
 		if (!(aabbHitResult = currentNode.aabb.doIntersect(ray)))
 		{
-			// Õ“Ë‚ª‚È‚¯‚ê‚ÎˆÈ~‚Ì[“x‚Å‚à“–‚½‚ç‚È‚¢‚©‚çƒXƒLƒbƒv
+			// è¡çªãŒãªã‘ã‚Œã°ä»¥é™ã®æ·±åº¦ã§ã‚‚å½“ãŸã‚‰ãªã„ã‹ã‚‰ã‚¹ã‚­ãƒƒãƒ—
 			continue;
 		}
 
 		//--------------------------------------------------------------
-		// Õ“Ë‚µ‚½‚Ì‚Åray‚Ìtmax‚ğXV‚·‚é
+		// è¡çªã—ãŸã®ã§rayã®tmaxã‚’æ›´æ–°ã™ã‚‹
 		//--------------------------------------------------------------
-		ray.tmax() = aabbHitResult.tmax;
 
 		if (currentNode.primitiveCount > 0)
 		{
-			// BLAS‚ÌƒŠ[ƒtƒm[ƒh‚É“’B = ƒƒbƒVƒ…‚Ì’†‚Ì”ŒÂ‚ÌOŠpŒ`‚Ü‚Å“’B
-			// OŠpŒ`‚Æ‚ÌÕ“Ë”»’è‚ğs‚¤
-			// ‚±‚±‚ÅƒJƒŒƒ“ƒgƒm[ƒh‚ª‚Á‚Ä‚¢‚éfirstPrimitiveOffset‚ÆprimitiveCount‚ÍˆêŒÂ‚ÌƒƒbƒVƒ…“à‚ÌOŠpŒ`‚É‘Î‚µ‚Ä‚Ì‚à‚Ìi‘SƒƒbƒVƒ…‚Ì”z—ñ“à‚ÌƒCƒ“ƒfƒbƒNƒX‚Å‚Í‚È‚¢
-			// ‚Â‚Ü‚ètriangleIndex‚Íƒ[ƒJƒ‹‚ÈOŠpŒ`ƒCƒ“ƒfƒbƒNƒX
+			// BLASã®ãƒªãƒ¼ãƒ•ãƒãƒ¼ãƒ‰ã«åˆ°é” = ãƒ¡ãƒƒã‚·ãƒ¥ã®ä¸­ã®æ•°å€‹ã®ä¸‰è§’å½¢ã¾ã§åˆ°é”
+			// ä¸‰è§’å½¢ã¨ã®è¡çªåˆ¤å®šã‚’è¡Œã†
+			// ã“ã“ã§ã‚«ãƒ¬ãƒ³ãƒˆãƒãƒ¼ãƒ‰ãŒæŒã£ã¦ã„ã‚‹firstPrimitiveOffsetã¨primitiveCountã¯ä¸€å€‹ã®ãƒ¡ãƒƒã‚·ãƒ¥å†…ã®ä¸‰è§’å½¢ã«å¯¾ã—ã¦ã®ã‚‚ã®ï¼ˆå…¨ãƒ¡ãƒƒã‚·ãƒ¥ã®é…åˆ—å†…ã®ã‚¤ãƒ³ãƒ‡ãƒƒã‚¯ã‚¹ã§ã¯ãªã„
+			// ã¤ã¾ã‚ŠtriangleIndexã¯ãƒ­ãƒ¼ã‚«ãƒ«ãªä¸‰è§’å½¢ã‚¤ãƒ³ãƒ‡ãƒƒã‚¯ã‚¹
 			for (u32 triangleIndex = currentNode.firstPrimitiveOffset, end = currentNode.firstPrimitiveOffset + currentNode.primitiveCount; triangleIndex < end; triangleIndex++)
 			{
-				const uint3& index = gGpuRayTracingLaunchParams.triangleIndexArray[triangleIndex + indexOffset];//offset‚ª‚¢‚é
+				const uint3& index = gGpuRayTracingLaunchParams.triangleIndexArray[triangleIndex + indexOffset];//offsetãŒã„ã‚‹
 				const float3& v0   = gGpuRayTracingLaunchParams.vertexArray[index.x + vertexOffset];
 				const float3& v1   = gGpuRayTracingLaunchParams.vertexArray[index.y + vertexOffset];
 				const float3& v2   = gGpuRayTracingLaunchParams.vertexArray[index.z + vertexOffset];
-
+	
 				if (TriangleIntersectionResult triangleIntersectionResult{}; triangleIntersectionResult = intersectionTriangle(ray, v0, v1, v2))
 				{
-					//ray.tmax()‚ÉÕ“Ë“_‚Ìî•ñ‚ª“ü‚Á‚Ä‚¢‚é
 					ray.tmax() = triangleIntersectionResult.t;
-					closestTriangleID = triangleIndex;
+					closestTriangleID = triangleIndex + indexOffset;
 				}
 			}
 		}
 		else
 		{
-			//TODO : [“x‚ª[‚­‚È‚è‚·‚¬‚½ê‡
+			//TODO : æ·±åº¦ãŒæ·±ããªã‚Šã™ããŸå ´åˆ
 			if (stackTop + 2 >= 32)
 			{
 				printf("Stack Overflow in BLAS traversal\n");
@@ -237,31 +290,30 @@ __device__ HitRecord traceTlasTree(Ray ray)
 	nodeStack[stackTop++] = 0;
 	while (stackTop > 0)
 	{
-		//printf("Top = %d\n", stackTop);
 		const u32 currentNodeIndex = nodeStack[--stackTop];
 		BVHNode& currentNode = gGpuRayTracingLaunchParams.tlasArray[currentNodeIndex];
 		
 
 		//--------------------------------------------------------------
-		// ‚Ü‚¸‚Í‚±‚ÌTLASƒm[ƒh‚ÌAABB‚Æ‚ÌÕ“Ë‚ğŠm”F‚·‚é
+		// ã¾ãšã¯ã“ã®TLASãƒãƒ¼ãƒ‰ã®AABBã¨ã®è¡çªã‚’ç¢ºèªã™ã‚‹
 		//--------------------------------------------------------------
 		if (!(aabbHitResult = currentNode.aabb.doIntersect(ray)))
 		{
-			// Õ“Ë‚ª‚È‚¯‚ê‚ÎˆÈ~‚Ì[“x‚Å‚à“–‚½‚ç‚È‚¢‚©‚çƒXƒLƒbƒv
+			// è¡çªãŒãªã‘ã‚Œã°ä»¥é™ã®æ·±åº¦ã§ã‚‚å½“ãŸã‚‰ãªã„ã‹ã‚‰ã‚¹ã‚­ãƒƒãƒ—
 			continue;
 		}
 
 		//--------------------------------------------------------------
-		// Õ“Ë‚µ‚½‚Ì‚Åray‚Ìtmax‚ğXV‚·‚é
+		// è¡çªã—ãŸã®ã§rayã®tmaxã‚’æ›´æ–°ã™ã‚‹
 		//--------------------------------------------------------------
-		ray.tmax() = aabbHitResult.tmax;
+
 
 		//--------------------------------------------------------------
-		// ––’[‚Å‚ ‚ê‚Î—t‚ÌƒCƒ“ƒXƒ^ƒ“ƒX’B‚ğ’²‚×A‚»‚¤‚Å‚È‚¯‚ê‚Îq‚És‚­
+		// æœ«ç«¯ã§ã‚ã‚Œã°è‘‰ã®ã‚¤ãƒ³ã‚¹ã‚¿ãƒ³ã‚¹é”ã‚’èª¿ã¹ã€ãã†ã§ãªã‘ã‚Œã°å­ã«è¡Œã
 		//--------------------------------------------------------------
 		if (currentNode.primitiveCount > 0)
 		{
-			//TODO;
+
 			for (u32 instanceID = currentNode.firstPrimitiveOffset, end = currentNode.firstPrimitiveOffset + currentNode.primitiveCount; instanceID < end; instanceID++)
 			{
 				const DeviceInstanceData& currentInstanceData = gGpuRayTracingLaunchParams.instanceDataArray[instanceID];
@@ -269,28 +321,30 @@ __device__ HitRecord traceTlasTree(Ray ray)
 				if (aabbHitResult = currentInstanceData.aabb.doIntersect(ray))
 				{
 					//--------------------------------------------------------------------------------------
-					// Õ“Ë‚µ‚½‚Ì‚Åray‚Ìtmax‚ğXV‚·‚é
+					// è¡çªã—ãŸã®ã§rayã®tmaxã‚’æ›´æ–°ã™ã‚‹
 					//--------------------------------------------------------------------------------------
-					ray.tmax() = aabbHitResult.tmax;
 
 					//--------------------------------------------------------------------------------------
-					// ƒCƒ“ƒXƒ^ƒ“ƒX‚ÌAABB‚ÉÕ“Ë‚µ‚½‚Ì‚ÅA‚±‚ê‚©‚çƒCƒ“ƒXƒ^ƒ“ƒX‚ªQÆ‚·‚éBLASƒcƒŠ[‚ğ’Tõ‚·‚é
+					// ã‚¤ãƒ³ã‚¹ã‚¿ãƒ³ã‚¹ã®AABBã«è¡çªã—ãŸã®ã§ã€ã“ã‚Œã‹ã‚‰ã‚¤ãƒ³ã‚¹ã‚¿ãƒ³ã‚¹ãŒå‚ç…§ã™ã‚‹BLASãƒ„ãƒªãƒ¼ã‚’æ¢ç´¢ã™ã‚‹
 					//--------------------------------------------------------------------------------------
 					const u32 blasRootIndex = currentInstanceData.blasRootNodeIndex;
 					
 					//--------------------------------------------------------------------------------------
-					// ƒƒbƒVƒ…‚Ìƒ[ƒJƒ‹‹óŠÔ‚ÉƒŒƒC‚ğ•ÏŠ·‚·‚é
+					// ãƒ¡ãƒƒã‚·ãƒ¥ã®ãƒ­ãƒ¼ã‚«ãƒ«ç©ºé–“ã«ãƒ¬ã‚¤ã‚’å¤‰æ›ã™ã‚‹
+					// è¦æ ¼åŒ–ã™ã‚‹ã¨tãŒå¤‰ã‚ã£ã¦ã—ã¾ã†ãŸã‚ã€æ­£è¦åŒ–ã—ãªã„å¤‰æ›ã‚’è¡Œã†
 					//--------------------------------------------------------------------------------------
-					Ray localRay = ray.transformWith(currentInstanceData.invTransformMat);
-					
+					Ray localRay = ray.transformWithoutNormalize(currentInstanceData.invTransformMat);
+					localRay.tmin() = ray.tmin();
+					localRay.tmax() = ray.tmax();
+
 					//--------------------------------------------------------------------------------------
-					// BLASƒcƒŠ[‚Ì’Tõ
+					// BLASãƒ„ãƒªãƒ¼ã®æ¢ç´¢
 					//--------------------------------------------------------------------------------------
 					const s32 tmpClosestTriangleID = traceBlasTree(localRay, blasRootIndex, currentInstanceData.vertexOffset, currentInstanceData.indexOffset);
 					
 					if (tmpClosestTriangleID >= 0)
 					{
-						// OŠpŒ`‚ÉÕ“Ë‚µ‚½‚Ì‚Åƒpƒ‰ƒ[ƒ^ãŒÀ‚ğXV
+						// ä¸‰è§’å½¢ã«è¡çªã—ãŸã®ã§ãƒ‘ãƒ©ãƒ¡ãƒ¼ã‚¿ä¸Šé™ã‚’æ›´æ–°
 						ray.tmax() = localRay.tmax();
 
 						closestInstanceID = instanceID;
@@ -301,7 +355,7 @@ __device__ HitRecord traceTlasTree(Ray ray)
 		}
 		else
 		{
-			//TODO : [“x‚ª[‚­‚È‚è‚·‚¬‚½ê‡
+			//TODO : æ·±åº¦ãŒæ·±ããªã‚Šã™ããŸå ´åˆ
 			if (stackTop + 2 >= 32)
 			{
 				printf("Stack Overflow in TLAS traversal\n");
@@ -313,7 +367,7 @@ __device__ HitRecord traceTlasTree(Ray ray)
 	}
 
 	//--------------------------------------------------------------
-	// ƒCƒ“ƒXƒ^ƒ“ƒXID‚ª³‚È‚çÕ“Ë‚ª‚ ‚Á‚½‚Æ‚¢‚¤–
+	// ã‚¤ãƒ³ã‚¹ã‚¿ãƒ³ã‚¹IDãŒæ­£ãªã‚‰è¡çªãŒã‚ã£ãŸã¨ã„ã†äº‹
 	//--------------------------------------------------------------
 	if (closestInstanceID >= 0)
 	{
@@ -354,45 +408,22 @@ __device__ HitRecord traceTlasTree(Ray ray)
 	return hitRecord;
 }
 
-__device__ float3 operator+(const float3& v, const float3& w)//delete
-{
-	return float3{ v.x + w.x, v.y + w.y, v.z + w.z };
-}
 
-__device__ __host__ float3 operator*(const float3& v, const f32 s)//delete
-{
-	return float3{ v.x * s, v.y * s, v.z * s };
-}
-
-__device__ __host__ float3 operator*(const float3& v, const float3& w)//delete
-{
-	return float3{ v.x * w.x, v.y * w.y, v.z * w.z };
-}
-
-
-__device__ __host__ float3& operator+=(float3& v, const float3& w)//delete
-{
-	v.x += w.x;
-	v.y += w.y;
-	v.z += w.z;
-	return v;
-}
 
 __device__ bool shader(const Ray& ray, const HitRecord& hitRecord, const Material& material, Ray& scatteredRay, float3& albedo)
 {
 	// Diffuse shader
-	const f32 diffuse = material.diffuse;
+	const f32 diffuse = 1.0f;//material.diffuse;
 
 	const float3 target = hitRecord.hitPoint + hitRecord.hitPointNormal + Vec3::generateRandomUnitVector().toFloat3();
-	scatteredRay = Ray(Vec3(hitRecord.hitPoint), Vec3::normalize(Vec3(target) - Vec3(hitRecord.hitPoint)));
 
 
 	//Metal shader
 	const Vec3 reflected = Vec3::reflect(ray.direction().normalize(), Vec3::normalize(hitRecord.hitPointNormal));
-	scatteredRay = Ray(Vec3(hitRecord.hitPoint), reflected * diffuse + Vec3::normalize(Vec3(target) - Vec3(hitRecord.hitPoint) * (1 - diffuse)));
+	scatteredRay = Ray(Vec3(hitRecord.hitPoint), (reflected * diffuse + (Vec3(target) - Vec3(hitRecord.hitPoint)) * (1 - diffuse)).normalize());
 
 	albedo = float3{ material.albedo.r(), material.albedo.g(), material.albedo.b() };
-
+	scatteredRay = Ray(Vec3(hitRecord.hitPoint), reflected.normalize());
 
 	return true;
 }
@@ -403,16 +434,22 @@ __device__ Color tracePath(Ray ray)
 	float3 pathAttenuation = float3{1.0f, 1.0f, 1.0f};
 	HitRecord hitRecord;
 	
-	const u32 maxBounce = 5;
+	const u32 maxBounce = 4;
 	for (u32 bounce = 0; bounce < maxBounce; bounce++)
 	{
+		ray.tmin() = 0.001f;
+		ray.tmax() = FLT_MAX;
 
 		if (!(hitRecord = traceTlasTree(ray)))
 		{
-			float3 backGroundColor = float3{ 0.5f, 0.7f, 1.0f };
+			const f32 ratio = 0.5f * (ray.direction().normalize().x() + 1.0f);
+			//printf("%f\n", ray.direction().y());
+			float3 backGroundColor = float3{1 * ratio, 1 * ratio, 1 * ratio + (1 - ratio)};//float3{ 0.5f, 0.7f, 1.0f };
+	
 			pathRadiance += (backGroundColor * pathAttenuation);
 			break;
 		}
+
 		Material material = gGpuRayTracingLaunchParams.materialArray[gGpuRayTracingLaunchParams.instanceDataArray[hitRecord.objectID].materialID];
 
 		Ray scatteredRay;
@@ -478,9 +515,9 @@ Result Scene::render()
 	std::cout << "===================================================" << std::endl;
 	std::cout << "                  Rendering Start                  " << std::endl;
 	std::cout << "===================================================" << std::endl;
-	//TLAS‚Ì’Tõ
+	//TLASã®æ¢ç´¢
 
-	//Object‚Ìƒ[ƒJƒ‹‹óŠÔ‚ÉˆÚs‚µABLAS‚ğ’Tõ‚·‚é
+	//Objectã®ãƒ­ãƒ¼ã‚«ãƒ«ç©ºé–“ã«ç§»è¡Œã—ã€BLASã‚’æ¢ç´¢ã™ã‚‹
 
 
     Result result;
