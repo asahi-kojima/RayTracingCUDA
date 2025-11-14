@@ -60,7 +60,7 @@ public:
 	void getAllMeshNamesChildrenHave(std::vector<std::string>& nameArray) const;
 	void getAllMateialNamesChildrenHave(std::vector<std::string>& nameArray) const;
 
-	void updateAllChildrenTransform();
+	void updateAllDescendantsTransform();
 	//void flatten(std::vector<f32>& flattenDataArray, const Transform& transform) const;
 
 private:

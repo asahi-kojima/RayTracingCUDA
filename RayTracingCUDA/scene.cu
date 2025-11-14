@@ -84,8 +84,8 @@ struct HitRecord
 {
 	bool isHit = false;
 	f32 t;
-	float3 hitPoint;
-	float3 hitPointNormal;
+	Vec3 hitPoint;
+	Vec3 hitPointNormal;
 	u32 objectID;
 	u32 triangleID;
 
@@ -99,29 +99,6 @@ struct HitRecord
 
 namespace
 {
-	__device__ float3 operator+(const float3& v, const float3& w)//delete
-	{
-		return float3{ v.x + w.x, v.y + w.y, v.z + w.z };
-	}
-
-	__device__ __host__ float3 operator*(const float3& v, const f32 s)//delete
-	{
-		return float3{ v.x * s, v.y * s, v.z * s };
-	}
-
-	__device__ __host__ float3 operator*(const float3& v, const float3& w)//delete
-	{
-		return float3{ v.x * w.x, v.y * w.y, v.z * w.z };
-	}
-
-
-	__device__ __host__ float3& operator+=(float3& v, const float3& w)//delete
-	{
-		v.x += w.x;
-		v.y += w.y;
-		v.z += w.z;
-		return v;
-	}
 
 
 	struct TriangleIntersectionResult
@@ -142,11 +119,11 @@ namespace
 	};
 }
 
-__device__ TriangleIntersectionResult intersectionTriangle(const Ray& ray, const float3& v0, const float3& v1, const float3& v2)
+__device__ TriangleIntersectionResult intersectionTriangle(const Ray& ray, const Vec3& v0, const Vec3& v1, const Vec3& v2)
 {
-	const Vec3 p1 = Vec3(v1) - Vec3(v0);
-	const Vec3 p2 = Vec3(v2) - Vec3(v0);
-	const Vec3 v0ToO = ray.origin() - Vec3(v0);
+	const Vec3 p1 = v1 - v0;
+	const Vec3 p2 = v2 - v0;
+	const Vec3 v0ToO = ray.origin() - v0;
 
 	const Vec3 a0 = -ray.direction();
 	const Vec3 a1 = p1;
@@ -180,39 +157,6 @@ __device__ TriangleIntersectionResult intersectionTriangle(const Ray& ray, const
 	return TriangleIntersectionResult{ true, t, alpha, beta };
 }
 
-
-__device__ TriangleIntersectionResult testintersectionTriangle(const Ray& ray, const float3& v0, const float3& v1, const float3& v2)
-{
-	const Vec3 p1 = Vec3(v1) - Vec3(v0);
-	const Vec3 p2 = Vec3(v2) - Vec3(v0);
-	const Vec3 v0ToO = ray.origin() - Vec3(v0);
-
-	const Vec3 a0 = -ray.direction();
-	const Vec3 a1 = p1;
-	const Vec3 a2 = p2;
-
-	const Vec3 cross1x2 = Vec3::cross(a1, a2);
-
-	const f32 det = Vec3::dot(cross1x2, a0);
-	if (isEqualF32(det, 0.0f))
-	{
-		return TriangleIntersectionResult{ false };
-	}
-
-	const Vec3 cross2x0 = Vec3::cross(a2, a0);
-	const Vec3 cross0x1 = Vec3::cross(a0, a1);
-
-	const f32 t = Vec3::dot(cross1x2, v0ToO) / det;
-	const f32 alpha = Vec3::dot(cross2x0, v0ToO) / det;
-	const f32 beta = Vec3::dot(cross0x1, v0ToO) / det;
-
-	const f32 tmin = ray.tmin();
-	const f32 tmax = ray.tmax();
-
-	bool isCulling = false;//TODO
-
-	return TriangleIntersectionResult{ true, t, alpha, beta };
-}
 
 
 __device__ s32 traceBlasTree(Ray& ray, const u32 blasRootIndex, const u32 vertexOffset, const u32 indexOffset)
@@ -249,9 +193,9 @@ __device__ s32 traceBlasTree(Ray& ray, const u32 blasRootIndex, const u32 vertex
 			for (u32 triangleIndex = currentNode.firstPrimitiveOffset, end = currentNode.firstPrimitiveOffset + currentNode.primitiveCount; triangleIndex < end; triangleIndex++)
 			{
 				const uint3& index = gGpuRayTracingLaunchParams.triangleIndexArray[triangleIndex + indexOffset];//offsetがいる
-				const float3& v0   = gGpuRayTracingLaunchParams.vertexArray[index.x + vertexOffset];
-				const float3& v1   = gGpuRayTracingLaunchParams.vertexArray[index.y + vertexOffset];
-				const float3& v2   = gGpuRayTracingLaunchParams.vertexArray[index.z + vertexOffset];
+				const Vec3& v0   = gGpuRayTracingLaunchParams.vertexArray[index.x + vertexOffset];
+				const Vec3& v1   = gGpuRayTracingLaunchParams.vertexArray[index.y + vertexOffset];
+				const Vec3& v2   = gGpuRayTracingLaunchParams.vertexArray[index.z + vertexOffset];
 	
 				if (TriangleIntersectionResult triangleIntersectionResult{}; triangleIntersectionResult = intersectionTriangle(ray, v0, v1, v2))
 				{
@@ -318,10 +262,6 @@ __device__ HitRecord traceTlasTree(Ray ray)
 				if (aabbHitResult = currentInstanceData.aabb.doIntersect(ray))
 				{
 					//--------------------------------------------------------------------------------------
-					// 衝突したのでrayのtmaxを更新する
-					//--------------------------------------------------------------------------------------
-
-					//--------------------------------------------------------------------------------------
 					// インスタンスのAABBに衝突したので、これからインスタンスが参照するBLASツリーを探索する
 					//--------------------------------------------------------------------------------------
 					const u32 blasRootIndex = currentInstanceData.blasRootNodeIndex;
@@ -379,19 +319,19 @@ __device__ HitRecord traceTlasTree(Ray ray)
 		*/
 		hitRecord.isHit    = true;
 		hitRecord.t        = ray.tmax();
-		hitRecord.hitPoint = ray.pointAt(hitRecord.t).toFloat3();
+		hitRecord.hitPoint = ray.pointAt(hitRecord.t);
 		
 		hitRecord.hitPointNormal = gGpuRayTracingLaunchParams.normalArray[closestTriangleID];
 		{
 			const Mat4& normalTransform = gGpuRayTracingLaunchParams.instanceDataArray[closestInstanceID].normalTransformMat;
 
-			hitRecord.hitPointNormal = (normalTransform * Vec4(hitRecord.hitPointNormal, 0)).extractXYZ().normalize().toFloat3();
+			hitRecord.hitPointNormal = (normalTransform * Vec4(hitRecord.hitPointNormal, 0)).extractXYZ().normalize();
 			
 			const Vec3& direction = ray.direction();
 			const Vec3 normal = Vec3(hitRecord.hitPointNormal);
 			if (Vec3::dot(direction, normal) > 0)
 			{
-				hitRecord.hitPointNormal = (normal * -1).toFloat3();
+				hitRecord.hitPointNormal = (normal * -1);
 			}
 		}
 		hitRecord.objectID = closestInstanceID;
@@ -403,27 +343,27 @@ __device__ HitRecord traceTlasTree(Ray ray)
 
 
 
-__device__ bool shader(const Ray& ray, const HitRecord& hitRecord, const Material& material, Ray& scatteredRay, float3& albedo)
+__device__ bool shader(const Ray& ray, const HitRecord& hitRecord, const Material& material, Ray& scatteredRay, Vec3& albedo)
 {
 	//// Diffuse shader
 	const f32 diffuse = material.diffuse;
-	const float3 target = hitRecord.hitPoint + hitRecord.hitPointNormal + Vec3::generateRandomUnitVector().toFloat3();
+	const Vec3 target = hitRecord.hitPoint + hitRecord.hitPointNormal + Vec3::generateRandomUnitVector();
 
 
 	////Metal shader
 
-	albedo = float3{ material.albedo.r(), material.albedo.g(), material.albedo.b() };
+	albedo = Vec3{ material.albedo.r(), material.albedo.g(), material.albedo.b() };
 	
 	const Vec3 reflected = Vec3::reflect(ray.direction().normalize(), Vec3::normalize(hitRecord.hitPointNormal));
-	scatteredRay = Ray(Vec3(hitRecord.hitPoint), (reflected * (1 - diffuse) + (Vec3(target) - Vec3(hitRecord.hitPoint)) * (diffuse)).normalize());
+	scatteredRay = Ray(hitRecord.hitPoint, (reflected * (1 - diffuse) + (target - hitRecord.hitPoint) * (diffuse)).normalize());
 
 	return true;
 }
 
 __device__ Color tracePath(Ray ray)
 {
-	float3 pathRadiance = float3{ 0.0f, 0.0f, 0.0f };
-	float3 pathAttenuation = float3{1.0f, 1.0f, 1.0f};
+	Vec3 pathRadiance = Vec3{ 0.0f, 0.0f, 0.0f };
+	Vec3 pathAttenuation = Vec3{1.0f, 1.0f, 1.0f};
 	HitRecord hitRecord;
 	
 	const u32 maxBounce = 30;
@@ -436,7 +376,7 @@ __device__ Color tracePath(Ray ray)
 		{
 			const f32 ratio = 0.5f * (ray.direction().normalize().y() + 1.0f);
 			
-			float3 backGroundColor = float3{1 * ratio, 1 * ratio, 1 * ratio + (1 - ratio)};//float3{ 0.5f, 0.7f, 1.0f };
+			Vec3 backGroundColor = Vec3{1 * ratio, 1 * ratio, 1 * ratio + (1 - ratio)};//float3{ 0.5f, 0.7f, 1.0f };
 		
 			pathRadiance += (backGroundColor * pathAttenuation);
 			break;
@@ -445,7 +385,7 @@ __device__ Color tracePath(Ray ray)
 		Material material = gGpuRayTracingLaunchParams.materialArray[gGpuRayTracingLaunchParams.instanceDataArray[hitRecord.objectID].materialID];
 
 		Ray scatteredRay;
-		float3 albedo;
+		Vec3 albedo;
 		if (!shader(ray, hitRecord, material, scatteredRay, albedo))
 		{
 			break;
@@ -454,7 +394,7 @@ __device__ Color tracePath(Ray ray)
 		pathAttenuation = pathAttenuation * albedo;
 		ray = scatteredRay;
 
-		const f32 maxIntensity = fmaxf(fmaxf(pathAttenuation.x, pathAttenuation.y), pathAttenuation.z);
+		const f32 maxIntensity = fmaxf(fmaxf(pathAttenuation.x(), pathAttenuation.y()), pathAttenuation.z());
 		if (maxIntensity < 0.01f)
 		{
 			break;
@@ -462,7 +402,7 @@ __device__ Color tracePath(Ray ray)
 	}
 
 
-	return Color(pathRadiance.x, pathRadiance.y, pathRadiance.z);
+	return Color(pathRadiance.x(), pathRadiance.y(), pathRadiance.z());
 }
 
 

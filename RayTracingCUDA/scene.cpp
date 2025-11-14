@@ -143,7 +143,7 @@ Result Scene::build()
 	*/
 
 	//まずはトランスフォームのアップデートを行う// todo : 一般のupdateに昇格させたほうがいいかも
-	mRootGroup.updateAllChildrenTransform();
+	mRootGroup.updateAllDescendantsTransform();
 
 	//オブジェクトの平坦化を行う。
 	//std::vector<>
@@ -224,8 +224,7 @@ void Scene::buildVertexIndexBlas()
 		// このメッシュの頂点データの格納
 		for (const auto& vertex : meshVertexArray)
 		{
-			float3 vertexPosition = vertex.position.toFloat3();
-			mRayTracingDataOnCPU.vertexArray.push_back(vertexPosition);
+			mRayTracingDataOnCPU.vertexArray.push_back(vertex.position);
 		}
 
 		// このメッシュの三角形インデックスを格納
@@ -239,7 +238,7 @@ void Scene::buildVertexIndexBlas()
 			const Vec3& v1 = meshVertexArray[index.y].position;
 			const Vec3& v2 = meshVertexArray[index.z].position;
 			Vec3 normal = Vec3::normalize(Vec3::cross(v1 - v0, v2 - v0));
-			mRayTracingDataOnCPU.normalArray.push_back(normal.toFloat3());
+			mRayTracingDataOnCPU.normalArray.push_back(normal);
 		}
 
 		mRayTracingDataOnCPU.blasInfoArray.push_back(blasInfo);

@@ -59,8 +59,6 @@ public:
 
 	__device__ __host__ bool isNan() const;
 
-	__device__ __host__ float3 toFloat3() const { return float3{mElements[0], mElements[1], mElements[2]}; }
-
 #ifdef _DEBUG
 	__device__ __host__ void debugPrint(const char* message = "") const;
 #endif

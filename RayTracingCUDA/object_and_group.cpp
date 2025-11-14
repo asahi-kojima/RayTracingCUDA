@@ -137,7 +137,7 @@ void Group::getAllMateialNamesChildrenHave(std::vector<std::string>& nameArray) 
 	}
 }
 
-void Group::updateAllChildrenTransform()
+void Group::updateAllDescendantsTransform()
 {
 	mTransform.updateTransformMatrices();
 
@@ -148,7 +148,7 @@ void Group::updateAllChildrenTransform()
 
 	for (auto& group : mChildGroupArray)
 	{
-		group.updateAllChildrenTransform();
+		group.updateAllDescendantsTransform();
 	}
 }
 

@@ -49,9 +49,9 @@ struct BlasInfo//delete
 struct RayTracingDataOnCPU
 {
 	// Meshに対応
-	std::vector<float3> vertexArray;
+	std::vector<Vec3> vertexArray;
 	std::vector<uint3>  triangleIndexArray;
-	std::vector<float3> normalArray;
+	std::vector<Vec3> normalArray;
 
 	// マテリアルに対応
 	std::vector<Material> materialArray;
@@ -76,9 +76,9 @@ struct GpuRayTracingLaunchParams
 	// シーンを構成するオブジェクト関係
 	//--------------------------------------
 	// Meshに対応
-	float3* vertexArray;
+	Vec3* vertexArray;
 	uint3* triangleIndexArray; // Triangleを指定するためのID＝ポリゴンのID
-	float3* normalArray; // ↑のポリゴンの法線
+	Vec3* normalArray; // ↑のポリゴンの法線
 
 	// マテリアルに対応
 	Material* materialArray;
