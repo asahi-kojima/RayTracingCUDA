@@ -75,7 +75,7 @@ int main()
 	Object object_tetra{"1", "tetrahedron", "diamond"};
 	Object object_octa{"octa", "octahedron", "diamond"};
 	Object object_sphere{"object0", "sphere", "glass"};
-	Object object_box{"object1", "box", "diffuse" };
+	Object object_box{"object1", "box", "metal" };
 	Object object_geo1{"object2", "geoSphere1", "air", generateRandomTransform() };
 	Object object_geo2{"object2_1", "geoSphere2", "air", generateRandomTransform()};
 	Object object_geo3{"object2_1", "geoSphere3", "air", generateRandomTransform()};
@@ -113,7 +113,7 @@ int main()
 			
 			Object object{
 				(std::string("obj") + std::to_string(a) + std::to_string(b)).c_str(),
-				meshNameList[RandomGenerator::uniform_int(0, sizeof(meshNameList) / sizeof(meshNameList[0]))] ,
+				"box" ,
 				 "metal"};
 			scene.addObject(object, Transform(center, 0.2));
 		}

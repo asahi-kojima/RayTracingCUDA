@@ -63,8 +63,9 @@ Result Scene::initLaunchParams()
 
 	mGpuRayTracingLaunchParamsHostSide.frameCount = 0;
 
+	const f32 aspect = static_cast<f32>(mGpuRayTracingLaunchParamsHostSide.pixelSizeHorizontal) / static_cast<f32>(mGpuRayTracingLaunchParamsHostSide.pixelSizeVertical);
 	const f32 diff = 3.1f;
-	Camera camera{Vec3(13,2,3), Vec3(0, 0, 0), Vec3::unitY(), 20, 1};
+	Camera camera{Vec3(13,2,3), Vec3(0, 0, 0), Vec3::unitY(), 20, aspect};
 	mGpuRayTracingLaunchParamsHostSide.camera = camera;
 
 	cudaMemcpyToSymbol(gGpuRayTracingLaunchParams, &mGpuRayTracingLaunchParamsHostSide, sizeof(GpuRayTracingLaunchParams));
@@ -376,8 +377,8 @@ __device__ HitRecord traceTlasTree(Ray ray)
 			u32 materialID;
 		};
 		*/
-		hitRecord.isHit = true;
-		hitRecord.t = ray.tmax();
+		hitRecord.isHit    = true;
+		hitRecord.t        = ray.tmax();
 		hitRecord.hitPoint = ray.pointAt(hitRecord.t).toFloat3();
 		
 		hitRecord.hitPointNormal = gGpuRayTracingLaunchParams.normalArray[closestTriangleID];
@@ -414,7 +415,6 @@ __device__ bool shader(const Ray& ray, const HitRecord& hitRecord, const Materia
 	albedo = float3{ material.albedo.r(), material.albedo.g(), material.albedo.b() };
 	
 	const Vec3 reflected = Vec3::reflect(ray.direction().normalize(), Vec3::normalize(hitRecord.hitPointNormal));
-	//scatteredRay = Ray(Vec3(hitRecord.hitPoint), reflected.normalize());
 	scatteredRay = Ray(Vec3(hitRecord.hitPoint), (reflected * (1 - diffuse) + (Vec3(target) - Vec3(hitRecord.hitPoint)) * (diffuse)).normalize());
 
 	return true;

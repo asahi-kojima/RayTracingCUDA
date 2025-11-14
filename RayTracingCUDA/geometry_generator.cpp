@@ -1,69 +1,71 @@
 #include "geometry_generator.h"
 
-Vertex getMidPoint(const Vertex& v0, const Vertex& v1)
+namespace
 {
-	const Vec3& p0 = v0.position;
-	const Vec3& p1 = v1.position;
-
-	const Vec3& n0 = v0.normal;
-	const Vec3& n1 = v1.normal;
-
-
-	Vec3 pos = (0.5f * (p0 + p1)).normalize() * ((p0.length() + p1.length()) / 2.0f);
-	Vec3 normal = 0.5f * (n0 + n1);
-
-	return Vertex(pos, normal);
-}
-
-void subDivide(std::vector<Vertex>& vertexArray, std::vector<u32>& indexArray)
-{
-	std::vector<Vertex> vertexArrayCopy = vertexArray;
-	std::vector<u32> indexArrayCopy = indexArray;
-
-	vertexArray.resize(0);
-	indexArray.resize(0);
-
-	u32 numTriangles = static_cast<u32>(indexArrayCopy.size() / 3);
-
-	for (u32 i = 0; i < numTriangles; i++)
+	Vertex getMidPoint(const Vertex& v0, const Vertex& v1)
 	{
-		Vertex v0 = vertexArrayCopy[indexArrayCopy[i * 3 + 0]];
-		Vertex v1 = vertexArrayCopy[indexArrayCopy[i * 3 + 1]];
-		Vertex v2 = vertexArrayCopy[indexArrayCopy[i * 3 + 2]];
+		const Vec3& p0 = v0.position;
+		const Vec3& p1 = v1.position;
+
+		const Vec3& n0 = v0.normal;
+		const Vec3& n1 = v1.normal;
 
 
-		//中間点を生成
-		Vertex m0 = getMidPoint(v0, v1);
-		Vertex m1 = getMidPoint(v1, v2);
-		Vertex m2 = getMidPoint(v0, v2);
+		Vec3 pos = (0.5f * (p0 + p1)).normalize() * ((p0.length() + p1.length()) / 2.0f);
+		Vec3 normal = 0.5f * (n0 + n1);
 
-		vertexArray.push_back(v0);
-		vertexArray.push_back(v1);
-		vertexArray.push_back(v2);
-		vertexArray.push_back(m0);
-		vertexArray.push_back(m1);
-		vertexArray.push_back(m2);
+		return Vertex(pos, normal);
+	}
 
-		//頂点は4倍に増える。
-		//インデックスは６個に増えたので、6をオフセットで掛けている。
-		indexArray.push_back(i * 6 + 0);
-		indexArray.push_back(i * 6 + 3);
-		indexArray.push_back(i * 6 + 5);
+	void subDivide(std::vector<Vertex>& vertexArray, std::vector<u32>& indexArray)
+	{
+		std::vector<Vertex> vertexArrayCopy = vertexArray;
+		std::vector<u32> indexArrayCopy = indexArray;
 
-		indexArray.push_back(i * 6 + 3);
-		indexArray.push_back(i * 6 + 4);
-		indexArray.push_back(i * 6 + 5);
+		vertexArray.resize(0);
+		indexArray.resize(0);
 
-		indexArray.push_back(i * 6 + 5);
-		indexArray.push_back(i * 6 + 4);
-		indexArray.push_back(i * 6 + 2);
+		u32 numTriangles = static_cast<u32>(indexArrayCopy.size() / 3);
 
-		indexArray.push_back(i * 6 + 3);
-		indexArray.push_back(i * 6 + 1);
-		indexArray.push_back(i * 6 + 4);
+		for (u32 i = 0; i < numTriangles; i++)
+		{
+			Vertex v0 = vertexArrayCopy[indexArrayCopy[i * 3 + 0]];
+			Vertex v1 = vertexArrayCopy[indexArrayCopy[i * 3 + 1]];
+			Vertex v2 = vertexArrayCopy[indexArrayCopy[i * 3 + 2]];
+
+
+			//中間点を生成
+			Vertex m0 = getMidPoint(v0, v1);
+			Vertex m1 = getMidPoint(v1, v2);
+			Vertex m2 = getMidPoint(v0, v2);
+
+			vertexArray.push_back(v0);
+			vertexArray.push_back(v1);
+			vertexArray.push_back(v2);
+			vertexArray.push_back(m0);
+			vertexArray.push_back(m1);
+			vertexArray.push_back(m2);
+
+			//頂点は4倍に増える。
+			//インデックスは６個に増えたので、6をオフセットで掛けている。
+			indexArray.push_back(i * 6 + 0);
+			indexArray.push_back(i * 6 + 3);
+			indexArray.push_back(i * 6 + 5);
+
+			indexArray.push_back(i * 6 + 3);
+			indexArray.push_back(i * 6 + 4);
+			indexArray.push_back(i * 6 + 5);
+
+			indexArray.push_back(i * 6 + 5);
+			indexArray.push_back(i * 6 + 4);
+			indexArray.push_back(i * 6 + 2);
+
+			indexArray.push_back(i * 6 + 3);
+			indexArray.push_back(i * 6 + 1);
+			indexArray.push_back(i * 6 + 4);
+		}
 	}
 }
-
 
 Mesh GeometryGenerator::tetrahedronGenerator()
 {
