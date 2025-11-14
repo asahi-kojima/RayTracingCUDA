@@ -7,6 +7,8 @@ struct Transform
 public:
 	Transform();
 	Transform(const Transform& other);
+	Transform(const Vec3& position, const Vec3& scaling, const Vec3& rotationAngle = Vec3::zero());
+	Transform(const Vec3& position, const f32 scaling);
 
 	void setScaling(f32 scale_x, f32 scale_y, f32 scale_z);
 	void setScaling(f32 scale);
@@ -30,6 +32,7 @@ public:
 	static Transform scaling(const Vec3& v = Vec3::one());
 	static Transform rotation(const Vec3& v = Vec3::zero());
 	static Transform translation(const Vec3& v = Vec3::zero());
+	static Transform translation(f32 x = 0, f32 y = 0, f32 z = 0);
 
 private:
 	void calcTransformMatrix();

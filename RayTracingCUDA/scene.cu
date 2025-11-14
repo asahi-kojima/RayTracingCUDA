@@ -52,10 +52,10 @@ Result Scene::initLaunchParams()
 	mGpuRayTracingLaunchParamsHostSide.tlasCount     = mRayTracingDataOnCPU.tlasArray.size();
 
 
-	mGpuRayTracingLaunchParamsHostSide.pixelSizeVertical = 1000;
-	mGpuRayTracingLaunchParamsHostSide.pixelSizeHorizontal = 1000;
-	mGpuRayTracingLaunchParamsHostSide.invPixelSizeVertical = 1.0f / static_cast<f32>(mGpuRayTracingLaunchParamsHostSide.pixelSizeVertical);
+	mGpuRayTracingLaunchParamsHostSide.pixelSizeHorizontal = 3840;
+	mGpuRayTracingLaunchParamsHostSide.pixelSizeVertical = 2160;
 	mGpuRayTracingLaunchParamsHostSide.invPixelSizeHorizontal = 1.0f / static_cast<f32>(mGpuRayTracingLaunchParamsHostSide.pixelSizeHorizontal);
+	mGpuRayTracingLaunchParamsHostSide.invPixelSizeVertical = 1.0f / static_cast<f32>(mGpuRayTracingLaunchParamsHostSide.pixelSizeVertical);
 
 
 	CHECK(cudaMalloc(&mGpuRayTracingLaunchParamsHostSide.renderTargetImageArray, sizeof(Color) * mGpuRayTracingLaunchParamsHostSide.pixelSizeVertical * mGpuRayTracingLaunchParamsHostSide.pixelSizeHorizontal));
@@ -64,7 +64,7 @@ Result Scene::initLaunchParams()
 	mGpuRayTracingLaunchParamsHostSide.frameCount = 0;
 
 	const f32 diff = 3.1f;
-	Camera camera{Vec3(10, 3, 30), Vec3::zero(), Vec3::unitY(), 20, 1};
+	Camera camera{Vec3(13,2,3), Vec3(0, 0, 0), Vec3::unitY(), 20, 1};
 	mGpuRayTracingLaunchParamsHostSide.camera = camera;
 
 	cudaMemcpyToSymbol(gGpuRayTracingLaunchParams, &mGpuRayTracingLaunchParamsHostSide, sizeof(GpuRayTracingLaunchParams));
@@ -303,10 +303,6 @@ __device__ HitRecord traceTlasTree(Ray ray)
 			continue;
 		}
 
-		//--------------------------------------------------------------
-		// 衝突したのでrayのtmaxを更新する
-		//--------------------------------------------------------------
-
 
 		//--------------------------------------------------------------
 		// 末端であれば葉のインスタンス達を調べ、そうでなければ子に行く
@@ -386,10 +382,6 @@ __device__ HitRecord traceTlasTree(Ray ray)
 		
 		hitRecord.hitPointNormal = gGpuRayTracingLaunchParams.normalArray[closestTriangleID];
 		{
-			const Mat4& transform = gGpuRayTracingLaunchParams.instanceDataArray[closestInstanceID].transformMat;
-			
-			hitRecord.hitPoint = (transform * Vec4(hitRecord.hitPoint, 1)).extractXYZ().toFloat3();
-			
 			const Mat4& normalTransform = gGpuRayTracingLaunchParams.instanceDataArray[closestInstanceID].normalTransformMat;
 
 			hitRecord.hitPointNormal = (normalTransform * Vec4(hitRecord.hitPointNormal, 0)).extractXYZ().normalize().toFloat3();
@@ -412,18 +404,18 @@ __device__ HitRecord traceTlasTree(Ray ray)
 
 __device__ bool shader(const Ray& ray, const HitRecord& hitRecord, const Material& material, Ray& scatteredRay, float3& albedo)
 {
-	// Diffuse shader
-	const f32 diffuse = 1.0f;//material.diffuse;
-
+	//// Diffuse shader
+	const f32 diffuse = material.diffuse;
 	const float3 target = hitRecord.hitPoint + hitRecord.hitPointNormal + Vec3::generateRandomUnitVector().toFloat3();
 
 
-	//Metal shader
-	const Vec3 reflected = Vec3::reflect(ray.direction().normalize(), Vec3::normalize(hitRecord.hitPointNormal));
-	scatteredRay = Ray(Vec3(hitRecord.hitPoint), (reflected * diffuse + (Vec3(target) - Vec3(hitRecord.hitPoint)) * (1 - diffuse)).normalize());
+	////Metal shader
 
 	albedo = float3{ material.albedo.r(), material.albedo.g(), material.albedo.b() };
-	scatteredRay = Ray(Vec3(hitRecord.hitPoint), reflected.normalize());
+	
+	const Vec3 reflected = Vec3::reflect(ray.direction().normalize(), Vec3::normalize(hitRecord.hitPointNormal));
+	//scatteredRay = Ray(Vec3(hitRecord.hitPoint), reflected.normalize());
+	scatteredRay = Ray(Vec3(hitRecord.hitPoint), (reflected * (1 - diffuse) + (Vec3(target) - Vec3(hitRecord.hitPoint)) * (diffuse)).normalize());
 
 	return true;
 }
@@ -434,7 +426,7 @@ __device__ Color tracePath(Ray ray)
 	float3 pathAttenuation = float3{1.0f, 1.0f, 1.0f};
 	HitRecord hitRecord;
 	
-	const u32 maxBounce = 4;
+	const u32 maxBounce = 30;
 	for (u32 bounce = 0; bounce < maxBounce; bounce++)
 	{
 		ray.tmin() = 0.001f;
@@ -442,10 +434,10 @@ __device__ Color tracePath(Ray ray)
 
 		if (!(hitRecord = traceTlasTree(ray)))
 		{
-			const f32 ratio = 0.5f * (ray.direction().normalize().x() + 1.0f);
-			//printf("%f\n", ray.direction().y());
+			const f32 ratio = 0.5f * (ray.direction().normalize().y() + 1.0f);
+			
 			float3 backGroundColor = float3{1 * ratio, 1 * ratio, 1 * ratio + (1 - ratio)};//float3{ 0.5f, 0.7f, 1.0f };
-	
+		
 			pathRadiance += (backGroundColor * pathAttenuation);
 			break;
 		}

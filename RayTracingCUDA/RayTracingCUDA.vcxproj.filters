@@ -104,6 +104,9 @@
     <ClInclude Include="vertex.h">
       <Filter>header\cpu</Filter>
     </ClInclude>
+    <ClInclude Include="opengl.h">
+      <Filter>header\cpu</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="object_and_group.cpp">

@@ -9,7 +9,7 @@ Vertex getMidPoint(const Vertex& v0, const Vertex& v1)
 	const Vec3& n1 = v1.normal;
 
 
-	Vec3 pos = 0.5f * (p0 + p1);
+	Vec3 pos = (0.5f * (p0 + p1)).normalize() * ((p0.length() + p1.length()) / 2.0f);
 	Vec3 normal = 0.5f * (n0 + n1);
 
 	return Vertex(pos, normal);

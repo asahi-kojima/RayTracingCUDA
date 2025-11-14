@@ -24,6 +24,27 @@ Transform::Transform(const Transform& other)
 {
 }
 
+Transform::Transform(const Vec3& position, const Vec3& scaling, const Vec3& rotationAngle)
+	: mScaling{ scaling }
+	, mRotation{ rotationAngle }
+	, mTranslation{ position }
+	, mTransformMatrix{}
+	, mInvTransformMatrix{}
+	, mInvTransposeTransformMatrix{}
+	, mIsDirty(true)
+{
+}
+
+Transform::Transform(const Vec3& position, const f32 scaling)
+	: mScaling{ scaling, scaling, scaling }
+	, mRotation{ 0.0f, 0.0f, 0.0f }
+	, mTranslation{ position }
+	, mTransformMatrix{}
+	, mInvTransformMatrix{}
+	, mInvTransposeTransformMatrix{}
+	, mIsDirty(true)
+{
+}
 
 
 void Transform::setScaling(const Vec3& scale)
@@ -141,6 +162,11 @@ Transform Transform::translation(const Vec3& v)
     Transform transform{};
     transform.setTranslation(v);
     return transform;
+}
+
+Transform Transform::translation(f32 x, f32 y, f32 z)
+{
+    return Transform::translation(Vec3(x, y, z));
 }
 
 
