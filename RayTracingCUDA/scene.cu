@@ -502,7 +502,7 @@ __global__ void raytracingKernel()
 	}
 	else
 	{
-		gGpuRayTracingLaunchParams.renderTargetImageArray[pixelID] = color;
+		gGpuRayTracingLaunchParams.renderTargetImageArray[pixelID] += color;
 	}
 }
 
@@ -529,13 +529,20 @@ Result Scene::render()
     cudaEventCreate(&stop);
     cudaEventRecord(start, 0);
 
-    dim3 block(16, 16);
-    dim3 grid(
-    (mGpuRayTracingLaunchParamsHostSide.pixelSizeHorizontal + block.x - 1) / block.x,
-    (mGpuRayTracingLaunchParamsHostSide.pixelSizeVertical + block.y - 1) / block.y);
+	constexpr u32 renderFrameCount = 10;
+	for (u32 i = 0; i < renderFrameCount; i++)
+	{
+		mGpuRayTracingLaunchParamsHostSide.frameCount = i;
+		cudaMemcpyToSymbol(gGpuRayTracingLaunchParams, &mGpuRayTracingLaunchParamsHostSide, sizeof(GpuRayTracingLaunchParams));
+		KERNEL_ERROR_CHECKER;
+		dim3 block(16, 16);
+		dim3 grid(
+		(mGpuRayTracingLaunchParamsHostSide.pixelSizeHorizontal + block.x - 1) / block.x,
+		(mGpuRayTracingLaunchParamsHostSide.pixelSizeVertical + block.y - 1) / block.y);
 
-    raytracingKernel <<<grid, block >>> ();
-    KERNEL_ERROR_CHECKER;
+		raytracingKernel <<<grid, block >>> ();
+		KERNEL_ERROR_CHECKER;
+	}
 
     cudaEventRecord(stop, 0);
     cudaEventSynchronize(stop);
@@ -552,10 +559,10 @@ Result Scene::render()
 	const u32 ScreenWidth = mGpuRayTracingLaunchParamsHostSide.pixelSizeHorizontal;
 	const u32 ScreenHeight = mGpuRayTracingLaunchParamsHostSide.pixelSizeVertical;
 
-	Color* renderTarget;
-	renderTarget = new Color[ScreenWidth * ScreenHeight];
 
-	cudaMemcpy(renderTarget, mGpuRayTracingLaunchParamsHostSide.renderTargetImageArray, sizeof(Color) * ScreenWidth * ScreenHeight, cudaMemcpyDeviceToHost);
+	std::vector<Color> renderTarget(ScreenWidth * ScreenHeight);
+
+	cudaMemcpy(renderTarget.data(), mGpuRayTracingLaunchParamsHostSide.renderTargetImageArray, sizeof(Color) * ScreenWidth * ScreenHeight, cudaMemcpyDeviceToHost);
 
 	std::ofstream outputFile("renderResult.ppm");
 	outputFile << "P3\n" << ScreenWidth << " " << ScreenHeight << "\n255\n";
@@ -565,6 +572,7 @@ Result Scene::render()
 		{
 			const u32 index = yid * ScreenWidth + xid;
 			Color& col = renderTarget[index];
+			col *= (1.0f / renderFrameCount);
 			col = Color(sqrt(col[0]), sqrt(col[1]), sqrt(col[2]));
 			outputFile << static_cast<s32>(255.99 * col[0]) << " " << static_cast<s32>(255.99 * col[1]) << " " << static_cast<s32>(255.99 * col[2]) << "\n";
 		}
