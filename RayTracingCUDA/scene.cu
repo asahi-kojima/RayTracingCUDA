@@ -324,15 +324,7 @@ __device__ HitRecord traceTlasTree(Ray ray)
 		hitRecord.hitPointNormal = gGpuRayTracingLaunchParams.normalArray[closestTriangleID];
 		{
 			const Mat4& normalTransform = gGpuRayTracingLaunchParams.instanceDataArray[closestInstanceID].normalTransformMat;
-
-			hitRecord.hitPointNormal = (normalTransform * Vec4(hitRecord.hitPointNormal, 0)).extractXYZ().normalize();
-			
-			const Vec3& direction = ray.direction();
-			const Vec3 normal = Vec3(hitRecord.hitPointNormal);
-			if (Vec3::dot(direction, normal) > 0)
-			{
-				hitRecord.hitPointNormal = (normal * -1);
-			}
+			hitRecord.hitPointNormal = (normalTransform * Vec4(gGpuRayTracingLaunchParams.normalArray[closestTriangleID], 0)).extractXYZ().normalize();
 		}
 		hitRecord.objectID = closestInstanceID;
 		hitRecord.triangleID = closestTriangleID;
