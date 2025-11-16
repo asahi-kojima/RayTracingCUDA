@@ -17,13 +17,13 @@ Result Scene::initLaunchParams()
 
 	//GpuRayTracingLaunchParams gpuRayTracingLaunchParamsHostSide;
 
-	CHECK(cudaMalloc(&mGpuRayTracingLaunchParamsHostSide.vertexArray,       sizeof(float3)             * mRayTracingDataOnCPU.vertexArray.size()));
-	CHECK(cudaMalloc(&mGpuRayTracingLaunchParamsHostSide.triangleIndexArray,        sizeof(uint3)              * mRayTracingDataOnCPU.triangleIndexArray.size()));
-	CHECK(cudaMalloc(&mGpuRayTracingLaunchParamsHostSide.normalArray,       sizeof(float3)              * mRayTracingDataOnCPU.normalArray.size()));
-	CHECK(cudaMalloc(&mGpuRayTracingLaunchParamsHostSide.materialArray,     sizeof(Material)           * mRayTracingDataOnCPU.materialArray.size()));
-	CHECK(cudaMalloc(&mGpuRayTracingLaunchParamsHostSide.instanceDataArray, sizeof(DeviceInstanceData) * mRayTracingDataOnCPU.instanceDataArray.size()));
-	CHECK(cudaMalloc(&mGpuRayTracingLaunchParamsHostSide.blasArray,         sizeof(BVHNode)            * mRayTracingDataOnCPU.blasArray.size()));
-	CHECK(cudaMalloc(&mGpuRayTracingLaunchParamsHostSide.tlasArray,         sizeof(BVHNode)            * mRayTracingDataOnCPU.tlasArray.size()));
+	CHECK(cudaMalloc(&mGpuRayTracingLaunchParamsHostSide.vertexArray,        sizeof(float3)             * mRayTracingDataOnCPU.vertexArray.size()));
+	CHECK(cudaMalloc(&mGpuRayTracingLaunchParamsHostSide.triangleIndexArray, sizeof(uint3)              * mRayTracingDataOnCPU.triangleIndexArray.size()));
+	CHECK(cudaMalloc(&mGpuRayTracingLaunchParamsHostSide.normalArray,        sizeof(float3)             * mRayTracingDataOnCPU.normalArray.size()));
+	CHECK(cudaMalloc(&mGpuRayTracingLaunchParamsHostSide.materialArray,      sizeof(Material)           * mRayTracingDataOnCPU.materialArray.size()));
+	CHECK(cudaMalloc(&mGpuRayTracingLaunchParamsHostSide.instanceDataArray,  sizeof(DeviceInstanceData) * mRayTracingDataOnCPU.instanceDataArray.size()));
+	CHECK(cudaMalloc(&mGpuRayTracingLaunchParamsHostSide.blasArray,          sizeof(BVHNode)            * mRayTracingDataOnCPU.blasArray.size()));
+	CHECK(cudaMalloc(&mGpuRayTracingLaunchParamsHostSide.tlasArray,          sizeof(BVHNode)            * mRayTracingDataOnCPU.tlasArray.size()));
 
 	printf("vertex   array malloc : %8d byte\n", sizeof(float3)             * mRayTracingDataOnCPU.vertexArray.size());
 	printf("index    array malloc : %8d byte\n", sizeof(uint3)              * mRayTracingDataOnCPU.triangleIndexArray.size());
@@ -34,13 +34,13 @@ Result Scene::initLaunchParams()
 	printf("tlas     array malloc : %8d byte\n", sizeof(BVHNode)            * mRayTracingDataOnCPU.tlasArray.size());
 
 
-	CHECK(cudaMemcpy(mGpuRayTracingLaunchParamsHostSide.vertexArray,       mRayTracingDataOnCPU.vertexArray.data(),       sizeof(float3)             * mRayTracingDataOnCPU.vertexArray.size(),       cudaMemcpyHostToDevice));
-	CHECK(cudaMemcpy(mGpuRayTracingLaunchParamsHostSide.triangleIndexArray,        mRayTracingDataOnCPU.triangleIndexArray.data(),        sizeof(uint3)              * mRayTracingDataOnCPU.triangleIndexArray.size(),        cudaMemcpyHostToDevice));
-	CHECK(cudaMemcpy(mGpuRayTracingLaunchParamsHostSide.normalArray,       mRayTracingDataOnCPU.normalArray.data(),       sizeof(float3)             * mRayTracingDataOnCPU.normalArray.size(),       cudaMemcpyHostToDevice));
-	CHECK(cudaMemcpy(mGpuRayTracingLaunchParamsHostSide.materialArray,     mRayTracingDataOnCPU.materialArray.data(),     sizeof(Material)           * mRayTracingDataOnCPU.materialArray.size(),     cudaMemcpyHostToDevice));
-	CHECK(cudaMemcpy(mGpuRayTracingLaunchParamsHostSide.instanceDataArray, mRayTracingDataOnCPU.instanceDataArray.data(), sizeof(DeviceInstanceData) * mRayTracingDataOnCPU.instanceDataArray.size(), cudaMemcpyHostToDevice));
-	CHECK(cudaMemcpy(mGpuRayTracingLaunchParamsHostSide.blasArray,         mRayTracingDataOnCPU.blasArray.data(),         sizeof(BVHNode)            * mRayTracingDataOnCPU.blasArray.size(),         cudaMemcpyHostToDevice));
-	CHECK(cudaMemcpy(mGpuRayTracingLaunchParamsHostSide.tlasArray,         mRayTracingDataOnCPU.tlasArray.data(),         sizeof(BVHNode)            * mRayTracingDataOnCPU.tlasArray.size(),         cudaMemcpyHostToDevice));
+	CHECK(cudaMemcpy(mGpuRayTracingLaunchParamsHostSide.vertexArray,        mRayTracingDataOnCPU.vertexArray.data(),        sizeof(float3)             * mRayTracingDataOnCPU.vertexArray.size(),        cudaMemcpyHostToDevice));
+	CHECK(cudaMemcpy(mGpuRayTracingLaunchParamsHostSide.triangleIndexArray, mRayTracingDataOnCPU.triangleIndexArray.data(), sizeof(uint3)              * mRayTracingDataOnCPU.triangleIndexArray.size(), cudaMemcpyHostToDevice));
+	CHECK(cudaMemcpy(mGpuRayTracingLaunchParamsHostSide.normalArray,        mRayTracingDataOnCPU.normalArray.data(),        sizeof(float3)             * mRayTracingDataOnCPU.normalArray.size(),        cudaMemcpyHostToDevice));
+	CHECK(cudaMemcpy(mGpuRayTracingLaunchParamsHostSide.materialArray,      mRayTracingDataOnCPU.materialArray.data(),      sizeof(Material)           * mRayTracingDataOnCPU.materialArray.size(),      cudaMemcpyHostToDevice));
+	CHECK(cudaMemcpy(mGpuRayTracingLaunchParamsHostSide.instanceDataArray,  mRayTracingDataOnCPU.instanceDataArray.data(),  sizeof(DeviceInstanceData) * mRayTracingDataOnCPU.instanceDataArray.size(),  cudaMemcpyHostToDevice));
+	CHECK(cudaMemcpy(mGpuRayTracingLaunchParamsHostSide.blasArray,          mRayTracingDataOnCPU.blasArray.data(),          sizeof(BVHNode)            * mRayTracingDataOnCPU.blasArray.size(),          cudaMemcpyHostToDevice));
+	CHECK(cudaMemcpy(mGpuRayTracingLaunchParamsHostSide.tlasArray,          mRayTracingDataOnCPU.tlasArray.data(),          sizeof(BVHNode)            * mRayTracingDataOnCPU.tlasArray.size(),          cudaMemcpyHostToDevice));
 	
 
 	mGpuRayTracingLaunchParamsHostSide.vertexCount   = mRayTracingDataOnCPU.vertexArray.size();
@@ -65,7 +65,7 @@ Result Scene::initLaunchParams()
 
 	const f32 aspect = static_cast<f32>(mGpuRayTracingLaunchParamsHostSide.pixelSizeHorizontal) / static_cast<f32>(mGpuRayTracingLaunchParamsHostSide.pixelSizeVertical);
 	const f32 diff = 3.1f;
-	Camera camera{Vec3(10,5,10), Vec3(0, 0, 0), Vec3::unitY(), 45, aspect};
+	Camera camera{Vec3(5,2.5,5), Vec3(0, 0, 0), Vec3::unitY(), 45, aspect};
 	mGpuRayTracingLaunchParamsHostSide.camera = camera;
 
 	cudaMemcpyToSymbol(gGpuRayTracingLaunchParams, &mGpuRayTracingLaunchParamsHostSide, sizeof(GpuRayTracingLaunchParams));
@@ -430,7 +430,7 @@ __device__ Color tracePath(Ray ray)
 	Vec3 pathAttenuation = Vec3{1.0f, 1.0f, 1.0f};
 	HitRecord hitRecord;
 	
-	const u32 maxBounce = 30;
+	const u32 maxBounce = 8;
 	for (u32 bounce = 0; bounce < maxBounce; bounce++)
 	{
 		ray.tmin() = 0.001f;

@@ -53,15 +53,19 @@ int main()
 
 	Material pureMetal{Material::MaterialType::METAL, 0.0f, 1.0, 1.0f, 0.0f};
 	Material fuzzyMetal{Material::MaterialType::METAL, 0.5f, 0.0, 0.0f, 0.0f};
+	Material water{Material::MaterialType::DIELECTRIC, 0.0f, 0.0, 1.1f, 0.0f};
 	Material glass{Material::MaterialType::DIELECTRIC, 0.0f, 0.0, 1.5f, 0.0f};
+	Material diamond{Material::MaterialType::DIELECTRIC, 0.0f, 0.0, 2.5f, 0.0f};
 	Material pureLambertian{Material::MaterialType::LAMBERTIAN, 1.0f, 0.0, 0.0f, 0.0f};
 	Material light{Material::MaterialType::EMISSIVE, 1.0f, 0.0, 0.0f, 0.0f, Color::Azure, true};
 
 	Scene scene;
 	{
-		scene.addMaterial("glass", glass);
 		scene.addMaterial("metal", pureMetal);
 		scene.addMaterial("fuzzyMetal", fuzzyMetal);
+		scene.addMaterial("water", water);
+		scene.addMaterial("glass", glass);
+		scene.addMaterial("diamond", diamond);
 		scene.addMaterial("diffuse", pureLambertian);
 		scene.addMaterial("sky", light);
 
@@ -97,11 +101,22 @@ int main()
 		"torus"
 	};
 
+	const char* materialNameList[] = {
+		"metal",
+		"fuzzyMetal",
+		"water",
+		"glass",
+		"diamond",
+		"diffuse",
+		"sky"
+	};
+
 	Result result;
 
 
 	scene.addObject(Object{ "torus", "torus", "glass", Transform::translation(Vec3(0, 1, 0)), SurfaceProperty{Color::White} });
 	scene.addObject(Object{ "torus", "geoSphere2", "glass", Transform::translation(Vec3(3, 1, 0)), SurfaceProperty{Color::White} });
+	//scene.addObject(Object{ "torus", "geoSphere2", "glass", Transform(Vec3(3, 1, 0), -0.9), SurfaceProperty{Color::White} });
 	scene.addObject(Object{ "torus", "geoSphere0", "glass", Transform::translation(Vec3(-3, 1, 0)), SurfaceProperty{Color::White} });
 
 	//scene.addObject(Object{ "torus", "sphere", "glass", Transform::translation(Vec3(0, 1, 1)), SurfaceProperty{Color::White} });
@@ -123,8 +138,8 @@ int main()
 	{
 		for (s32 b = -110; b < 11; b++)
 		{
-			auto A = 2 * a;
-			auto B = 2 * b;
+			auto A = 1 * a;
+			auto B = 1 * b;
 			Vec3 center{ A + 0.9f * RandomGenerator::uniform_real(), 0.2f, B + 0.9f * RandomGenerator::uniform_real() };
 			
 
@@ -132,7 +147,7 @@ int main()
 			{
 				std::string("obj") + std::to_string(a) + std::to_string(b),
 				meshNameList[RandomGenerator::uniform_int(0, sizeof(meshNameList) / sizeof(meshNameList[0]))],
-				 "metal",
+				 materialNameList[RandomGenerator::uniform_int(0, sizeof(materialNameList) / sizeof(materialNameList[0]))],
 				 Transform(center, 0.2) ,
 				 SurfaceProperty{ Color::random() }
 			};
