@@ -52,8 +52,8 @@ Result Scene::initLaunchParams()
 	mGpuRayTracingLaunchParamsHostSide.tlasCount     = mRayTracingDataOnCPU.tlasArray.size();
 
 
-	mGpuRayTracingLaunchParamsHostSide.pixelSizeHorizontal = 3840;
-	mGpuRayTracingLaunchParamsHostSide.pixelSizeVertical = 2160;
+	mGpuRayTracingLaunchParamsHostSide.pixelSizeHorizontal = 1920;//3840;
+	mGpuRayTracingLaunchParamsHostSide.pixelSizeVertical = 1080;//2160;
 	mGpuRayTracingLaunchParamsHostSide.invPixelSizeHorizontal = 1.0f / static_cast<f32>(mGpuRayTracingLaunchParamsHostSide.pixelSizeHorizontal);
 	mGpuRayTracingLaunchParamsHostSide.invPixelSizeVertical = 1.0f / static_cast<f32>(mGpuRayTracingLaunchParamsHostSide.pixelSizeVertical);
 
@@ -65,7 +65,7 @@ Result Scene::initLaunchParams()
 
 	const f32 aspect = static_cast<f32>(mGpuRayTracingLaunchParamsHostSide.pixelSizeHorizontal) / static_cast<f32>(mGpuRayTracingLaunchParamsHostSide.pixelSizeVertical);
 	const f32 diff = 3.1f;
-	Camera camera{Vec3(13,2,3), Vec3(0, 0, 0), Vec3::unitY(), 20, aspect};
+	Camera camera{Vec3(10,5,10), Vec3(0, 0, 0), Vec3::unitY(), 45, aspect};
 	mGpuRayTracingLaunchParamsHostSide.camera = camera;
 
 	cudaMemcpyToSymbol(gGpuRayTracingLaunchParams, &mGpuRayTracingLaunchParamsHostSide, sizeof(GpuRayTracingLaunchParams));
@@ -343,21 +343,85 @@ __device__ HitRecord traceTlasTree(Ray ray)
 
 
 
-__device__ bool shader(const Ray& ray, const HitRecord& hitRecord, const Material& material, Ray& scatteredRay, Vec3& albedo)
+__device__ bool shader(const Ray& ray, const HitRecord& hitRecord, const Material& material, const SurfaceProperty& surfaceProperty,  Ray& scatteredRay, Vec3& attenuationColor)
 {
-	//// Diffuse shader
-	const f32 diffuse = material.diffuse;
-	const Vec3 target = hitRecord.hitPoint + hitRecord.hitPointNormal + Vec3::generateRandomUnitVector();
+	Vec3 albedo = Vec3{ surfaceProperty.albedo.r(), surfaceProperty.albedo.g(), surfaceProperty.albedo.b() };
+	switch (material.type)
+	{
+		case Material::MaterialType::LAMBERTIAN:
+		{
+			const Vec3 targetDirection = Vec3::generateRandomlyOnUnitHemiSphere(hitRecord.hitPointNormal);
+			scatteredRay = Ray(hitRecord.hitPoint, targetDirection);
+			attenuationColor = albedo;
+
+			return true;
+		}
+		case Material::MaterialType::METAL:
+		{
+			const Vec3 reflected = Vec3::reflect(ray.direction().normalize(), hitRecord.hitPointNormal);
+			scatteredRay = Ray(hitRecord.hitPoint, (reflected + Vec3::generateRandomUnitVector() * fminf(material.roughness, 0.9)).normalize());
+			attenuationColor = albedo;
+
+			return true;
+		}
+		case Material::MaterialType::EMISSIVE:
+		{
+			return false;
+		}
+		case Material::MaterialType::DIELECTRIC:
+		{
+			attenuationColor = albedo;
+			
+			const Vec3& direction = ray.direction();
+			const Vec3& hitPointNormal = hitRecord.hitPointNormal;
 
 
-	////Metal shader
+			const bool isIncidentRay = ( Vec3::dot(direction, hitPointNormal) < 0 );
+			
+			const Vec3& normal = hitPointNormal * (isIncidentRay ? -1 : 1);
+			
+			// 内積が負ならば物質の外側から入射する事になり、空気-->物質になる。その場合、相対屈折率は物体のそれの逆数になる。
+			const f32 refractionRatio = isIncidentRay ? (1.0f / material.ior) : material.ior;
 
-	albedo = Vec3{ material.albedo.r(), material.albedo.g(), material.albedo.b() };
-	
-	const Vec3 reflected = Vec3::reflect(ray.direction().normalize(), Vec3::normalize(hitRecord.hitPointNormal));
-	scatteredRay = Ray(hitRecord.hitPoint, (reflected * (1 - diffuse) + (target - hitRecord.hitPoint) * (diffuse)).normalize());
 
-	return true;
+			const f32 cos0 = fminf(Vec3::dot(direction, normal), 1.0f);
+
+			const f32 sin1Squared = refractionRatio * refractionRatio * (1.0f - cos0 * cos0);
+
+			// 屈折が仮に起こった場合のsinの二乗。1を超えたら解がないので全反射
+			const bool cannotRefract = (sin1Squared > 1.0f);
+
+			/*
+			f32 Dielectric::reflect_probability(f32 cosine, f32 refIdx)
+			{
+				f32 r0 = (1.0f - refIdx) / (1.0f + refIdx);
+				r0 = r0 * r0;
+				return r0 + (1.0f - r0) * pow((1.0f - cosine), 5);
+			}
+			*/
+			f32 r0 = (1.0f - refractionRatio) / (1.0f + refractionRatio);
+			r0 = r0 * r0;
+			const f32 reflectionProb = r0 + (1.0f - r0) * pow((1.0f - cos0), 5);
+
+			// こっちは反射
+			if (cannotRefract || reflectionProb > RandomGeneratorGPU::uniform_real())
+			{
+				scatteredRay = Ray(hitRecord.hitPoint, Vec3::reflect(direction, hitPointNormal).normalize()); // TODO normalizeは構成上不要かもしれないが、念のために入れている
+			}
+			// こっちは屈折
+			else
+			{
+				const f32 cos1 = sqrtf(1.0f - sin1Squared);
+				const Vec3 newDirection = normal * (cos1 - refractionRatio * cos0) + direction * refractionRatio;
+				scatteredRay = Ray(hitRecord.hitPoint, newDirection.normalize());
+			}
+
+			return true;
+		}
+		default:
+			assert(0);
+			return false;
+	}
 }
 
 __device__ Color tracePath(Ray ray)
@@ -376,28 +440,41 @@ __device__ Color tracePath(Ray ray)
 		{
 			const f32 ratio = 0.5f * (ray.direction().normalize().y() + 1.0f);
 			
-			Vec3 backGroundColor = Vec3{1 * ratio, 1 * ratio, 1 * ratio + (1 - ratio)};//float3{ 0.5f, 0.7f, 1.0f };
+			Vec3 backGroundColor = Vec3(0,0,0);//Vec3{ 1 * ratio, 1 * ratio, 1 * ratio + (1 - ratio) };
 		
 			pathRadiance += (backGroundColor * pathAttenuation);
 			break;
 		}
 
 		Material material = gGpuRayTracingLaunchParams.materialArray[gGpuRayTracingLaunchParams.instanceDataArray[hitRecord.objectID].materialID];
+		SurfaceProperty surfaceProperty = gGpuRayTracingLaunchParams.instanceDataArray[hitRecord.objectID].surfaceProperty;
+		
+		if (material.isEmittable)
+		{
+			pathRadiance += (material.emissionColor.getRGB() * pathAttenuation);
+		}
 
 		Ray scatteredRay;
-		Vec3 albedo;
-		if (!shader(ray, hitRecord, material, scatteredRay, albedo))
+		Vec3 attenuationColor;
+
+		if (!shader(ray, hitRecord, material, surfaceProperty, scatteredRay, attenuationColor))
 		{
 			break;
 		}
 
-		pathAttenuation = pathAttenuation * albedo;
+		pathAttenuation = pathAttenuation * attenuationColor;
 		ray = scatteredRay;
 
-		const f32 maxIntensity = fmaxf(fmaxf(pathAttenuation.x(), pathAttenuation.y()), pathAttenuation.z());
-		if (maxIntensity < 0.01f)
+		// RR処理
+		if (bounce > 3)
 		{
-			break;
+			const f32 p = fminf(fmaxf(fmaxf(pathAttenuation.x(), pathAttenuation.y()), pathAttenuation.z()), 1.0f);
+
+			if (RandomGeneratorGPU::uniform_real() > p || isEqualF32(p, 0.0f))
+			{
+				break;
+			}
+			pathAttenuation *= (1.0f / p);
 		}
 	}
 

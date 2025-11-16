@@ -23,12 +23,15 @@ public:
 	__device__ __host__ f32 b() const;
 	__device__ __host__ f32 a() const;
 
+	__device__ __host__ Vec3 getRGB() const { return Vec3(r(), g(), b()); }
+
 	__device__ __host__ Color operator*(const Color& rhs) const;
 	__device__ __host__ Color operator*(const f32 value) const;
 	__device__ __host__ Color& operator*=(const Color& rhs);
 	__device__ __host__ Color& operator*=(const f32 value);
 	__device__ __host__ Color& operator/=(const f32 value);
 
+	__host__ static Color random();
 
 	__device__ __host__ void clamp();
 	__device__ __host__ bool isNan();

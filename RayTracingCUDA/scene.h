@@ -18,6 +18,7 @@ struct DeviceInstanceData
 	u32 indexOffset;
 
 	u32 materialID;
+	SurfaceProperty surfaceProperty;
 };
 
 
@@ -128,7 +129,7 @@ public:
 	s32 addMesh(const std::string& meshName ,const Mesh& mesh);
 	s32 addMaterial(const std::string& materialName, const Material& material);
 
-	Result addObject(const Object& object, const Transform& transform = Transform::identity(), const std::string& newName = std::string(""));
+	Result addObject(const Object& object, const std::string& newName = std::string(""));
 	Result addGroup(const Group& group, const Transform& transform = Transform::identity(), const std::string& newName = std::string(""));
 
 	Result build();

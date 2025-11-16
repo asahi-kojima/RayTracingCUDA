@@ -5,8 +5,8 @@ namespace
 {
 	AABB generateAABB(const std::vector<Vertex>& vertices)
 	{
-		Vec3 minPos = vertices[0].position;
-		Vec3 maxPos = vertices[0].position;
+		Vec3 minPos = Vec3::generateMaximumLengthVector();
+		Vec3 maxPos = Vec3::generateMinimumLengthVector();
 
 		for (const auto& vertex : vertices)
 		{
@@ -19,7 +19,8 @@ namespace
 			maxPos.z() = fmaxf(maxPos.z(), vertex.position.z());
 		}
 
-		return AABB(minPos, maxPos);
+		const Vec3 padding{ 1e-5f, 1e-5f, 1e-5f };
+		return AABB(minPos - padding, maxPos + padding);
 	}
 
 }

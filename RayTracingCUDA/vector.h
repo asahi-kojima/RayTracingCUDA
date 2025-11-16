@@ -50,6 +50,10 @@ public:
 	__device__ __host__ static Vec3 cross(const Vec3&, const Vec3&);
 	__device__ __host__ static Vec3 reflect(const Vec3& v, const Vec3& n);
 	__device__ __host__ static Vec3 generateRandomUnitVector();
+	__device__ __host__ static Vec3 generateRandomlyOnUnitHemiSphere(const Vec3& normal);
+
+	__device__ __host__ static Vec3 generateMaximumLengthVector();
+	__device__ __host__ static Vec3 generateMinimumLengthVector();
 
 	__device__ __host__ static inline Vec3 zero() { return Vec3(0.0f, 0.0f, 0.0f); };
 	__device__ __host__ static inline Vec3 one() { return Vec3(1.0f, 1.0f, 1.0f).normalize(); };
@@ -112,4 +116,34 @@ public:
 
 private:
 	f32 mElements[4];
+};
+
+
+class OrthonormalBasis
+{
+public:
+	__device__ __host__ OrthonormalBasis() = default;
+	__device__ __host__ OrthonormalBasis(const Vec3& normal)
+		: mAxisZ(normal)
+	{
+		if (fabs(mAxisZ[0]) > 0.1f)
+		{
+			mAxisX = Vec3::cross(Vec3::unitY(), mAxisZ).normalize();
+			mAxisY = Vec3::cross(mAxisZ, mAxisX);
+		}
+		else
+		{
+			mAxisY = Vec3::cross(mAxisZ, Vec3::unitX()).normalize();
+			mAxisX = Vec3::cross(mAxisY, mAxisZ);
+		}
+	}
+	__device__ __host__ Vec3 local(f32 elemX, f32 elemY, f32 elemZ) const
+	{
+		return (mAxisX * elemX + mAxisY * elemY + mAxisZ * elemZ);
+	}
+
+private:
+	Vec3 mAxisX;
+	Vec3 mAxisY;
+	Vec3 mAxisZ;
 };

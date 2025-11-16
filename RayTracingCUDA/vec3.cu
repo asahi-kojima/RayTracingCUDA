@@ -241,6 +241,37 @@ Vec3 Vec3::generateRandomUnitVector()
 	return Vec3(cos(phi) * sin0, sin(phi) * sin0, cos(theta));
 }
 
+__device__ __host__ Vec3 Vec3::generateRandomlyOnUnitHemiSphere(const Vec3& normal)
+{
+#ifdef __CUDA_ARCH__
+	const f32 phi = RandomGeneratorGPU::uniform_real() * 2 * M_PI;
+	const f32 z = RandomGeneratorGPU::uniform_real();
+#else
+	const f32 phi = RandomGenerator::uniform_real() * 2 * M_PI;
+	const f32 z = RandomGenerator::uniform_real();
+#endif
+
+	const f32 cos0 = sqrtf(1 - z * z + 0.0001f);
+	const f32 x = cos(phi) * cos0;
+	const f32 y = sin(phi) * cos0;
+
+	OrthonormalBasis onb(normal);
+
+	return onb.local(x, y, z);
+}
+
+__device__ __host__ Vec3 Vec3::generateMaximumLengthVector()
+{
+	constexpr f32 f32Max = std::numeric_limits<f32>::max();
+	return Vec3(f32Max, f32Max, f32Max);
+}
+
+__device__ __host__ Vec3 Vec3::generateMinimumLengthVector()
+{
+	constexpr f32 f32Max = std::numeric_limits<f32>::max();
+	return Vec3(-f32Max, -f32Max, -f32Max);
+}
+
 bool Vec3::isNan() const
 {
 	return (isnan(mElements[0]) || isnan(mElements[1]) || isnan(mElements[2]));

@@ -304,3 +304,186 @@ Mesh GeometryGenerator::geoSphereGenerator(const u32 subDivisionScale)
 
 	return Mesh(vertexArray, indexArray);
 }
+
+Mesh GeometryGenerator::planeGenerator(const u32 divisionCount)
+{
+	const f32 scale = 1.0f;
+	const u32 vertCount = divisionCount + 1;
+
+	std::vector<Vertex> vertexArray;
+	vertexArray.reserve(vertCount * vertCount);
+
+	for (u32 ix = 0; ix < vertCount; ix++)
+	{
+		for (u32 iz = 0; iz < vertCount; iz++)
+		{
+			f32 z = -scale + (2 * scale / divisionCount) * iz;
+			f32 x = -scale + (2 * scale / divisionCount) * ix;
+
+			vertexArray.emplace_back(Vec3(x, 0.0f, z), Vec3(0.0f, 1.0f, 0.0f));
+		}
+	}
+
+	std::vector<u32> indexArray;
+	indexArray.reserve(divisionCount * divisionCount * 6);
+
+	for (u32 ix = 0; ix < divisionCount; ix++)
+	{
+		for (u32 iz = 0; iz < divisionCount; iz++)
+		{
+			const u32 index0 = ix * vertCount + iz;
+			const u32 index1 = index0 + 1;
+			const u32 index2 = index0 + vertCount;
+			const u32 index3 = index2 + 1;
+
+			indexArray.push_back(index0);
+			indexArray.push_back(index2);
+			indexArray.push_back(index1);
+			indexArray.push_back(index1);
+			indexArray.push_back(index2);
+			indexArray.push_back(index3);
+		}
+	}
+
+	return Mesh(vertexArray, indexArray);
+}
+
+Mesh GeometryGenerator::coneGenerator(const u32 divisionCount)
+{
+	std::vector<Vertex> vertexArray(1 + divisionCount);
+	
+	vertexArray[0] = Vertex(0.0f, +1.0f, 0.0f, 0.0f, +1.0f, 0.0f);
+	
+	const f32 dPhi = 2.0f * M_PI / divisionCount;
+	for (u32 i = 0; i < divisionCount; i++)
+	{
+		const f32 z = std::cosf(i * dPhi);
+		const f32 x = std::sinf(i * dPhi);
+
+		vertexArray[i + 1] = Vertex(Vec3(x, 0, z), Vec3(x, 0, z));
+	}
+
+	std::vector<u32> indexArray;
+	for (u32 i = 0; i < divisionCount; i++)
+	{
+		indexArray.push_back(0);
+		indexArray.push_back(1 + i);
+		indexArray.push_back(1 + (i + 1) % divisionCount);
+	}
+
+	return Mesh(vertexArray, indexArray);
+}
+
+Mesh GeometryGenerator::cylinderGenerator(const u32 divisionCount)
+{
+	constexpr f32 radius = 1.0f;
+	constexpr f32 height = 1.0f;
+	
+	const f32 dPhi = 2.0f * M_PI / divisionCount;
+
+	std::vector<Vertex> vertexArray;
+
+	vertexArray.emplace_back(Vec3(0.0f, +height, 0.0f), Vec3(0.0f, 1.0f, 0.0f));
+
+	for (u32 i = 0; i < divisionCount; ++i)
+	{
+		f32 phi = i * dPhi;
+		f32 z = radius * std::cosf(phi);
+		f32 x = radius * std::sinf(phi);
+		vertexArray.emplace_back(Vec3(x, +height, z), Vec3(0.0f, 1.0f, 0.0f));
+	}
+
+	for (u32 i = 0; i < divisionCount; ++i)
+	{
+		f32 phi = i * dPhi;
+		f32 z = radius * std::cosf(phi);
+		f32 x = radius * std::sinf(phi);
+		vertexArray.emplace_back(Vec3(x, -height, z), Vec3(0.0f, 1.0f, 0.0f));
+	}
+	
+	vertexArray.emplace_back(Vec3(0.0f, -height, 0.0f), Vec3(0.0f, -1.0f, 0.0f));
+
+
+	std::vector<u32> indexArray;
+	
+	for (u32 i = 0; i < divisionCount; ++i)
+	{
+		indexArray.push_back(0);
+		indexArray.push_back(1 + i);
+		indexArray.push_back(1 + (i + 1) % divisionCount);
+	}
+	
+	for (u32 i = 0; i < divisionCount; ++i)
+	{
+		indexArray.push_back(vertexArray.size() - 1);
+		indexArray.push_back(divisionCount + 1 + i);
+		indexArray.push_back(divisionCount + 1 + (i + 1) % divisionCount);
+	}
+
+	for (u32 i = 0; i < divisionCount; ++i)
+	{
+		indexArray.push_back(1 + (i + 0));
+		indexArray.push_back(1 + (i + divisionCount));
+		indexArray.push_back(1 + (i + 1));
+
+		indexArray.push_back(1 + (i + 1));
+		indexArray.push_back(1 + (i + divisionCount));
+		indexArray.push_back(1 + (i + 1 + divisionCount));
+	}
+
+	return Mesh(vertexArray, indexArray);
+}
+
+Mesh GeometryGenerator::torusGenerator(const f32 minorRadiusRaio, const u32 majorDivisionCount, const u32 minorDivisionCount)
+{
+	const f32 dTheta = 2.0f * M_PI / majorDivisionCount;
+
+	std::vector<Vertex> vertexArray;
+	for (u32 i = 0; i < majorDivisionCount; i++)
+	{
+		const f32 theta = i * dTheta;
+		const f32 dPhi = 2.0f * M_PI / minorDivisionCount;
+		for (u32 j = 0; j < minorDivisionCount; j++)
+		{
+			const f32 phi = j * dPhi;
+			
+			const f32 localZ = 1.0f + minorRadiusRaio * cosf(phi);
+			const f32 localY = 0.0f + minorRadiusRaio * sinf(phi);
+			const f32 localX = 0.0f;
+			
+			// 回転行列で座標変換
+			const f32 z = cosf(theta) * localZ - sinf(theta) * localX;
+			const f32 x = sinf(theta) * localZ + cosf(theta) * localX;
+			const f32 y = localY;
+
+			const Vec3 position{ x, y, z };
+
+			// 法線ベクトルも回転行列で座標変換
+			const Vec3 normal = (position - Vec3(sinf(theta), 0, cosf(theta))).normalize();
+
+			vertexArray.push_back(Vertex(position, normal));
+		}
+	}
+
+
+	std::vector<u32> indexArray;
+	for (u32 i = 0; i < majorDivisionCount; i++)
+	{
+		for (u32 j = 0; j < minorDivisionCount; j++)
+		{
+			const u32 index0 = (((i + 0) % majorDivisionCount) * minorDivisionCount) + ((j + 0) % minorDivisionCount);
+			const u32 index1 = (((i + 0) % majorDivisionCount) * minorDivisionCount) + ((j + 1) % minorDivisionCount);
+			const u32 index2 = (((i + 1) % majorDivisionCount) * minorDivisionCount) + ((j + 0) % minorDivisionCount);
+			const u32 index3 = (((i + 1) % majorDivisionCount) * minorDivisionCount) + ((j + 1) % minorDivisionCount);
+
+			indexArray.push_back(index0);
+			indexArray.push_back(index2);
+			indexArray.push_back(index1);
+			indexArray.push_back(index1);
+			indexArray.push_back(index2);
+			indexArray.push_back(index3);
+		}
+	}
+
+	return Mesh(vertexArray, indexArray);
+}

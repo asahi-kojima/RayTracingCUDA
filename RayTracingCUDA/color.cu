@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include "color.h"
-
+#include "util.h"
 
 
 Color::Color(const f32 r, const f32 g, const f32 b, const f32 alpha)
@@ -132,6 +132,11 @@ Color& Color::operator/=(const f32 value)
 		assert(0);
 	}
 	return ((*this) *= (1.0f / value));
+}
+
+Color Color::random()
+{
+	return Color(RandomGenerator::uniform_int(0, 0xFFFFFF));
 }
 
 

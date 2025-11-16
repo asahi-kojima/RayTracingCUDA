@@ -58,7 +58,7 @@ s32 Scene::addMaterial(const std::string& materialName, const Material& material
 	return newId;
 }
 
-Result Scene::addObject(const Object& object, const Transform& transform, const std::string& newName)
+Result Scene::addObject(const Object& object, const std::string& newName)
 {
 	//object‚Ì’Ç‰Á‚ÉAMesh‚ÆMaterial‚ª‘¶İ‚µ‚Ä‚¢‚é³‹K‚Ì•¨‚©Šm”F‚·‚é
 	const std::string& meshName = object.getMeshName();
@@ -75,7 +75,7 @@ Result Scene::addObject(const Object& object, const Transform& transform, const 
 	}
 
 	//Šm”F‚ªæ‚ê‚½‚ç“o˜^‚·‚é
-	Result result = mRootGroup.addChildObject(object, transform, newName);
+	Result result = mRootGroup.addChildObject(object, newName);
 
 	return result;
 }
@@ -105,7 +105,7 @@ Result Scene::addGroup(const Group& group, const Transform& transform, const std
 	}
 
 	//Šm”F‚ªæ‚ê‚½‚ç“o˜^‚·‚é
-	Result result = mRootGroup.addChildGroup(group, transform, newName);
+	Result result = mRootGroup.addChildGroup(group, newName);
 
 	return result;
 }
@@ -375,8 +375,6 @@ void Scene::buildInstanceData()
 	Mat4 invTransposedTransformMat = mRootGroup.getTransform().getInvTransposeTransformMatrix();
 	
 	recursiveBuildInstanceData(mRayTracingDataOnCPU.instanceDataArray, mRootGroup, transformMat, invTransformMat, invTransposedTransformMat);
-
-
 }
 
 void Scene::recursiveBuildInstanceData(std::vector<DeviceInstanceData>& instanceDataArray, const Group& group, const Mat4& currentTransformMat, const Mat4& currentInvTransformMat, const Mat4& currentInvTransposedTransformMat)
@@ -404,7 +402,8 @@ void Scene::recursiveBuildInstanceData(std::vector<DeviceInstanceData>& instance
 			blasInfo.blasRootNodeIndex,
 			blasInfo.vertexOffset,
 			blasInfo.triangleIndexOffset,
-			materialID
+			materialID,
+			childObject.getSurfaceProperty()
 		};
 		instanceDataArray.push_back(instanceData);
 	}

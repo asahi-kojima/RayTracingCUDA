@@ -1,11 +1,12 @@
 #include <format>
 #include "object_and_group.h"
 
-Object::Object(const std::string& objectName, const std::string& meshName, const std::string& materialName, const Transform& transform)
+Object::Object(const std::string& objectName, const std::string& meshName, const std::string& materialName, const Transform& transform, const SurfaceProperty& surfaceProperty)
 	: mName(objectName)
 	, mRefMeshName(meshName)
 	, mRefMaterialName(materialName)
 	, mTransform(transform)
+	, mSurfaceProperty(surfaceProperty)
 {
 }
 
@@ -24,10 +25,9 @@ Group::Group(const std::string& name, const Transform& transform)
 }
 
 
-Result Group::addChildObject(const Object& object, const Transform& transform, const std::string& newName)
+Result Group::addChildObject(const Object& object, const std::string& newName)
 {
 	Object tmpObject = object;
-	tmpObject.setTransform(transform);
 
 	if (newName != std::string(""))
 	{
@@ -62,10 +62,9 @@ Result Group::addChildObject(const Object& object, const Transform& transform, c
 	return true;
 }
 
-Result Group::addChildGroup(const Group& group, const Transform& transform, const std::string& newName)
+Result Group::addChildGroup(const Group& group, const std::string& newName)
 {
 	Group tmpGroup = group;
-	tmpGroup.setTransform(transform);
 
 	if (newName != std::string(""))
 	{

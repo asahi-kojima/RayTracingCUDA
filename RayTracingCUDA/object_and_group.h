@@ -1,5 +1,11 @@
 #pragma once
 #include "transform.h"
+#include "color.h"
+
+struct SurfaceProperty
+{
+	Color albedo;
+};
 
 /// <summary>
 /// シーンに配置するオブジェクトの情報を持ったクラス
@@ -8,17 +14,19 @@
 class Object
 {
 public:
-	Object(const std::string& objectName, const std::string& meshName, const std::string& materialName, const Transform& transform = Transform::identity());
-
+	Object(const std::string& objectName, const std::string& meshName, const std::string& materialName, const Transform& transform = Transform::identity(), const SurfaceProperty& surfaceProperty = SurfaceProperty{});
+	
 	void setName(const std::string& objectName) { mName = objectName; }
 	void setMesh(const std::string& meshName) { mRefMeshName = meshName; }
 	void setMaterial(const std::string& materialName) { mRefMaterialName = materialName; }
 	void setTransform(const Transform& transform) { mTransform = transform; }
+	void setSurfaceProperty(const SurfaceProperty& surfaceProperty) { mSurfaceProperty = surfaceProperty; }
 
 	const std::string& getName() const { return mName; }
 	const std::string& getMeshName() const { return mRefMeshName; }
 	const std::string& getMaterialName() const { return mRefMaterialName; }
 	const Transform& getTransform() const { return mTransform; }
+	const SurfaceProperty& getSurfaceProperty() const { return mSurfaceProperty; }
 
 	void updateTransform();
 
@@ -27,6 +35,7 @@ private:
 	std::string mRefMeshName;
 	std::string mRefMaterialName;
 	Transform mTransform;
+	SurfaceProperty mSurfaceProperty;
 };
 
 /// <summary>
@@ -47,8 +56,8 @@ public:
 	const Transform& getTransform() const { return mTransform; }
 
 
-	Result addChildObject(const Object& object, const Transform& transform = Transform::identity(), const std::string& newName = std::string(""));
-	Result addChildGroup(const Group& group, const Transform& transform = Transform::identity(), const std::string& newName = std::string(""));
+	Result addChildObject(const Object& object, const std::string& newName = std::string(""));
+	Result addChildGroup(const Group& group, const std::string& newName = std::string(""));
 
 	const std::vector<Group>& getChildGroupArray() const { return mChildGroupArray; }
 	const std::vector<Object>& getChildObjectArray() const { return mChildObjectArray; }
