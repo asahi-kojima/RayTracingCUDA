@@ -86,6 +86,14 @@ __device__ __host__ f32 Color::a() const
 }
 
 
+__device__ __host__ Color& Color::operator+=(const Color& rhs)
+{
+	this->mRGBA[0] += rhs.mRGBA[0];
+	this->mRGBA[1] += rhs.mRGBA[1];
+	this->mRGBA[2] += rhs.mRGBA[2];
+	return *this;
+}
+
 Color Color::operator*(const Color& rhs) const
 {
 	const Color& lhs = *this;
@@ -119,7 +127,7 @@ Color& Color::operator*=(const f32 value)
 {
 	for (u32 i = 0; i < 3; i++)
 	{
-		mRGBA[i] *= mRGBA[i] * value;
+		mRGBA[i] = mRGBA[i] * value;
 	}
 
 	return *this;

@@ -25,6 +25,7 @@ public:
 
 	__device__ __host__ Vec3 getRGB() const { return Vec3(r(), g(), b()); }
 
+	__device__ __host__ Color& operator+=(const Color& rhs);
 	__device__ __host__ Color operator*(const Color& rhs) const;
 	__device__ __host__ Color operator*(const f32 value) const;
 	__device__ __host__ Color& operator*=(const Color& rhs);
