@@ -6,7 +6,7 @@
 Color::Color(const f32 r, const f32 g, const f32 b, const f32 alpha)
 	: mRGBA{ r, g, b,alpha }
 {
-	Color::clamp();
+	//Color::clamp();
 }
 
 Color::Color(const Vec3& rgb, const f32 alpha)
