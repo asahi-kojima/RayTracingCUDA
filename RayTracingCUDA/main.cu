@@ -1,3 +1,4 @@
+#include <ctime>
 #include "common.h"
 #include "vector.h"
 #include "mesh.h"
@@ -14,11 +15,12 @@
 constexpr u32 RANDOM_GENERATOR_STATE_COUNT = 32;
 __device__ curandState s[32];
 
-__global__ void setup_gpu()
+__global__ void setup_gpu(time_t time)
 {
-	for (u32 i = 0; i < 32; i++)
+	int idx = threadIdx.x + blockIdx.x * blockDim.x;
+	if (idx < RANDOM_GENERATOR_STATE_COUNT)
 	{
-		curand_init(static_cast<unsigned long long>(i), 0, 0, &s[i]);
+		curand_init(static_cast<unsigned long long>(time) + idx, 0, 0, &s[idx]);
 	}
 }
 
@@ -35,7 +37,8 @@ Transform generateRandomTransform(const f32 scale = 100.0f)
 
 int main()
 {
-	ONCE_ON_GPU(setup_gpu)();
+	setup_gpu << <1, RANDOM_GENERATOR_STATE_COUNT >> > (time(0));
+	KERNEL_ERROR_CHECKER;
 
 	Mesh sphereMesh      = GeometryGenerator::sphereGenerator(100, 100);
 	Mesh tetrahedronMesh = GeometryGenerator::tetrahedronGenerator();
@@ -49,15 +52,15 @@ int main()
 	Mesh planeMesh       = GeometryGenerator::planeGenerator(1);
 	Mesh coneMesh        = GeometryGenerator::coneGenerator(20);
 	Mesh cylinderMesh    = GeometryGenerator::cylinderGenerator(10);
-	Mesh torusMesh       = GeometryGenerator::torusGenerator(0.3f, 20, 12);
+	Mesh torusMesh       = GeometryGenerator::torusGenerator(0.1f, 20, 10);
 
 	Material pureMetal{Material::MaterialType::METAL, 0.0f, 1.0, 1.0f, 0.0f};
-	Material fuzzyMetal{Material::MaterialType::METAL, 0.5f, 0.0, 0.0f, 0.0f};
+	Material fuzzyMetal{Material::MaterialType::METAL, 0.2f, 0.0, 0.0f, 0.0f};
 	Material water{Material::MaterialType::DIELECTRIC, 0.0f, 0.0, 1.1f, 0.0f};
 	Material glass{Material::MaterialType::DIELECTRIC, 0.0f, 0.0, 1.5f, 0.0f};
 	Material diamond{Material::MaterialType::DIELECTRIC, 0.0f, 0.0, 2.5f, 0.0f};
 	Material pureLambertian{Material::MaterialType::LAMBERTIAN, 1.0f, 0.0, 0.0f, 0.0f};
-	Material light{Material::MaterialType::EMISSIVE, 1.0f, 0.0, 0.0f, 0.0f, Color::Azure, true};
+	Material light{Material::MaterialType::EMISSIVE, 1.0f, 0.0, 0.0f, 0.0f, Color::Azure * 1, true};
 
 	Scene scene;
 	{
@@ -114,10 +117,12 @@ int main()
 	Result result;
 
 
-	scene.addObject(Object{ "torus", "torus", "glass", Transform::translation(Vec3(0, 1, 0)), SurfaceProperty{Color::White} });
-	scene.addObject(Object{ "torus", "geoSphere2", "glass", Transform::translation(Vec3(3, 1, 0)), SurfaceProperty{Color::White} });
+	scene.addObject(Object{ "torus", "geoSphere1", "diamond", Transform::translation(Vec3(-3, 1, 0)), SurfaceProperty{Color::White} });
+	scene.addObject(Object{ "torus", "geoSphere2", "metal", Transform::translation(Vec3(0, 1, -3)), SurfaceProperty{Color::White} });
+	scene.addObject(Object{ "torus", "geoSphere4", "metal", Transform::translation(Vec3(0, 1, 3)), SurfaceProperty{Color::White} });
+	scene.addObject(Object{ "torus", "torus", "fuzzyMetal", Transform::translation(Vec3(0, 1, 0)), SurfaceProperty{Color::Red} });
 	//scene.addObject(Object{ "torus", "geoSphere2", "glass", Transform(Vec3(3, 1, 0), -0.9), SurfaceProperty{Color::White} });
-	scene.addObject(Object{ "torus", "geoSphere0", "glass", Transform::translation(Vec3(-3, 1, 0)), SurfaceProperty{Color::White} });
+	scene.addObject(Object{ "torus", "octahedron", "metal", Transform::translation(Vec3(3, 1.2, 0)), SurfaceProperty{Color::Bronze} });
 
 	//scene.addObject(Object{ "torus", "sphere", "glass", Transform::translation(Vec3(0, 1, 1)), SurfaceProperty{Color::White} });
 	
@@ -129,10 +134,10 @@ int main()
 	trans.setTranslation(Vec3(0, -1000, 0));
 	scene.addObject(Object{ "object1", "box", "diffuse", trans, SurfaceProperty{Color::Gray}});
 
-	const f32 skyScale = 10000;
+	const f32 skyScale = 1000;
 	trans.setScaling(skyScale, 1, skyScale);
 	trans.setTranslation(Vec3(0, 100, 0));
-	scene.addObject(Object{ "object1", "box", "sky", trans});
+	//scene.addObject(Object{ "object1", "box", "sky", trans });
 
 	for (s32 a = -110; a < 11; a++)
 	{
@@ -140,7 +145,7 @@ int main()
 		{
 			auto A = 1 * a;
 			auto B = 1 * b;
-			Vec3 center{ A + 0.9f * RandomGenerator::uniform_real(), 0.2f, B + 0.9f * RandomGenerator::uniform_real() };
+			Vec3 center{ A + 0.9f * RandomGenerator::uniform_real(), 0.3f, B + 0.9f * RandomGenerator::uniform_real() };
 			
 
 			Object object
@@ -148,7 +153,7 @@ int main()
 				std::string("obj") + std::to_string(a) + std::to_string(b),
 				meshNameList[RandomGenerator::uniform_int(0, sizeof(meshNameList) / sizeof(meshNameList[0]))],
 				 materialNameList[RandomGenerator::uniform_int(0, sizeof(materialNameList) / sizeof(materialNameList[0]))],
-				 Transform(center, 0.2) ,
+				 Transform(center, 0.3) ,
 				 SurfaceProperty{ Color::random() }
 			};
 			scene.addObject(object);

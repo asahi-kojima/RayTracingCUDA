@@ -52,8 +52,8 @@ Result Scene::initLaunchParams()
 	mGpuRayTracingLaunchParamsHostSide.tlasCount     = mRayTracingDataOnCPU.tlasArray.size();
 
 
-	mGpuRayTracingLaunchParamsHostSide.pixelSizeHorizontal = 1920;//3840;
-	mGpuRayTracingLaunchParamsHostSide.pixelSizeVertical = 1080;//2160;
+	mGpuRayTracingLaunchParamsHostSide.pixelSizeHorizontal = 3840;
+	mGpuRayTracingLaunchParamsHostSide.pixelSizeVertical = 2160;
 	mGpuRayTracingLaunchParamsHostSide.invPixelSizeHorizontal = 1.0f / static_cast<f32>(mGpuRayTracingLaunchParamsHostSide.pixelSizeHorizontal);
 	mGpuRayTracingLaunchParamsHostSide.invPixelSizeVertical = 1.0f / static_cast<f32>(mGpuRayTracingLaunchParamsHostSide.pixelSizeVertical);
 
@@ -65,7 +65,7 @@ Result Scene::initLaunchParams()
 
 	const f32 aspect = static_cast<f32>(mGpuRayTracingLaunchParamsHostSide.pixelSizeHorizontal) / static_cast<f32>(mGpuRayTracingLaunchParamsHostSide.pixelSizeVertical);
 	const f32 diff = 3.1f;
-	Camera camera{Vec3(5,2.5,5), Vec3(0, 0, 0), Vec3::unitY(), 45, aspect};
+	Camera camera{Vec3(5,5.5,5), Vec3(0, 0, 0), Vec3::unitY(), 45, aspect};
 	mGpuRayTracingLaunchParamsHostSide.camera = camera;
 
 	cudaMemcpyToSymbol(gGpuRayTracingLaunchParams, &mGpuRayTracingLaunchParamsHostSide, sizeof(GpuRayTracingLaunchParams));
@@ -393,7 +393,10 @@ __device__ bool shader(const Ray& ray, const HitRecord& hitRecord, const Materia
 			*/
 			f32 r0 = (1.0f - refractionRatio) / (1.0f + refractionRatio);
 			r0 = r0 * r0;
-			const f32 reflectionProb = r0 + (1.0f - r0) * pow((1.0f - cos0), 5);
+			
+			const f32 x = (1.0f - cos0);
+			const f32 x2 = x * x;
+			const f32 reflectionProb = r0 + (1.0f - r0) * x2 * x2 * x;
 
 			// こっちは反射
 			if (cannotRefract || reflectionProb > RandomGeneratorGPU::uniform_real())
@@ -432,7 +435,7 @@ __device__ Color tracePath(Ray ray)
 		{
 			const f32 ratio = 0.5f * (ray.direction().normalize().y() + 1.0f);
 			
-			Vec3 backGroundColor = Vec3(0,0,0);//Vec3{ 1 * ratio, 1 * ratio, 1 * ratio + (1 - ratio) };
+			Vec3 backGroundColor = Vec3(0,0,0);
 		
 			pathRadiance += (backGroundColor * pathAttenuation);
 			break;
@@ -489,7 +492,7 @@ __global__ void raytracingKernel()
 
 
 
-	const f32 samplingRange = 0.01f;
+	const f32 samplingRange = 1.0f;
 	const f32 u = static_cast<f32>(xid + RandomGeneratorGPU::signed_uniform_real() * samplingRange) * gGpuRayTracingLaunchParams.invPixelSizeHorizontal;
 	const f32 v = static_cast<f32>(yid + RandomGeneratorGPU::signed_uniform_real() * samplingRange) * gGpuRayTracingLaunchParams.invPixelSizeVertical;
 	Ray ray = gGpuRayTracingLaunchParams.camera.getRay(u, v);
@@ -505,7 +508,6 @@ __global__ void raytracingKernel()
 		gGpuRayTracingLaunchParams.renderTargetImageArray[pixelID] += color;
 	}
 }
-
 
 
 
@@ -529,7 +531,7 @@ Result Scene::render()
     cudaEventCreate(&stop);
     cudaEventRecord(start, 0);
 
-	constexpr u32 renderFrameCount = 10;
+	constexpr u32 renderFrameCount = 100;
 	for (u32 i = 0; i < renderFrameCount; i++)
 	{
 		mGpuRayTracingLaunchParamsHostSide.frameCount = i;
