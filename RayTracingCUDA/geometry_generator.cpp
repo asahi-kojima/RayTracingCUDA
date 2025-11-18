@@ -213,12 +213,12 @@ Mesh GeometryGenerator::sphereGenerator(const u32 stackCount, const u32 sliceCou
 		{
 			f32 phi = j * dPhi;
 			Vertex v;
-			v.position[0] = radius * sinf(theta) * cosf(phi);
+			v.position[0] = radius * sinf(theta) * sinf(phi);
 			v.position[1] = radius * cosf(theta);
-			v.position[2] = radius * sinf(theta) * sinf(phi);
-			v.normal[0] = sinf(theta) * cosf(phi);
+			v.position[2] = radius * sinf(theta) * cosf(phi);
+			v.normal[0] = sinf(theta) * sinf(phi);
 			v.normal[1] = cosf(theta);
-			v.normal[2] = sinf(theta) * sinf(phi);
+			v.normal[2] = sinf(theta) * cosf(phi);
 			vertexArray.push_back(v);
 		}
 	}

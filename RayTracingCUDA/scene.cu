@@ -64,8 +64,8 @@ Result Scene::initLaunchParams()
 	mGpuRayTracingLaunchParamsHostSide.frameCount = 0;
 
 	const f32 aspect = static_cast<f32>(mGpuRayTracingLaunchParamsHostSide.pixelSizeHorizontal) / static_cast<f32>(mGpuRayTracingLaunchParamsHostSide.pixelSizeVertical);
-	const f32 diff = 3.1f;
-	Camera camera{Vec3(5,5.5,5), Vec3(0, 0, 0), Vec3::unitY(), 45, aspect};
+
+	Camera camera{Vec3(10,4,10), Vec3(0, 0, 0), Vec3::unitY(), 45, aspect};
 	mGpuRayTracingLaunchParamsHostSide.camera = camera;
 
 	cudaMemcpyToSymbol(gGpuRayTracingLaunchParams, &mGpuRayTracingLaunchParamsHostSide, sizeof(GpuRayTracingLaunchParams));
@@ -433,11 +433,6 @@ __device__ Color tracePath(Ray ray)
 
 		if (!(hitRecord = traceTlasTree(ray)))
 		{
-			const f32 ratio = 0.5f * (ray.direction().normalize().y() + 1.0f);
-			
-			Vec3 backGroundColor = Vec3(0,0,0);
-		
-			pathRadiance += (backGroundColor * pathAttenuation);
 			break;
 		}
 
@@ -531,7 +526,7 @@ Result Scene::render()
     cudaEventCreate(&stop);
     cudaEventRecord(start, 0);
 
-	constexpr u32 renderFrameCount = 100;
+	constexpr u32 renderFrameCount = 10;
 	for (u32 i = 0; i < renderFrameCount; i++)
 	{
 		mGpuRayTracingLaunchParamsHostSide.frameCount = i;
