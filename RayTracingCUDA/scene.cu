@@ -1,8 +1,15 @@
+#include <Windowsnumerics.h>
+#include <cuda_runtime.h>
 #include <iostream>
 #include "scene.h"
 #include "util.h"
-#include <Windowsnumerics.h>
 
+
+namespace
+{
+	constexpr u32 TILE_SIZE_X = 16;
+	constexpr u32 TILE_SIZE_Y = 16;
+}
 
 __constant__ GpuRayTracingLaunchParams gGpuRayTracingLaunchParams = {};
 
@@ -68,6 +75,28 @@ Result Scene::initLaunchParams()
 	Camera camera{Vec3(10,4,10), Vec3(0, 0, 0), Vec3::unitY(), 45, aspect};
 	mGpuRayTracingLaunchParamsHostSide.camera = camera;
 
+	// タイルカウンターの初期化
+	u32* d_tileCounter = nullptr;
+	CHECK(cudaMalloc(&d_tileCounter, sizeof(u32)));
+	CHECK(cudaMemset(d_tileCounter, 0, sizeof(u32)));
+	mGpuRayTracingLaunchParamsHostSide.tileCounter = d_tileCounter;
+
+	{
+		const u32 tileWidth = TILE_SIZE_X;
+		const u32 tileHeight = TILE_SIZE_Y;
+
+		const u32 tileCountX = (mGpuRayTracingLaunchParamsHostSide.pixelSizeHorizontal + tileWidth - 1) / tileWidth;
+		const u32 tileCountY = (mGpuRayTracingLaunchParamsHostSide.pixelSizeVertical + tileHeight - 1) / tileHeight;
+
+		const u32 totalTileCount = tileCountX * tileCountY;
+
+
+
+		mGpuRayTracingLaunchParamsHostSide.tileCountPerRow = tileCountX;
+		mGpuRayTracingLaunchParamsHostSide.totalTileCount = totalTileCount;
+	}
+
+
 	cudaMemcpyToSymbol(gGpuRayTracingLaunchParams, &mGpuRayTracingLaunchParamsHostSide, sizeof(GpuRayTracingLaunchParams));
 
 	KERNEL_ERROR_CHECKER;
@@ -117,46 +146,46 @@ namespace
 		}
 		__device__ operator bool() const { return isIntersected; }
 	};
-}
 
-__device__ TriangleIntersectionResult intersectionTriangle(const Ray& ray, const Vec3& v0, const Vec3& v1, const Vec3& v2)
-{
-	const Vec3 p1 = v1 - v0;
-	const Vec3 p2 = v2 - v0;
-	const Vec3 v0ToO = ray.origin() - v0;
 
-	const Vec3 a0 = -ray.direction();
-	const Vec3 a1 = p1;
-	const Vec3 a2 = p2;
-
-	const Vec3 cross1x2 = Vec3::cross(a1, a2);
-
-	const f32 det = Vec3::dot(cross1x2, a0);
-	if (isEqualF32(det, 0.0f))
+	__device__ TriangleIntersectionResult intersectionTriangle(const Ray& ray, const Vec3& v0, const Vec3& v1, const Vec3& v2)
 	{
-		return TriangleIntersectionResult{false};
+		const Vec3 p1 = v1 - v0;
+		const Vec3 p2 = v2 - v0;
+		const Vec3 v0ToO = ray.origin() - v0;
+
+		const Vec3 a0 = -ray.direction();
+		const Vec3 a1 = p1;
+		const Vec3 a2 = p2;
+
+		const Vec3 cross1x2 = Vec3::cross(a1, a2);
+
+		const f32 det = Vec3::dot(cross1x2, a0);
+		if (isEqualF32(det, 0.0f))
+		{
+			return TriangleIntersectionResult{false};
+		}
+
+		const Vec3 cross2x0 = Vec3::cross(a2, a0);
+		const Vec3 cross0x1 = Vec3::cross(a0, a1);
+
+		const f32 t     = Vec3::dot(cross1x2, v0ToO) / det;
+		const f32 alpha = Vec3::dot(cross2x0, v0ToO) / det;
+		const f32 beta  = Vec3::dot(cross0x1, v0ToO) / det;
+
+		const f32 tmin = ray.tmin();
+		const f32 tmax = ray.tmax();
+
+		if (!(t > tmin && t < tmax && alpha + beta < 1 && alpha > 0 && beta > 0))
+		{
+			return TriangleIntersectionResult{ false };
+		}
+
+		bool isCulling = false;//TODO
+
+		return TriangleIntersectionResult{ true, t, alpha, beta };
 	}
-
-	const Vec3 cross2x0 = Vec3::cross(a2, a0);
-	const Vec3 cross0x1 = Vec3::cross(a0, a1);
-	
-	const f32 t     = Vec3::dot(cross1x2, v0ToO) / det;
-	const f32 alpha = Vec3::dot(cross2x0, v0ToO) / det;
-	const f32 beta  = Vec3::dot(cross0x1, v0ToO) / det;
-
-	const f32 tmin = ray.tmin();
-	const f32 tmax = ray.tmax();
-
-	if (!(t > tmin && t < tmax && alpha + beta < 1 && alpha > 0 && beta > 0))
-	{
-		return TriangleIntersectionResult{ false };
-	}
-
-	bool isCulling = false;//TODO
-
-	return TriangleIntersectionResult{ true, t, alpha, beta };
 }
-
 
 
 __device__ s32 traceBlasTree(Ray& ray, const u32 blasRootIndex, const u32 vertexOffset, const u32 indexOffset)
@@ -476,32 +505,51 @@ __device__ Color tracePath(Ray ray)
 
 __global__ void raytracingKernel()
 {
-	const u32 xid = blockIdx.x * blockDim.x + threadIdx.x;
-	const u32 yid = blockIdx.y * blockDim.y + threadIdx.y;
-	const u32 pixelID = yid * gGpuRayTracingLaunchParams.pixelSizeHorizontal + xid;
+	__shared__ u32 sharedTileIndex;
 
-	if (xid >= gGpuRayTracingLaunchParams.pixelSizeHorizontal || yid >= gGpuRayTracingLaunchParams.pixelSizeVertical)
+	while (true)
 	{
-		return;
+		if (threadIdx.x == 0 && threadIdx.y == 0)
+		{
+			sharedTileIndex = atomicAdd(gGpuRayTracingLaunchParams.tileCounter, 1);
+		}
+		__syncthreads();
+
+		if (sharedTileIndex >= gGpuRayTracingLaunchParams.totalTileCount)
+		{
+			break;
+		}
+
+		// オフセット
+		const u32 tileBaseIndexX = (sharedTileIndex % gGpuRayTracingLaunchParams.tileCountPerRow) * TILE_SIZE_X;
+		const u32 tileBaseIndexY = (sharedTileIndex / gGpuRayTracingLaunchParams.tileCountPerRow) * TILE_SIZE_Y;
+
+		const u32 pixelX = tileBaseIndexX + threadIdx.x;
+		const u32 pixelY = tileBaseIndexY + threadIdx.y;
+		const u32 pixelID = pixelY * gGpuRayTracingLaunchParams.pixelSizeHorizontal + pixelX;
+
+		if (!(pixelX >= 0 && pixelX < gGpuRayTracingLaunchParams.pixelSizeHorizontal && pixelY >= 0 && pixelY < gGpuRayTracingLaunchParams.pixelSizeVertical))
+		{
+			break;
+		}
+
+		const f32 samplingRange = 1.0f;
+		const f32 u = static_cast<f32>(pixelX + RandomGeneratorGPU::signed_uniform_real() * samplingRange) * gGpuRayTracingLaunchParams.invPixelSizeHorizontal;
+		const f32 v = static_cast<f32>(pixelY + RandomGeneratorGPU::signed_uniform_real() * samplingRange) * gGpuRayTracingLaunchParams.invPixelSizeVertical;
+		Ray ray = gGpuRayTracingLaunchParams.camera.getRay(u, v);
+
+		Color color = tracePath(ray);
+
+		if (gGpuRayTracingLaunchParams.frameCount == 0)
+		{
+			gGpuRayTracingLaunchParams.renderTargetImageArray[pixelID] = color;
+		}
+		else
+		{
+			gGpuRayTracingLaunchParams.renderTargetImageArray[pixelID] += color;
+		}
 	}
 
-
-
-	const f32 samplingRange = 1.0f;
-	const f32 u = static_cast<f32>(xid + RandomGeneratorGPU::signed_uniform_real() * samplingRange) * gGpuRayTracingLaunchParams.invPixelSizeHorizontal;
-	const f32 v = static_cast<f32>(yid + RandomGeneratorGPU::signed_uniform_real() * samplingRange) * gGpuRayTracingLaunchParams.invPixelSizeVertical;
-	Ray ray = gGpuRayTracingLaunchParams.camera.getRay(u, v);
-
-	Color color = tracePath(ray);
-	
-	if (gGpuRayTracingLaunchParams.frameCount == 0)
-	{
-		gGpuRayTracingLaunchParams.renderTargetImageArray[pixelID] = color;
-	}
-	else
-	{
-		gGpuRayTracingLaunchParams.renderTargetImageArray[pixelID] += color;
-	}
 }
 
 
@@ -510,18 +558,58 @@ __global__ void raytracingKernel()
 #include <fstream>
 Result Scene::render()
 {
-	std::cout << "===================================================" << std::endl;
-	std::cout << "                  Rendering Start                  " << std::endl;
-	std::cout << "===================================================" << std::endl;
-	//TLASの探索
-
-	//Objectのローカル空間に移行し、BLASを探索する
+	std::cout << "====================================================================================" << std::endl;
+	std::cout << "                                 CUDA Ray Tracing Start                             " << std::endl;
+	std::cout << "====================================================================================" << std::endl;
 
 
-    Result result;
+	s32 deviceID = 0;
+	cudaGetDevice(&deviceID);
+
+
+	cudaDeviceProp deviceProp;
+	cudaGetDeviceProperties(&deviceProp, deviceID);
+
+	s32 driverVersion = 0;
+	cudaDriverGetVersion(&driverVersion);
+
+	s32 runtimeVersion = 0;
+	cudaRuntimeGetVersion(&runtimeVersion);
+
+
+	std::cout << "------------------------------------------------------------------------------------" << std::endl;
+	std::cout << "Device name" << "\"" << deviceProp.name << "\"" << std::endl;
+	std::cout << "CUDA Driver Version" << driverVersion / 1000 << "." << (driverVersion % 100) / 10 << std::endl;
+	std::cout << "CUDA Runtime Versionz" << runtimeVersion / 1000 << "." << (runtimeVersion % 100) / 10 << std::endl;
+	std::cout << "CUDA Capability Major/Minor version number :" << deviceProp.major << "." << deviceProp.minor << std::endl;
+
+	std::cout << "VRAM                                       : " << static_cast<f32>(deviceProp.totalGlobalMem / pow(1024.0, 3)) << "GB (" << deviceProp.totalGlobalMem << "Bytes)" << std::endl;
+	std::cout << "Total amount of shared memory per block    : " << deviceProp.sharedMemPerBlock << "Bytes" << std::endl;
+	std::cout << "Max Texture Dimension Size of 1D           : " << "(" << deviceProp.maxTexture1D << ")" << std::endl;
+	std::cout << "Max Texture Dimension Size of 2D           : " << "(" << deviceProp.maxTexture2D[0] << ", " << deviceProp.maxTexture2D[1] << ")" << std::endl;
+	std::cout << "Max Texture Dimension Size of 3D           : " << "(" << deviceProp.maxTexture3D[0] << ", " << deviceProp.maxTexture3D[1] << ", " << deviceProp.maxTexture3D[2] << ")" << std::endl;
+	std::cout << "Maximum sizes of threads per block         : " << deviceProp.maxThreadsPerBlock << std::endl;
+	std::cout << "Maximum sizes of each dimension of a block : " << "(" << deviceProp.maxThreadsDim[0] << ", " << deviceProp.maxThreadsDim[1] << ", " << deviceProp.maxThreadsDim[2] << ")" << std::endl;
+	std::cout << "Maximum sizes of each dimension of a grid  : " << "(" << deviceProp.maxGridSize[0] << ", " << deviceProp.maxGridSize[1] << ", " << deviceProp.maxGridSize[2] << ")" << std::endl;
+	std::cout << "Streaming MultiProcessor Count             : " << deviceProp.multiProcessorCount << std::endl;
+	std::cout << "------------------------------------------------------------------------------------" << std::endl;
+
+	const u32 streamingMultiprocessorCount = deviceProp.multiProcessorCount;
+
+	const u32 blockCountPerSM = 8;
+
+
+	s32 maxBlocksPerSM;
+	cudaOccupancyMaxActiveBlocksPerMultiprocessor(&maxBlocksPerSM, raytracingKernel, TILE_SIZE_X * TILE_SIZE_Y, 0);
+
+	const u32 blockCount = streamingMultiprocessorCount * maxBlocksPerSM;
+
+	dim3 block(TILE_SIZE_X, TILE_SIZE_Y);
+	dim3 grid(blockCount, 1);
+
 
     cudaEvent_t start, stop;
-    float elapsedTime = 0.0f;
+    f32 elapsedTime = 0.0f;
     cudaEventCreate(&start);
     cudaEventCreate(&stop);
     cudaEventRecord(start, 0);
@@ -531,11 +619,11 @@ Result Scene::render()
 	{
 		mGpuRayTracingLaunchParamsHostSide.frameCount = i;
 		cudaMemcpyToSymbol(gGpuRayTracingLaunchParams, &mGpuRayTracingLaunchParamsHostSide, sizeof(GpuRayTracingLaunchParams));
+
+
+		CHECK(cudaMemset(mGpuRayTracingLaunchParamsHostSide.tileCounter, 0, sizeof(u32)));
 		KERNEL_ERROR_CHECKER;
-		dim3 block(16, 16);
-		dim3 grid(
-		(mGpuRayTracingLaunchParamsHostSide.pixelSizeHorizontal + block.x - 1) / block.x,
-		(mGpuRayTracingLaunchParamsHostSide.pixelSizeVertical + block.y - 1) / block.y);
+
 
 		raytracingKernel <<<grid, block >>> ();
 		KERNEL_ERROR_CHECKER;
@@ -576,5 +664,5 @@ Result Scene::render()
 	}
 	outputFile.close();
 
-    return result;
+    return true;
 }

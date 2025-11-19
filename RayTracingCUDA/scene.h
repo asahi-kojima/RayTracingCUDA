@@ -111,6 +111,11 @@ struct GpuRayTracingLaunchParams
 	u32 frameCount;
 
 	Camera camera;
+
+
+	u32* tileCounter;
+	u32 totalTileCount;
+	u32 tileCountPerRow;
 };
 
 /// <summary>
