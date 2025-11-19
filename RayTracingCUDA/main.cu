@@ -116,21 +116,21 @@ int main()
 		"diamond",
 		"diffuse",
 		"light",
-		"highIntensityLight"
+		//"highIntensityLight"
 	};
 
 	Result result;
 
 
 
-	scene.addObject(Object{ "torus", "geoSphere2", "diffuse", Transform(Vec3(-3, 1, 0), 1), SurfaceProperty{Color::White} });
-	scene.addObject(Object{ "torus", "geoSphere0", "diffuse", Transform(Vec3(0, 1, -3), 1, Quaternion(0, Vec3(0,1,0))), SurfaceProperty{Color::White}});
-	scene.addObject(Object{ "torus", "sphere", "diffuse", Transform(Vec3(0, 1, 3), 1, Quaternion(0, Vec3(0,1,0))), SurfaceProperty{Color::White} });
+	scene.addObject(Object{ "torus", "geoSphere2", "metal", Transform(Vec3(-3, 1, 0), 1), SurfaceProperty{Color::White} });
+	scene.addObject(Object{ "torus", "geoSphere0", "glass", Transform(Vec3(0, 1, -3), 1, Quaternion(0, Vec3(0,1,0))), SurfaceProperty{Color::White}});
+	scene.addObject(Object{ "torus", "cylinder", "fuzzyMetal", Transform(Vec3(0, 1, 3), 1, Quaternion(0, Vec3(0,1,0))), SurfaceProperty{Color::White} });
 	scene.addObject(Object{ "torus", "torus", "diamond", Transform(Vec3(0, 1, 0), 1, Quaternion(RandomGenerator::uniform_real(0, 10), Vec3::generateRandomUnitVector())), SurfaceProperty{Color::Red} });
 	//scene.addObject(Object{ "torus", "geoSphere2", "glass", Transform(Vec3(3, 1, 0), -0.9), SurfaceProperty{Color::White} });
 	scene.addObject(Object{ "torus", "octahedron", "metal", Transform(Vec3(3, 1.2, 0), 1, Quaternion(RandomGenerator::uniform_real(0, 10),Vec3::generateRandomUnitVector())), SurfaceProperty{Color::Bronze} });
 
-	scene.addObject(Object{ "torus", "sphere", "glass", Transform(Vec3(0, 1, 0), 0.6), SurfaceProperty{Color::White} });
+	scene.addObject(Object{ "torus", "sphere", "highIntensityLight", Transform(Vec3(0, 1, 0), 0.6), SurfaceProperty{Color::White} });
 	
 	
 
@@ -149,8 +149,8 @@ int main()
 	{
 		for (s32 b = -100; b < 11; b++)
 		{
-			auto A = 1 * a;
-			auto B = 1 * b;
+			f32 A = 1.5 * a;
+			f32 B = 1.5 * b;
 			Vec3 center{ A + 0.9f * RandomGenerator::uniform_real(), 0.3f, B + 0.9f * RandomGenerator::uniform_real() };
 			
 
