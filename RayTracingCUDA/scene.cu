@@ -72,7 +72,7 @@ Result Scene::initLaunchParams()
 
 	const f32 aspect = static_cast<f32>(mGpuRayTracingLaunchParamsHostSide.pixelSizeHorizontal) / static_cast<f32>(mGpuRayTracingLaunchParamsHostSide.pixelSizeVertical);
 
-	Camera camera{Vec3(10,4,10), Vec3(0, 0, 0), Vec3::unitY(), 45, aspect};
+	Camera camera{Vec3(5,5,5), Vec3(0, 0, 0), Vec3::unitY(), 20, aspect};
 	mGpuRayTracingLaunchParamsHostSide.camera = camera;
 
 	// タイルカウンターの初期化
@@ -410,7 +410,7 @@ __device__ bool shader(const Ray& ray, const HitRecord& hitRecord, const Materia
 			const f32 sin1Squared = refractionRatio * refractionRatio * (1.0f - cos0 * cos0);
 
 			// 屈折が仮に起こった場合のsinの二乗。1を超えたら解がないので全反射
-			const bool cannotRefract = (sin1Squared > 1.0f);
+			const bool cannotRefract = (sin1Squared >= 1.0f);
 
 			/*
 			f32 Dielectric::reflect_probability(f32 cosine, f32 refIdx)
@@ -454,7 +454,7 @@ __device__ Color tracePath(Ray ray)
 	Vec3 pathAttenuation = Vec3{1.0f, 1.0f, 1.0f};
 	HitRecord hitRecord;
 	
-	const u32 maxBounce = 8;
+	const u32 maxBounce = 50;
 	for (u32 bounce = 0; bounce < maxBounce; bounce++)
 	{
 		ray.tmin() = 0.001f;
@@ -608,15 +608,15 @@ Result Scene::render()
 	dim3 grid(blockCount, 1);
 
 
-    cudaEvent_t start, stop;
-    f32 elapsedTime = 0.0f;
-    cudaEventCreate(&start);
-    cudaEventCreate(&stop);
-    cudaEventRecord(start, 0);
-
-	constexpr u32 renderFrameCount = 10;
+	constexpr u32 renderFrameCount = 100;
 	for (u32 i = 0; i < renderFrameCount; i++)
 	{
+
+		cudaEvent_t start, stop;
+		f32 elapsedTime = 0.0f;
+		cudaEventCreate(&start);
+		cudaEventCreate(&stop);
+		cudaEventRecord(start, 0);
 		mGpuRayTracingLaunchParamsHostSide.frameCount = i;
 		cudaMemcpyToSymbol(gGpuRayTracingLaunchParams, &mGpuRayTracingLaunchParamsHostSide, sizeof(GpuRayTracingLaunchParams));
 
@@ -627,15 +627,16 @@ Result Scene::render()
 
 		raytracingKernel <<<grid, block >>> ();
 		KERNEL_ERROR_CHECKER;
+
+		cudaEventRecord(stop, 0);
+		cudaEventSynchronize(stop);
+		cudaEventElapsedTime(&elapsedTime, start, stop);
+		std::cout << "[" << i << "] Rendering Time: " << elapsedTime << " ms : " << static_cast<s32>(1000.0f / elapsedTime) << " fps" << std::endl;
+
+		cudaEventDestroy(start);
+		cudaEventDestroy(stop);
 	}
 
-    cudaEventRecord(stop, 0);
-    cudaEventSynchronize(stop);
-    cudaEventElapsedTime(&elapsedTime, start, stop);
-    std::cout << "Rendering Time: " << elapsedTime << " ms : " << static_cast<s32>(1000.0f / elapsedTime) << " fps" << std::endl;
-
-    cudaEventDestroy(start);
-    cudaEventDestroy(stop);
 
 
 
@@ -657,6 +658,12 @@ Result Scene::render()
 		{
 			const u32 index = yid * ScreenWidth + xid;
 			Color& col = renderTarget[index];
+
+			if (col.isNan())
+			{
+				printf("%f, %f, %f\n", col.r(), col.g(), col.b());
+			}
+
 			col *= (1.0f / renderFrameCount);
 			col = Color(sqrt(col[0]), sqrt(col[1]), sqrt(col[2]));
 			outputFile << static_cast<s32>(255.99 * col[0]) << " " << static_cast<s32>(255.99 * col[1]) << " " << static_cast<s32>(255.99 * col[2]) << "\n";

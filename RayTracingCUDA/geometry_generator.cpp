@@ -101,12 +101,12 @@ Mesh GeometryGenerator::octahedronGenerator()
 {
 	std::vector<Vec3> positions
 	{
-		Vec3(0.0f, +1.0f,  0.0f),
+		Vec3(0.0f, +1.0f / sqrtf(2),  0.0f),
 		Vec3(0.0f,  0.0f, +1.0f),
 		Vec3(+1.0f, 0.0f,  0.0f),
 		Vec3(0.0f,  0.0f, -1.0f),
 		Vec3(-1.0f, 0.0f,  0.0f),
-		Vec3(0.0f, -1.0f,  0.0f)
+		Vec3(0.0f, -1.0f / sqrtf(2),  0.0f)
 	};
 
 

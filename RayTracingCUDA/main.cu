@@ -51,7 +51,7 @@ int main()
 	Mesh geoSphereMesh4  = GeometryGenerator::geoSphereGenerator(4);
 	Mesh planeMesh       = GeometryGenerator::planeGenerator(1);
 	Mesh coneMesh        = GeometryGenerator::coneGenerator(20);
-	Mesh cylinderMesh    = GeometryGenerator::cylinderGenerator(10);
+	Mesh cylinderMesh    = GeometryGenerator::cylinderGenerator(6);
 	Mesh torusMesh       = GeometryGenerator::torusGenerator(0.05f, 40, 20);
 
 	Material pureMetal{Material::MaterialType::METAL, 0.0f, 1.0, 1.0f, 0.0f};
@@ -122,49 +122,197 @@ int main()
 	Result result;
 
 
+	//for (s32 z = -1; z < 10; z++)
+	//{
+	//	const s32 num = 5;
+	//	for (s32 i = 0; i < num * num; i++)
+	//	{
+	//		const s32 h = i / num - num / 2;
+	//		const s32 w = i % num - num / 2;
 
-	scene.addObject(Object{ "torus", "geoSphere2", "metal", Transform(Vec3(-3, 1, 0), 1), SurfaceProperty{Color::White} });
-	scene.addObject(Object{ "torus", "geoSphere0", "glass", Transform(Vec3(0, 1, -3), 1, Quaternion(0, Vec3(0,1,0))), SurfaceProperty{Color::White}});
-	scene.addObject(Object{ "torus", "cylinder", "fuzzyMetal", Transform(Vec3(0, 1, 3), 1, Quaternion(0, Vec3(0,1,0))), SurfaceProperty{Color::White} });
-	scene.addObject(Object{ "torus", "torus", "diamond", Transform(Vec3(0, 1, 0), 1, Quaternion(RandomGenerator::uniform_real(0, 10), Vec3::generateRandomUnitVector())), SurfaceProperty{Color::Red} });
-	//scene.addObject(Object{ "torus", "geoSphere2", "glass", Transform(Vec3(3, 1, 0), -0.9), SurfaceProperty{Color::White} });
-	scene.addObject(Object{ "torus", "octahedron", "metal", Transform(Vec3(3, 1.2, 0), 1, Quaternion(RandomGenerator::uniform_real(0, 10),Vec3::generateRandomUnitVector())), SurfaceProperty{Color::Bronze} });
+	//		if (h == 0 && w == 0)
+	//			continue;
 
-	scene.addObject(Object{ "torus", "sphere", "highIntensityLight", Transform(Vec3(0, 1, 0), 0.6), SurfaceProperty{Color::White} });
-	
-	
+	//		const f32 scale = 0.1f + RandomGenerator::uniform_real(-1, 1) * 0.05;
 
+	//		std::string objectName = "SphereObject"; objectName += std::to_string(i) += std::string("-") += std::to_string(z);
 
-	Transform trans;
-	trans.setScaling(1000);
-	trans.setTranslation(Vec3(0, -1000, 0));
-	scene.addObject(Object{ "object1", "box", "diffuse", trans, SurfaceProperty{Color::Gray}});
+	//		objectName += "_2";
 
-	const f32 skyScale = 10000;
-	trans.setScaling(skyScale, skyScale, skyScale);
-	trans.setTranslation(Vec3(0, 0, 0));
-	scene.addObject(Object{ "object1", "box", "lowIntesityLight", trans });
+	//		scene.addObject(Object{
+	//			objectName,
+	//			"box",
+	//			"metal",
+	//			Transform(Vec3(
+	//			RandomGenerator::signed_uniform_real() * 2,
+	//			RandomGenerator::signed_uniform_real() * 2, -z), scale, Quaternion(RandomGenerator::uniform_real(0, 10), Vec3::generateRandomUnitVector())),
+	//			SurfaceProperty{Color::random()}
+	//			});
+	//	}
+	//}
 
-	for (s32 a = -100; a < 11; a++)
+	//for (s32 i = 0; i < 400; i++)
+	//{
+	//	const f32 scale = 0.2f;
+
+	//	std::string objectName = "GroundPlan2e" + std::to_string(i);
+	//	scene.addObject(Object{
+	//		objectName,
+	//		"cylinder",
+	//		"diamond",
+	//		Transform(Vec3(RandomGenerator::signed_uniform_real() * 1, RandomGenerator::signed_uniform_real() * 1, RandomGenerator::signed_uniform_real() * 1)
+	//			, Vec3(0.005, 10000, 0.005), Quaternion(RandomGenerator::uniform_real(0, 10), Vec3::generateRandomUnitVector())),
+	//		SurfaceProperty{Color::White}
+	//		});
+	//}
+	//for (s32 i = 0; i < 100; i++)
+	//{
+	//	const f32 scale = 0.2f;
+
+	//	std::string objectName = "GroundPlan2e" + std::to_string(i);
+	//	scene.addObject(Object{
+	//		objectName,
+	//		"torus",
+	//		"metal",
+	//		Transform(Vec3(RandomGenerator::signed_uniform_real() * 1, RandomGenerator::signed_uniform_real() * 1, RandomGenerator::signed_uniform_real() * 1)
+	//			, Vec3(RandomGenerator::uniform_real(0.1, 0.2), 0.1, RandomGenerator::uniform_real(0.1, 0.2)), Quaternion(RandomGenerator::uniform_real(0, 10), Vec3::generateRandomUnitVector())),
+	//		SurfaceProperty{Color::White}
+	//		});
+	//}
+
+	//u32 i = 0;
+	//for (const Vertex& vertex : geoSphereMesh0.getVertexArray())
+	//{
+	//	i++;
+	//	const Vec3& position = vertex.position;
+
+	//	const char* mesh = "box";
+	//	const char* material = "diamond";
+	//	const f32 scale = 0.1;
+
+	//	std::string objectName = std::string("pole") + std::to_string(i);
+	//	scene.addObject(Object{
+	//		objectName + std::string("0"),
+	//		mesh,
+	//		material,
+	//		Transform(position, Vec3(scale, 1000, scale)),
+	//		SurfaceProperty{Color::White}
+	//		});
+
+	//	scene.addObject(Object{
+	//		objectName + std::string("1"),
+	//		mesh,
+	//		material,
+	//		Transform(position, Vec3(scale, scale, 1000)),
+	//		SurfaceProperty{Color::White}
+	//				});	
+	//	
+	//	scene.addObject(Object{
+	//		objectName + std::string("2"),
+	//		mesh,
+	//		material,
+	//		Transform(position, Vec3(1000, scale, scale)),
+	//		SurfaceProperty{Color::White}
+	//				});
+	//}
+
+	u32 i = 0;
+	for (const Vertex& vertex : geoSphereMesh2.getVertexArray())
 	{
-		for (s32 b = -100; b < 11; b++)
-		{
-			f32 A = 1.5 * a;
-			f32 B = 1.5 * b;
-			Vec3 center{ A + 0.9f * RandomGenerator::uniform_real(), 0.3f, B + 0.9f * RandomGenerator::uniform_real() };
-			
+		i++;
+		const Vec3& position = vertex.position * 2.5;
 
-			Object object
-			{
-				std::string("obj") + std::to_string(a) + std::to_string(b),
-				meshNameList[RandomGenerator::uniform_int(0, sizeof(meshNameList) / sizeof(meshNameList[0]))],
-				 materialNameList[RandomGenerator::uniform_int(0, sizeof(materialNameList) / sizeof(materialNameList[0]))],
-				 Transform(center, 0.3, Quaternion(RandomGenerator::uniform_real(0, 10), Vec3::generateRandomUnitVector())) ,
-				 SurfaceProperty{ Color::random()}
-			};
-			scene.addObject(object);
-		}
+		const char* mesh = "cylinder";
+		const char* material = "fuzzyMetal";
+		const f32 scale = 0.02;
+
+		std::string objectName = std::string("pole") + std::to_string(i);
+		scene.addObject(Object{
+			objectName + std::string("0"),
+			mesh,
+			material,
+			Transform(position, Vec3(scale, 1000, scale)),
+			SurfaceProperty{Color::White}
+			});
+
+		scene.addObject(Object{
+			objectName + std::string("1"),
+			mesh,
+			material,
+			Transform(position, Vec3(scale, 1000, scale), Quaternion(M_PI / 2, Vec3::unitX())),
+			SurfaceProperty{Color::White}
+			});
+
+		scene.addObject(Object{
+			objectName + std::string("2"),
+			mesh,
+			material,
+			Transform(position, Vec3(scale, 1000, scale), Quaternion(M_PI / 2, Vec3::unitZ())),
+			SurfaceProperty{Color::White}
+			});
 	}
+
+	for (u32 i = 0; i < 300; i++)
+	{
+
+		//scene.addObject(Object{
+		//			std::to_string(i),
+		//			"sphere",
+		//			"highIntensityLight",
+		//			Transform(Vec3::generateRandomUnitVector() * RandomGenerator::uniform_real(0.1, 20), Vec3(0.1, 0.1, 0.1), Quaternion(RandomGenerator::uniform_real(0, 10), Vec3::generateRandomUnitVector())),
+		//			SurfaceProperty{Color::random()}
+		//			});
+
+		scene.addObject(Object{
+					std::to_string(i),
+					"plane",
+					"highIntensityLight",
+					Transform(Vec3::generateRandomUnitVector() * RandomGenerator::uniform_real(0.1, 20), Vec3::one() * 0.05, Quaternion(RandomGenerator::uniform_real(0, 10), Vec3::generateRandomUnitVector())),
+					SurfaceProperty{Color::random()}
+					});
+	}
+	//scene.addObject(Object{ "torus", "geoSphere2", "metal", Transform(Vec3(-3, 1, 0), 1), SurfaceProperty{Color::White} });
+	//scene.addObject(Object{ "torus", "geoSphere0", "glass", Transform(Vec3(0, 1, -3), 1, Quaternion(0, Vec3(0,1,0))), SurfaceProperty{Color::White}});
+	//scene.addObject(Object{ "torus", "cylinder", "fuzzyMetal", Transform(Vec3(0, 1, 3), 1, Quaternion(0, Vec3(0,1,0))), SurfaceProperty{Color::White} });
+	//scene.addObject(Object{ "torus", "torus", "diamond", Transform(Vec3(0, 1, 0), 1, Quaternion(RandomGenerator::uniform_real(0, 10), Vec3::generateRandomUnitVector())), SurfaceProperty{Color::Red} });
+	////scene.addObject(Object{ "torus", "geoSphere2", "glass", Transform(Vec3(3, 1, 0), -0.9), SurfaceProperty{Color::White} });
+	//scene.addObject(Object{ "torus", "octahedron", "metal", Transform(Vec3(3, 1.2, 0), 1, Quaternion(RandomGenerator::uniform_real(0, 10),Vec3::generateRandomUnitVector())), SurfaceProperty{Color::Bronze} });
+
+	//scene.addObject(Object{ "torus", "sphere", "highIntensityLight", Transform(Vec3(0, 1, 0), 0.6), SurfaceProperty{Color::White} });
+	//
+	//
+
+
+	//Transform trans;
+	//trans.setScaling(1000);
+	//trans.setTranslation(Vec3(0, -1000, 0));
+	//scene.addObject(Object{ "object1", "box", "diffuse", trans, SurfaceProperty{Color::Gray}});
+
+	//const f32 skyScale = 10000;
+	//trans.setScaling(skyScale, skyScale, skyScale);
+	//trans.setTranslation(Vec3(0, 0, 0));
+	//scene.addObject(Object{ "object1", "box", "lowIntesityLight", trans });
+
+	//for (s32 a = -100; a < 11; a++)
+	//{
+	//	for (s32 b = -100; b < 11; b++)
+	//	{
+	//		f32 A = 1.5 * a;
+	//		f32 B = 1.5 * b;
+	//		Vec3 center{ A + 0.9f * RandomGenerator::uniform_real(), 0.3f, B + 0.9f * RandomGenerator::uniform_real() };
+	//		
+
+	//		Object object
+	//		{
+	//			std::string("obj") + std::to_string(a) + std::to_string(b),
+	//			meshNameList[RandomGenerator::uniform_int(0, sizeof(meshNameList) / sizeof(meshNameList[0]))],
+	//			 materialNameList[RandomGenerator::uniform_int(0, sizeof(materialNameList) / sizeof(materialNameList[0]))],
+	//			 Transform(center, 0.3, Quaternion(RandomGenerator::uniform_real(0, 10), Vec3::generateRandomUnitVector())) ,
+	//			 SurfaceProperty{ Color::random()}
+	//		};
+	//		scene.addObject(object);
+	//	}
+	//}
 
 	//Group group0("group0");
 	//{
