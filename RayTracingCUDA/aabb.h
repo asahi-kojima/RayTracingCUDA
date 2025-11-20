@@ -175,6 +175,23 @@ public:
 			}
 		}
 
+		const f32 absoluteMinWidth = 1e-5f;
+		const f32 relativeMinWidth = 1e-5f;
+
+		for (u32 i = 0; i < 3; i++)
+		{
+			const f32 width = maxPosition[i] - minPosition[i];
+			const f32 center = (minPosition[i] + maxPosition[i]) / 2.0f;
+
+
+			const f32 essentialWidth = std::max(absoluteMinWidth, abs(center) * relativeMinWidth);
+			if (width < essentialWidth)
+			{
+				minPosition[i] = center - essentialWidth / 2.0f;
+				maxPosition[i] = center + essentialWidth / 2.0f;
+			}
+		}
+
 		return AABB(minPosition, maxPosition);
 	}
 
