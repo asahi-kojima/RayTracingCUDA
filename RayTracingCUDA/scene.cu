@@ -59,8 +59,8 @@ Result Scene::initLaunchParams()
 	mGpuRayTracingLaunchParamsHostSide.tlasCount     = mRayTracingDataOnCPU.tlasArray.size();
 
 
-	mGpuRayTracingLaunchParamsHostSide.pixelSizeHorizontal = 3840;
-	mGpuRayTracingLaunchParamsHostSide.pixelSizeVertical = 2160;
+	mGpuRayTracingLaunchParamsHostSide.pixelSizeHorizontal = 2000;
+	mGpuRayTracingLaunchParamsHostSide.pixelSizeVertical = 2000;
 	mGpuRayTracingLaunchParamsHostSide.invPixelSizeHorizontal = 1.0f / static_cast<f32>(mGpuRayTracingLaunchParamsHostSide.pixelSizeHorizontal);
 	mGpuRayTracingLaunchParamsHostSide.invPixelSizeVertical = 1.0f / static_cast<f32>(mGpuRayTracingLaunchParamsHostSide.pixelSizeVertical);
 
@@ -72,7 +72,7 @@ Result Scene::initLaunchParams()
 
 	const f32 aspect = static_cast<f32>(mGpuRayTracingLaunchParamsHostSide.pixelSizeHorizontal) / static_cast<f32>(mGpuRayTracingLaunchParamsHostSide.pixelSizeVertical);
 
-	Camera camera{Vec3(5,5,5), Vec3(0, 0, 0), Vec3::unitY(), 20, aspect};
+	Camera camera{Vec3(278, 278, -800), Vec3(278, 278, 0), Vec3::unitY(), 40, aspect};
 	mGpuRayTracingLaunchParamsHostSide.camera = camera;
 
 	// タイルカウンターの初期化
@@ -208,7 +208,7 @@ __device__ s32 traceBlasTree(Ray& ray, const u32 blasRootIndex, const u32 vertex
 			// 衝突がなければ以降の深度でも当たらないからスキップ
 			continue;
 		}
-
+		
 		//--------------------------------------------------------------
 		// 衝突したのでrayのtmaxを更新する
 		//--------------------------------------------------------------
@@ -277,13 +277,11 @@ __device__ HitRecord traceTlasTree(Ray ray)
 			continue;
 		}
 
-
 		//--------------------------------------------------------------
 		// 末端であれば葉のインスタンス達を調べ、そうでなければ子に行く
 		//--------------------------------------------------------------
 		if (currentNode.primitiveCount > 0)
 		{
-
 			for (u32 instanceID = currentNode.firstPrimitiveOffset, end = currentNode.firstPrimitiveOffset + currentNode.primitiveCount; instanceID < end; instanceID++)
 			{
 				const DeviceInstanceData& currentInstanceData = gGpuRayTracingLaunchParams.instanceDataArray[instanceID];
@@ -350,10 +348,10 @@ __device__ HitRecord traceTlasTree(Ray ray)
 		hitRecord.t        = ray.tmax();
 		hitRecord.hitPoint = ray.pointAt(hitRecord.t);
 		
-		hitRecord.hitPointNormal = gGpuRayTracingLaunchParams.normalArray[closestTriangleID];
 		{
+			const Vec3& localNormal = gGpuRayTracingLaunchParams.normalArray[closestTriangleID];
 			const Mat4& normalTransform = gGpuRayTracingLaunchParams.instanceDataArray[closestInstanceID].normalTransformMat;
-			hitRecord.hitPointNormal = (normalTransform * Vec4(gGpuRayTracingLaunchParams.normalArray[closestTriangleID], 0)).extractXYZ().normalize();
+			hitRecord.hitPointNormal = (normalTransform * Vec4(localNormal, 0)).extractXYZ().normalize();
 		}
 		hitRecord.objectID = closestInstanceID;
 		hitRecord.triangleID = closestTriangleID;
@@ -371,8 +369,13 @@ __device__ bool shader(const Ray& ray, const HitRecord& hitRecord, const Materia
 	{
 		case Material::MaterialType::LAMBERTIAN:
 		{
+			if (Vec3::dot(ray.direction(), hitRecord.hitPointNormal) > 0)
+			{
+				return false;
+			}
+
 			const Vec3 targetDirection = Vec3::generateRandomlyOnUnitHemiSphere(hitRecord.hitPointNormal);
-			scatteredRay = Ray(hitRecord.hitPoint, targetDirection);
+			scatteredRay = Ray(hitRecord.hitPoint + hitRecord.hitPointNormal * 0.0001, targetDirection);
 			attenuationColor = albedo;
 
 			return true;
@@ -454,12 +457,11 @@ __device__ Color tracePath(Ray ray)
 	Vec3 pathAttenuation = Vec3{1.0f, 1.0f, 1.0f};
 	HitRecord hitRecord;
 	
-	const u32 maxBounce = 50;
+	const u32 maxBounce = 10;
 	for (u32 bounce = 0; bounce < maxBounce; bounce++)
 	{
-		ray.tmin() = 0.001f;
+		ray.tmin() = 0.0001f;
 		ray.tmax() = FLT_MAX;
-
 		if (!(hitRecord = traceTlasTree(ray)))
 		{
 			break;
@@ -496,7 +498,6 @@ __device__ Color tracePath(Ray ray)
 			pathAttenuation *= (1.0f / p);
 		}
 	}
-
 
 	return Color(pathRadiance.x(), pathRadiance.y(), pathRadiance.z());
 }
@@ -608,7 +609,7 @@ Result Scene::render()
 	dim3 grid(blockCount, 1);
 
 
-	constexpr u32 renderFrameCount = 100;
+	constexpr u32 renderFrameCount = 300;
 	for (u32 i = 0; i < renderFrameCount; i++)
 	{
 
@@ -666,6 +667,7 @@ Result Scene::render()
 
 			col *= (1.0f / renderFrameCount);
 			col = Color(sqrt(col[0]), sqrt(col[1]), sqrt(col[2]));
+			col.clamp();
 			outputFile << static_cast<s32>(255.99 * col[0]) << " " << static_cast<s32>(255.99 * col[1]) << " " << static_cast<s32>(255.99 * col[2]) << "\n";
 		}
 	}

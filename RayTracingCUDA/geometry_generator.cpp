@@ -337,11 +337,11 @@ Mesh GeometryGenerator::planeGenerator(const u32 divisionCount)
 			const u32 index3 = index2 + 1;
 
 			indexArray.push_back(index0);
-			indexArray.push_back(index2);
-			indexArray.push_back(index1);
 			indexArray.push_back(index1);
 			indexArray.push_back(index2);
+			indexArray.push_back(index1);
 			indexArray.push_back(index3);
+			indexArray.push_back(index2);
 		}
 	}
 

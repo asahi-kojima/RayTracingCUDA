@@ -56,23 +56,17 @@ public:
 			const f32 ith_origin = origin[i];
 			f32 t0 = (mMinPosition[i] - ith_origin) * inv;
 			f32 t1 = (mMaxPosition[i] - ith_origin) * inv;
-			if (inv < 0.0f)
-			{
-				f32 tmp = t0;
-				t0 = t1;
-				t1 = tmp;
-			}
 			
-			tmin = (t0 > tmin ? t0 : tmin);
-			tmax = (t1 < tmax ? t1 : tmax);
-			if (tmax <= tmin)
-			{
-				return AABBIntersectionResult{false};
-			}
+			// 平面のようなAABBが薄い場合に、数値誤差で同じ値になってしまうので、それを意図的に防ぐ。
+			const f32 tNear = fminf(t0, t1) * 0.9999;
+			const f32 tFar  = fmaxf(t0, t1) * 1.0001;
+			
+			tmin = fmaxf(tmin, tNear);
+			tmax = fminf(tmax, tFar );
 		}
 		
 
-		return AABBIntersectionResult{true, tmin, tmax};
+		return AABBIntersectionResult{(tmin < tmax), tmin, tmax};
 	}
 
 	u32 getMostExtendingAxis() const
