@@ -9,6 +9,8 @@ namespace
 {
 	constexpr u32 TILE_SIZE_X = 16;
 	constexpr u32 TILE_SIZE_Y = 16;
+
+	constexpr u32 RenderFrameCount = 3000;
 }
 
 __constant__ GpuRayTracingLaunchParams gGpuRayTracingLaunchParams = {};
@@ -66,6 +68,10 @@ Result Scene::initLaunchParams()
 
 
 	CHECK(cudaMalloc(&mGpuRayTracingLaunchParamsHostSide.renderTargetImageArray, sizeof(Color) * mGpuRayTracingLaunchParamsHostSide.pixelSizeVertical * mGpuRayTracingLaunchParamsHostSide.pixelSizeHorizontal));
+	{
+		std::vector<Color> emptyImageData(mGpuRayTracingLaunchParamsHostSide.pixelSizeVertical * mGpuRayTracingLaunchParamsHostSide.pixelSizeHorizontal, Color(0, 0, 0, 1));
+		CHECK(cudaMemcpy(mGpuRayTracingLaunchParamsHostSide.renderTargetImageArray, emptyImageData.data(), sizeof(Color) * mGpuRayTracingLaunchParamsHostSide.pixelSizeVertical * mGpuRayTracingLaunchParamsHostSide.pixelSizeHorizontal, cudaMemcpyHostToDevice));
+	}
 
 
 	mGpuRayTracingLaunchParamsHostSide.frameCount = 0;
@@ -150,19 +156,18 @@ namespace
 
 	__device__ TriangleIntersectionResult intersectionTriangle(const Ray& ray, const Vec3& v0, const Vec3& v1, const Vec3& v2)
 	{
-		const Vec3 p1 = v1 - v0;
-		const Vec3 p2 = v2 - v0;
 		const Vec3 v0ToO = ray.origin() - v0;
 
 		const Vec3 a0 = -ray.direction();
-		const Vec3 a1 = p1;
-		const Vec3 a2 = p2;
+		const Vec3 a1 = v1 - v0;
+		const Vec3 a2 = v2 - v0;
 
 		const Vec3 cross1x2 = Vec3::cross(a1, a2);
 
 		const f32 det = Vec3::dot(cross1x2, a0);
 		if (isEqualF32(det, 0.0f))
 		{
+			printf("det = 0\n");
 			return TriangleIntersectionResult{false};
 		}
 
@@ -173,10 +178,8 @@ namespace
 		const f32 alpha = Vec3::dot(cross2x0, v0ToO) / det;
 		const f32 beta  = Vec3::dot(cross0x1, v0ToO) / det;
 
-		const f32 tmin = ray.tmin();
-		const f32 tmax = ray.tmax();
 
-		if (!(t > tmin && t < tmax && alpha + beta < 1 && alpha > 0 && beta > 0))
+		if (!(t > ray.tmin() && t < ray.tmax() && alpha + beta < 1 && alpha > 0 && beta > 0))
 		{
 			return TriangleIntersectionResult{ false };
 		}
@@ -453,8 +456,8 @@ __device__ bool shader(const Ray& ray, const HitRecord& hitRecord, const Materia
 
 __device__ Color tracePath(Ray ray)
 {
-	Vec3 pathRadiance = Vec3{ 0.0f, 0.0f, 0.0f };
-	Vec3 pathAttenuation = Vec3{1.0f, 1.0f, 1.0f};
+	Color pathRadiance{ 0.0f, 0.0f, 0.0f };
+	Color pathAttenuation{1.0f, 1.0f, 1.0f};
 	HitRecord hitRecord;
 	
 	const u32 maxBounce = 10;
@@ -472,7 +475,7 @@ __device__ Color tracePath(Ray ray)
 		
 		if (material.isEmittable)
 		{
-			pathRadiance += (material.emissionColor.getRGB() * pathAttenuation);
+			pathRadiance += (material.emissionColor * pathAttenuation);
 		}
 
 		Ray scatteredRay;
@@ -489,7 +492,7 @@ __device__ Color tracePath(Ray ray)
 		// RR処理
 		if (bounce > 3)
 		{
-			const f32 p = fminf(fmaxf(fmaxf(pathAttenuation.x(), pathAttenuation.y()), pathAttenuation.z()), 1.0f);
+			const f32 p = fminf(fmaxf(fmaxf(pathAttenuation.r(), pathAttenuation.g()), pathAttenuation.b()), 1.0f);
 
 			if (RandomGeneratorGPU::uniform_real() > p || isEqualF32(p, 0.0f))
 			{
@@ -499,7 +502,7 @@ __device__ Color tracePath(Ray ray)
 		}
 	}
 
-	return Color(pathRadiance.x(), pathRadiance.y(), pathRadiance.z());
+	return pathRadiance;
 }
 
 
@@ -507,23 +510,31 @@ __device__ Color tracePath(Ray ray)
 __global__ void raytracingKernel()
 {
 	__shared__ u32 sharedTileIndex;
+	__shared__ u32 totalTileCount;
+	__shared__ u32 tileIndex;
+	__shared__ u32 tileCountPerRow;
+	__shared__ u32 tileBaseIndexX;
+	__shared__ u32 tileBaseIndexY;
 
 	while (true)
 	{
 		if (threadIdx.x == 0 && threadIdx.y == 0)
 		{
 			sharedTileIndex = atomicAdd(gGpuRayTracingLaunchParams.tileCounter, 1);
+			totalTileCount = gGpuRayTracingLaunchParams.totalTileCount;
+			tileIndex = sharedTileIndex % totalTileCount;
+			tileCountPerRow = gGpuRayTracingLaunchParams.tileCountPerRow;
+			// オフセット
+			tileBaseIndexX = (tileIndex % tileCountPerRow) * TILE_SIZE_X;
+			tileBaseIndexY = (tileIndex / tileCountPerRow) * TILE_SIZE_Y;
 		}
 		__syncthreads();
 
-		if (sharedTileIndex >= gGpuRayTracingLaunchParams.totalTileCount)
+		if (sharedTileIndex >= totalTileCount * RenderFrameCount)
 		{
 			break;
 		}
 
-		// オフセット
-		const u32 tileBaseIndexX = (sharedTileIndex % gGpuRayTracingLaunchParams.tileCountPerRow) * TILE_SIZE_X;
-		const u32 tileBaseIndexY = (sharedTileIndex / gGpuRayTracingLaunchParams.tileCountPerRow) * TILE_SIZE_Y;
 
 		const u32 pixelX = tileBaseIndexX + threadIdx.x;
 		const u32 pixelY = tileBaseIndexY + threadIdx.y;
@@ -541,14 +552,7 @@ __global__ void raytracingKernel()
 
 		Color color = tracePath(ray);
 
-		if (gGpuRayTracingLaunchParams.frameCount == 0)
-		{
-			gGpuRayTracingLaunchParams.renderTargetImageArray[pixelID] = color;
-		}
-		else
-		{
-			gGpuRayTracingLaunchParams.renderTargetImageArray[pixelID] += color;
-		}
+		gGpuRayTracingLaunchParams.renderTargetImageArray[pixelID] += color;
 	}
 
 }
@@ -609,34 +613,25 @@ Result Scene::render()
 	dim3 grid(blockCount, 1);
 
 
-	constexpr u32 renderFrameCount = 300;
-	for (u32 i = 0; i < renderFrameCount; i++)
-	{
 
-		cudaEvent_t start, stop;
-		f32 elapsedTime = 0.0f;
-		cudaEventCreate(&start);
-		cudaEventCreate(&stop);
-		cudaEventRecord(start, 0);
-		mGpuRayTracingLaunchParamsHostSide.frameCount = i;
-		cudaMemcpyToSymbol(gGpuRayTracingLaunchParams, &mGpuRayTracingLaunchParamsHostSide, sizeof(GpuRayTracingLaunchParams));
+	cudaEvent_t start, stop;
+	f32 elapsedTime = 0.0f;
+	cudaEventCreate(&start);
+	cudaEventCreate(&stop);
+	cudaEventRecord(start, 0);
 
+	raytracingKernel <<<grid, block >>> ();
 
-		CHECK(cudaMemset(mGpuRayTracingLaunchParamsHostSide.tileCounter, 0, sizeof(u32)));
-		KERNEL_ERROR_CHECKER;
+	KERNEL_ERROR_CHECKER;
 
+	cudaEventRecord(stop, 0);
+	cudaEventSynchronize(stop);
+	cudaEventElapsedTime(&elapsedTime, start, stop);
+	std::cout << "Rendering Time : " << elapsedTime << " ms : " << static_cast<s32>(1000.0f / elapsedTime) << " fps" << std::endl;
 
-		raytracingKernel <<<grid, block >>> ();
-		KERNEL_ERROR_CHECKER;
-
-		cudaEventRecord(stop, 0);
-		cudaEventSynchronize(stop);
-		cudaEventElapsedTime(&elapsedTime, start, stop);
-		std::cout << "[" << i << "] Rendering Time: " << elapsedTime << " ms : " << static_cast<s32>(1000.0f / elapsedTime) << " fps" << std::endl;
-
-		cudaEventDestroy(start);
-		cudaEventDestroy(stop);
-	}
+	cudaEventDestroy(start);
+	cudaEventDestroy(stop);
+	
 
 
 
@@ -665,7 +660,7 @@ Result Scene::render()
 				printf("%f, %f, %f\n", col.r(), col.g(), col.b());
 			}
 
-			col *= (1.0f / renderFrameCount);
+			col *= (1.0f / RenderFrameCount);
 			col = Color(sqrt(col[0]), sqrt(col[1]), sqrt(col[2]));
 			col.clamp();
 			outputFile << static_cast<s32>(255.99 * col[0]) << " " << static_cast<s32>(255.99 * col[1]) << " " << static_cast<s32>(255.99 * col[2]) << "\n";
