@@ -10,7 +10,7 @@ Color::Color(const f32 r, const f32 g, const f32 b, const f32 alpha)
 }
 
 Color::Color(const Vec3& rgb, const f32 alpha)
-	: Color(rgb[0], rgb[1], rgb[1], alpha)
+	: Color(rgb[0], rgb[1], rgb[2], alpha)
 {
 }
 
