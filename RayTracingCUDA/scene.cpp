@@ -104,10 +104,18 @@ Result Scene::addGroup(const Group& group, const Transform& transform, const std
 		}
 	}
 
+	Group tmpGroup = group;
+	tmpGroup.setTransform(transform);
+
 	//Šm”F‚ªŽæ‚ê‚½‚ç“o˜^‚·‚é
-	Result result = mRootGroup.addChildGroup(group, newName);
+	Result result = mRootGroup.addChildGroup(tmpGroup, newName);
 
 	return result;
+}
+
+Result Scene::addGroup(const Group& group, const std::string& newName)
+{
+	return addGroup(group, group.getTransform(), newName);
 }
 
 

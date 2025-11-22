@@ -135,7 +135,8 @@ public:
 	s32 addMaterial(const std::string& materialName, const Material& material);
 
 	Result addObject(const Object& object, const std::string& newName = std::string(""));
-	Result addGroup(const Group& group, const Transform& transform = Transform::identity(), const std::string& newName = std::string(""));
+	Result addGroup(const Group& group, const Transform& transform, const std::string& newName = std::string(""));
+	Result addGroup(const Group& group, const std::string& newName = std::string(""));
 
 	Result build();
 	Result initLaunchParams();
