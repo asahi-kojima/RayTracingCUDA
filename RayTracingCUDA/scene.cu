@@ -165,11 +165,12 @@ namespace
 		const Vec3 cross1x2 = Vec3::cross(a1, a2);
 
 		const f32 det = Vec3::dot(cross1x2, a0);
-		if (isEqualF32(det, 0.0f))
-		{
-			printf("det = 0\n");
+
+        constexpr f32 EPSILON = 1e-12f;
+        if (fabsf(det) < EPSILON)
+        {
 			return TriangleIntersectionResult{false};
-		}
+        }
 
 		const Vec3 cross2x0 = Vec3::cross(a2, a0);
 		const Vec3 cross0x1 = Vec3::cross(a0, a1);
@@ -460,7 +461,7 @@ __device__ Color tracePath(Ray ray)
 	Color pathAttenuation{1.0f, 1.0f, 1.0f};
 	HitRecord hitRecord;
 	
-	const u32 maxBounce = 10;
+	const u32 maxBounce = 20;
 	for (u32 bounce = 0; bounce < maxBounce; bounce++)
 	{
 		ray.tmin() = 0.0001f;
