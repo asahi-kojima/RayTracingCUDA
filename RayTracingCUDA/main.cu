@@ -145,7 +145,7 @@ int main()
 				"BackWall",
 				"plane",
 				"diffuse",
-				Transform(Vec3(boardScale / 2, boardScale / 2, boardScale), Vec3(boardScale, 1, boardScale), Quaternion(3 * M_PI / 2, Vec3::unitX())),
+				Transform(Vec3(boardScale / 2, boardScale / 2, boardScale), Vec3(boardScale / 2, 1, boardScale / 2), Quaternion(3 * M_PI / 2, Vec3::unitX())),
 				SurfaceProperty{Color::White} });
 		}
 		{
