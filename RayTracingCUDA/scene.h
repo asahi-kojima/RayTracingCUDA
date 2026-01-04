@@ -140,7 +140,7 @@ public:
 
 	Result build();
 	Result initLaunchParams();
-	Result render();
+	Result render(std::string);
 	Result update();
 
 private:

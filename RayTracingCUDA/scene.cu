@@ -10,7 +10,7 @@ namespace
 	constexpr u32 TILE_SIZE_X = 16;
 	constexpr u32 TILE_SIZE_Y = 16;
 
-	constexpr u32 RenderFrameCount = 3000;
+	constexpr u32 RenderFrameCount = 10;
 }
 
 __constant__ GpuRayTracingLaunchParams gGpuRayTracingLaunchParams = {};
@@ -61,8 +61,8 @@ Result Scene::initLaunchParams()
 	mGpuRayTracingLaunchParamsHostSide.tlasCount     = mRayTracingDataOnCPU.tlasArray.size();
 
 
-	mGpuRayTracingLaunchParamsHostSide.pixelSizeHorizontal = 2000;
-	mGpuRayTracingLaunchParamsHostSide.pixelSizeVertical = 2000;
+	mGpuRayTracingLaunchParamsHostSide.pixelSizeHorizontal = 1024;
+	mGpuRayTracingLaunchParamsHostSide.pixelSizeVertical = 1024;
 	mGpuRayTracingLaunchParamsHostSide.invPixelSizeHorizontal = 1.0f / static_cast<f32>(mGpuRayTracingLaunchParamsHostSide.pixelSizeHorizontal);
 	mGpuRayTracingLaunchParamsHostSide.invPixelSizeVertical = 1.0f / static_cast<f32>(mGpuRayTracingLaunchParamsHostSide.pixelSizeVertical);
 
@@ -78,7 +78,7 @@ Result Scene::initLaunchParams()
 
 	const f32 aspect = static_cast<f32>(mGpuRayTracingLaunchParamsHostSide.pixelSizeHorizontal) / static_cast<f32>(mGpuRayTracingLaunchParamsHostSide.pixelSizeVertical);
 
-	Camera camera{Vec3(278, 278, -800), Vec3(278, 278, 0), Vec3::unitY(), 40, aspect};
+	Camera camera{Vec3(5,10,10), Vec3(0, 0, 0), Vec3::unitY(), 40, aspect};
 	mGpuRayTracingLaunchParamsHostSide.camera = camera;
 
 	// タイルカウンターの初期化
@@ -88,11 +88,9 @@ Result Scene::initLaunchParams()
 	mGpuRayTracingLaunchParamsHostSide.tileCounter = d_tileCounter;
 
 	{
-		const u32 tileWidth = TILE_SIZE_X;
-		const u32 tileHeight = TILE_SIZE_Y;
 
-		const u32 tileCountX = (mGpuRayTracingLaunchParamsHostSide.pixelSizeHorizontal + tileWidth - 1) / tileWidth;
-		const u32 tileCountY = (mGpuRayTracingLaunchParamsHostSide.pixelSizeVertical + tileHeight - 1) / tileHeight;
+		const u32 tileCountX = (mGpuRayTracingLaunchParamsHostSide.pixelSizeHorizontal + TILE_SIZE_X - 1) / TILE_SIZE_X;
+		const u32 tileCountY = (mGpuRayTracingLaunchParamsHostSide.pixelSizeVertical + TILE_SIZE_Y - 1) / TILE_SIZE_Y;
 
 		const u32 totalTileCount = tileCountX * tileCountY;
 
@@ -528,6 +526,8 @@ __global__ void raytracingKernel()
 			// オフセット
 			tileBaseIndexX = (tileIndex % tileCountPerRow) * TILE_SIZE_X;
 			tileBaseIndexY = (tileIndex / tileCountPerRow) * TILE_SIZE_Y;
+
+			//if ()
 		}
 		__syncthreads();
 
@@ -562,7 +562,7 @@ __global__ void raytracingKernel()
 
 
 #include <fstream>
-Result Scene::render()
+Result Scene::render(std::string filename)
 {
 	std::cout << "====================================================================================" << std::endl;
 	std::cout << "                                 CUDA Ray Tracing Start                             " << std::endl;
@@ -647,7 +647,7 @@ Result Scene::render()
 
 	cudaMemcpy(renderTarget.data(), mGpuRayTracingLaunchParamsHostSide.renderTargetImageArray, sizeof(Color) * ScreenWidth * ScreenHeight, cudaMemcpyDeviceToHost);
 
-	std::ofstream outputFile("renderResult.ppm");
+	std::ofstream outputFile(filename.c_str());
 	outputFile << "P3\n" << ScreenWidth << " " << ScreenHeight << "\n255\n";
 	for (s32 yid = ScreenHeight - 1; yid >= 0; yid--)
 	{
