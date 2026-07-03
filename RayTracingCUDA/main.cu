@@ -123,191 +123,64 @@ int main()
 
 	Group cornellBox("CornellBox");
 	{
-		const f32 boardScale = 555.0f;
+
+		constexpr f32 scale = 0.06f;
+		constexpr f32 range = 3.0f;
+		for (int i = 0; i < 8000; i++)
 		{
+			const f32 r = RandomGenerator::uniform_real(0.9, 1) * range;
+			const f32 phi = RandomGenerator::uniform_real(0, 2 * M_PI);
+			const f32 theta = acosf(2 * RandomGenerator::uniform_real(0, 1) - 1);
+			const f32 x = r * sin(theta) * cos(phi);
+			const f32 y = r * sin(theta) * sin(phi);
+			const f32 z = r * cos(theta);
+
 			result = cornellBox.addChildObject(Object{
-				"Ceiling",
-				"plane",
-				"diffuse",
-				Transform(Vec3(boardScale / 2, boardScale, boardScale / 2), Vec3(boardScale / 2, 1, boardScale / 2) * 10, Quaternion(M_PI, Vec3::unitZ())),
-				SurfaceProperty{Color::White} });
-		}
-		{
-			result = cornellBox.addChildObject(Object{
-				"Floor",
-				"plane",
-				"diffuse",
-				Transform(Vec3(boardScale / 2, 0, boardScale / 2), Vec3(boardScale / 2, 1, boardScale / 2) * 10),
-				SurfaceProperty{Color::White} });
-		}
-		{
-			result = cornellBox.addChildObject(Object{
-				"FrontWall",
-				"plane",
-				"diffuse",
-				Transform(Vec3(boardScale / 2, boardScale / 2, boardScale), Vec3(boardScale / 2, 1, boardScale / 2) * 10, Quaternion(3 * M_PI / 2, Vec3::unitX())),
-				SurfaceProperty{Color::White} });
-		}
-		{
-			result = cornellBox.addChildObject(Object{
-				"BackWall",
-				"plane",
-				"metal",
-				Transform(Vec3(boardScale / 2, boardScale / 2, -1000), Vec3(boardScale / 2, 1, boardScale / 2) * 10, Quaternion(M_PI / 2, Vec3::unitX())),
-				SurfaceProperty{Color::White} });
+				std::string("box") + std::to_string(i),
+				"box",
+				RandomGenerator::uniform_real() < 0.5 ? "diamond" : "fuzzyMetal",
+				Transform(Vec3(x, y, z), Vec3(1, 1, 1) * scale, Quaternion(0, Vec3::unitZ())),
+				SurfaceProperty{RandomGenerator::uniform_real() < 0.5 ? Color::Blue : Color::Bronze}});
 		}
 
-		{
-			result = cornellBox.addChildObject(Object{
-				"LeftWall",
-				"plane",
-				"diffuse",
-				Transform(Vec3(boardScale, boardScale / 2, boardScale / 2), Vec3(boardScale / 2, 1, boardScale / 2) * 10, Quaternion(M_PI / 2, Vec3::unitZ())),
-				SurfaceProperty{Color::Red} });
-		}
-		{
-			result = cornellBox.addChildObject(Object{
-				"RightWall",
-				"plane",
-				"diffuse",
-				Transform(Vec3(0, boardScale / 2, boardScale / 2), Vec3(boardScale / 2, 1, boardScale / 2) * 10, Quaternion(-M_PI / 2, Vec3::unitZ())),
-				SurfaceProperty{Color::Green} });
-		}
-	
 
-		constexpr f32 BoxScale = 165.0f;
+
+		//constexpr f32 LightScale = 0.06f;
+		//constexpr f32 LightRange = 3.0f;
+		//for (int i = 0; i < 100; i++)
 		//{
-		//	const f32 angle = -M_PI / 10;
-		//	const f32 z = (cosf(angle) - sinf(angle)) * (BoxScale / 2);
-		//	const f32 x = (sinf(angle) + cosf(angle)) * (BoxScale / 2);
-		//	const Vec3 position(x + 130, BoxScale / 2, z + 65);
+		//	const f32 r = RandomGenerator::uniform_real(0.1, 0.3) *  LightRange;
+		//	const f32 phi = RandomGenerator::uniform_real(0, 2 * M_PI);
+		//	const f32 theta = acosf(2 * RandomGenerator::uniform_real(0, 1) - 1);
+		//	const f32 x = r * sin(theta) * cos(phi);
+		//	const f32 y = r * sin(theta) * sin(phi);
+		//	const f32 z = r * cos(theta);
 
 		//	result = cornellBox.addChildObject(Object{
-		//		"RightBox",
-		//		"box",
-		//		"metal",
-		//		Transform(position, Vec3(BoxScale,BoxScale,BoxScale) * 0.5f, Quaternion(angle, Vec3::unitY())),
-		//		SurfaceProperty{Color::Silver} });
+		//		std::string("light") + std::to_string(i),
+		//		"geoSphere1",
+		//		"highIntensityLight",
+		//		Transform(Vec3(x, y, z), Vec3(1, 1, 1) * LightScale, Quaternion(0, Vec3::unitZ())),
+		//		SurfaceProperty{Color::random()} });
 		//}
-
-		//{
-		//	const f32 angle = M_PI / 12;
-		//	const f32 z = (cosf(angle) - sinf(angle)) * (BoxScale / 2);
-		//	const f32 x = (sinf(angle) + cosf(angle)) * (BoxScale / 2);
-		//	const Vec3 position(x + 265, 2 * BoxScale / 2, z + 295);
-
-		//	result = cornellBox.addChildObject(Object{
-		//		"RightBox",
-		//		"box",
-		//		"metal",
-		//		Transform(position, Vec3(BoxScale,2 * BoxScale,BoxScale) * 0.5f, Quaternion(angle, Vec3::unitY())),
-		//		SurfaceProperty{Color::Silver} });
-		//}
-
 
 		{
-			const Vec3 position(boardScale / 2, boardScale / 2, boardScale / 2);
-
-			Vec3 scale(boardScale/2, boardScale/2, boardScale/2);
-			scale *= 0.8f;
-
+			constexpr f32 LightSizeScale = 0.3f;
 			result = cornellBox.addChildObject(Object{
-				"object",
-				"torus",
-				"metal",
-				Transform(position, scale, Quaternion(M_PI / 12, Vec3::unitX()) * Quaternion(M_PI / 12, Vec3::unitZ())),
+				"Light",
+				"sphere",
+				"highIntensityLight",
+				Transform(Vec3::zero(), Vec3::one() * range * 0.4, Quaternion(0, Vec3::unitZ())),
 				SurfaceProperty{Color::Bronze} });
 		}
-
-		{
-			const Vec3 position(boardScale / 2, boardScale / 2, boardScale / 2);
-
-			Vec3 scale(boardScale / 2, boardScale / 2, boardScale / 2);
-			//scale *= 0.7f;
-			scale *= 0.5f;
-
-			result = cornellBox.addChildObject(Object{
-				"object",
-				"geoSphere2",
-				"diamond",
-				Transform(position, scale, Quaternion(M_PI / 12, Vec3::unitX())* Quaternion(M_PI / 12, Vec3::unitZ())),
-				SurfaceProperty{Color::White} });
-
-			{
-				const f32 theta = M_PI * 2.0f / 3 + M_PI / 20;
-				const f32 phi = M_PI / 2.0f;
-
-				const f32 d = M_PI / 6;
-
-				const f32 h = position.y();
-				const f32 r = scale.x();
-				const f32 S = r;
-
-				const f32 L = sqrtf(S * S + h * h + r * r + 2 * h * r * cos(theta) + 2 * S * r * sin(theta) * sin(phi));
-
-
-
-				const f32 scale2 = L;
-				const f32 poleScale = 5;
-
-				const f32 qtheta = atan2f(S + r * sin(theta) * sin(phi), r * sin(theta) * cos(phi)) - M_PI / 2;
-				const f32 qphi = atan2f(S + r * sin(theta), h + r * cos(theta));
-
-				const Quaternion baseQ = Quaternion(qtheta, Vec3::unitY()) * Quaternion(-qphi*1.03, Vec3::unitZ());
-
-				std::string poleMaterial("fuzzyMetal");
-				{
-
-					const Quaternion rotation = Quaternion(M_PI * 0.0f / 3 + d, Vec3::unitY()) * baseQ;
-
-					Transform newTrans = Transform(position + Vec3(S * sin(0 * M_PI / 3 + 3 * M_PI / 2 + d), -position.y(), S * cos(0 * M_PI / 3 + 3 * M_PI / 2 + d)), Vec3(poleScale, scale2, poleScale), rotation);
-
-					result = cornellBox.addChildObject(Object{
-						"object",
-						"cylinder",
-						poleMaterial,
-						newTrans,
-						SurfaceProperty{Color::Blue} });
-				}
-				{
-
-					const Quaternion rotation = Quaternion(M_PI * 2.0f / 3 + d, Vec3::unitY()) * baseQ;
-
-					Transform newTrans = Transform(position + Vec3(S * sin(2 * M_PI / 3 + 3 * M_PI / 2 + d), -position.y(), S * cos(2 * M_PI / 3 + 3 * M_PI / 2 + d)), Vec3(poleScale, scale2, poleScale), rotation);
-
-					result = cornellBox.addChildObject(Object{
-						"object",
-						"cylinder",
-						poleMaterial,
-						newTrans,
-						SurfaceProperty{Color::Blue} });
-				}
-				{
-
-					const Quaternion rotation = Quaternion(M_PI * 4.0f / 3 + d, Vec3::unitY()) * baseQ;
-
-					Transform newTrans = Transform(position + Vec3(S * sin(4 * M_PI / 3 + 3 * M_PI / 2 + d), -position.y(), S * cos(4 * M_PI / 3 + 3 * M_PI / 2 + d)), Vec3(poleScale, scale2, poleScale), rotation);
-
-					result = cornellBox.addChildObject(Object{
-						"object",
-						"cylinder",
-						poleMaterial,
-						newTrans,
-						SurfaceProperty{Color::Blue} });
-				}
-			}
-		}
-
-
-
 
 		{
 			constexpr f32 LightSizeScale = 0.3f;
 			result = cornellBox.addChildObject(Object{
 				"Light",
 				"box",
-				"highIntensityLight",
-				Transform(Vec3(555 / 2, 554, 555 / 2), Vec3(555 * LightSizeScale, 1.0, 555 * LightSizeScale) * 0.5, Quaternion(-M_PI, Vec3::unitZ())),
+				"metal",
+				Transform(Vec3::zero(), Vec3::one() * 50, Quaternion(-M_PI, Vec3::unitZ())),
 				SurfaceProperty{Color::Bronze} });
 		}
 	}

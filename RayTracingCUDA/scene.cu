@@ -10,7 +10,7 @@ namespace
 	constexpr u32 TILE_SIZE_X = 16;
 	constexpr u32 TILE_SIZE_Y = 16;
 
-	constexpr u32 RenderFrameCount = 3000;
+	constexpr u32 RenderFrameCount = 300;
 }
 
 __constant__ GpuRayTracingLaunchParams gGpuRayTracingLaunchParams = {};
@@ -60,9 +60,10 @@ Result Scene::initLaunchParams()
 	mGpuRayTracingLaunchParamsHostSide.blasCount     = mRayTracingDataOnCPU.blasArray.size();
 	mGpuRayTracingLaunchParamsHostSide.tlasCount     = mRayTracingDataOnCPU.tlasArray.size();
 
-
-	mGpuRayTracingLaunchParamsHostSide.pixelSizeHorizontal = 2000;
-	mGpuRayTracingLaunchParamsHostSide.pixelSizeVertical = 2000;
+	const s32 xxx = 1;
+	auto roundUp16 = [](s32 v) {return (v + 15) / 16 * 16;};
+	mGpuRayTracingLaunchParamsHostSide.pixelSizeHorizontal = roundUp16(2000 / xxx);
+	mGpuRayTracingLaunchParamsHostSide.pixelSizeVertical = roundUp16( 2000 / xxx);
 	mGpuRayTracingLaunchParamsHostSide.invPixelSizeHorizontal = 1.0f / static_cast<f32>(mGpuRayTracingLaunchParamsHostSide.pixelSizeHorizontal);
 	mGpuRayTracingLaunchParamsHostSide.invPixelSizeVertical = 1.0f / static_cast<f32>(mGpuRayTracingLaunchParamsHostSide.pixelSizeVertical);
 
@@ -78,7 +79,7 @@ Result Scene::initLaunchParams()
 
 	const f32 aspect = static_cast<f32>(mGpuRayTracingLaunchParamsHostSide.pixelSizeHorizontal) / static_cast<f32>(mGpuRayTracingLaunchParamsHostSide.pixelSizeVertical);
 
-	Camera camera{Vec3(278, 278, -800), Vec3(278, 278, 0), Vec3::unitY(), 40, aspect};
+	Camera camera{Vec3(7, 5, 10), Vec3(0, 0, 0), Vec3::unitY(), 40, aspect};
 	mGpuRayTracingLaunchParamsHostSide.camera = camera;
 
 	// タイルカウンターの初期化
@@ -461,7 +462,7 @@ __device__ Color tracePath(Ray ray)
 	Color pathAttenuation{1.0f, 1.0f, 1.0f};
 	HitRecord hitRecord;
 	
-	const u32 maxBounce = 20;
+	const u32 maxBounce = 30;
 	for (u32 bounce = 0; bounce < maxBounce; bounce++)
 	{
 		ray.tmin() = 0.0001f;
