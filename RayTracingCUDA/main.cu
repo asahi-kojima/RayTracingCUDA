@@ -128,9 +128,9 @@ int main()
 
 		constexpr f32 scale = 0.06f;
 		constexpr f32 range = 3.0f;
-		for (int i = 0; i < 4000; i++)
+		for (int i = 0; i < 5000; i++)
 		{
-			const f32 r = RandomGenerator::uniform_real(0.9, 1) * range;
+			const f32 r = RandomGenerator::uniform_real(0.8, 1) * range;
 			const f32 phi = RandomGenerator::uniform_real(0, 2 * M_PI);
 			const f32 theta = acosf(2 * RandomGenerator::uniform_real(0, 1) - 1);
 			const f32 x = r * sin(theta) * cos(phi);
@@ -140,18 +140,18 @@ int main()
 			result = cornellBox.addChildObject(Object{
 				std::string("box") + std::to_string(i),
 				"box",
-				RandomGenerator::uniform_real() < 0.5 ? "diamond" : "fuzzyMetal",
+				RandomGenerator::uniform_real() < 0.5 ? "fuzzyMetal" : "metal",
 				Transform(Vec3(x, y, z), Vec3(1, 1, 1) * scale, Quaternion(0, Vec3::unitZ())),
 				SurfaceProperty{RandomGenerator::uniform_real() < 0.5 ? Color::Blue : Color::Bronze}});
 		}
 
 
 
-		//constexpr f32 LightScale = 0.06f;
-		//constexpr f32 LightRange = 3.0f;
-		//for (int i = 0; i < 100; i++)
+		//constexpr f32 LightScale = 1.0f;
+		//constexpr f32 LightRange = 100;
+		//for (int i = 0; i < 1000; i++)
 		//{
-		//	const f32 r = RandomGenerator::uniform_real(0.1, 0.3) *  LightRange;
+		//	const f32 r = LightRange;
 		//	const f32 phi = RandomGenerator::uniform_real(0, 2 * M_PI);
 		//	const f32 theta = acosf(2 * RandomGenerator::uniform_real(0, 1) - 1);
 		//	const f32 x = r * sin(theta) * cos(phi);
@@ -161,28 +161,28 @@ int main()
 		//	result = cornellBox.addChildObject(Object{
 		//		std::string("light") + std::to_string(i),
 		//		"geoSphere1",
-		//		"highIntensityLight",
+		//		"invisibleLight",
 		//		Transform(Vec3(x, y, z), Vec3(1, 1, 1) * LightScale, Quaternion(0, Vec3::unitZ())),
 		//		SurfaceProperty{Color::random()} });
+		//}
+
+		//{
+		//	constexpr f32 LightSizeScale = 0.3f;
+		//	result = cornellBox.addChildObject(Object{
+		//		"Light",
+		//		"sphere",
+		//		"diamond",
+		//		Transform(Vec3::zero(), Vec3::one() * range * 0.95, Quaternion(0, Vec3::unitZ())),
+		//		SurfaceProperty{Color::White} });
 		//}
 
 		{
 			constexpr f32 LightSizeScale = 0.3f;
 			result = cornellBox.addChildObject(Object{
 				"Light",
-				"sphere",
-				"diamond",
-				Transform(Vec3::zero(), Vec3::one() * range * 0.95, Quaternion(0, Vec3::unitZ())),
-				SurfaceProperty{Color::White} });
-		}
-
-		{
-			constexpr f32 LightSizeScale = 0.3f;
-			result = cornellBox.addChildObject(Object{
-				"Light",
-				"geoSphere3",
+				"torus",
 				"invisibleLight",
-				Transform(Vec3::zero(), Vec3::one() * 50, Quaternion(-M_PI, Vec3::unitZ())),
+				Transform(Vec3::zero(), Vec3::one() * 50, Quaternion(-0, Vec3::unitZ())),
 				SurfaceProperty{Color::Bronze} });
 		}
 	}
