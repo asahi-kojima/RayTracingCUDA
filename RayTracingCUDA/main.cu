@@ -126,7 +126,7 @@ int main()
 
 		constexpr f32 scale = 0.06f;
 		constexpr f32 range = 3.0f;
-		for (int i = 0; i < 8000; i++)
+		for (int i = 0; i < 4000; i++)
 		{
 			const f32 r = RandomGenerator::uniform_real(0.9, 1) * range;
 			const f32 phi = RandomGenerator::uniform_real(0, 2 * M_PI);
@@ -178,7 +178,7 @@ int main()
 			constexpr f32 LightSizeScale = 0.3f;
 			result = cornellBox.addChildObject(Object{
 				"Light",
-				"box",
+				"geoSphere3",
 				"metal",
 				Transform(Vec3::zero(), Vec3::one() * 50, Quaternion(-M_PI, Vec3::unitZ())),
 				SurfaceProperty{Color::Bronze} });

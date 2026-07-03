@@ -10,7 +10,7 @@ namespace
 	constexpr u32 TILE_SIZE_X = 16;
 	constexpr u32 TILE_SIZE_Y = 16;
 
-	constexpr u32 RenderFrameCount = 300;
+	constexpr u32 RenderFrameCount = 3000;
 }
 
 __constant__ GpuRayTracingLaunchParams gGpuRayTracingLaunchParams = {};
