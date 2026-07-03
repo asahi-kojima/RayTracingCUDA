@@ -62,7 +62,8 @@ int main()
 	Material pureLambertian{Material::MaterialType::LAMBERTIAN, 1.0f, 0.0, 0.0f, 0.0f};
 	Material light{Material::MaterialType::EMISSIVE, 1.0f, 0.0, 0.0f, 0.0f, Color::Azure * 1, true};
 	Material lowIntesityLight{Material::MaterialType::EMISSIVE, 1.0f, 0.0, 0.0f, 0.0f, Color::Azure * 0.1, true};
-	Material highIntensityLight{Material::MaterialType::EMISSIVE, 1.0f, 0.0, 0.0f, 0.0f, Color::Azure * 10, true};
+	Material highIntensityLight{ Material::MaterialType::EMISSIVE, 1.0f, 0.0, 0.0f, 0.0f, Color::Azure * 10, true };
+	Material invisibleLight{Material::MaterialType::EMISSIVE, 1.0f, 0.0, 0.0f, 0.0f, Color::Azure, true, true};
 
 	Scene scene;
 	{
@@ -75,6 +76,7 @@ int main()
 		scene.addMaterial("light", light);
 		scene.addMaterial("lowIntesityLight", lowIntesityLight);
 		scene.addMaterial("highIntensityLight", highIntensityLight);
+		scene.addMaterial("invisibleLight", invisibleLight);
 
 
 		scene.addMesh("plane", planeMesh);
@@ -169,9 +171,9 @@ int main()
 			result = cornellBox.addChildObject(Object{
 				"Light",
 				"sphere",
-				"highIntensityLight",
-				Transform(Vec3::zero(), Vec3::one() * range * 0.4, Quaternion(0, Vec3::unitZ())),
-				SurfaceProperty{Color::Bronze} });
+				"diamond",
+				Transform(Vec3::zero(), Vec3::one() * range * 0.95, Quaternion(0, Vec3::unitZ())),
+				SurfaceProperty{Color::White} });
 		}
 
 		{
@@ -179,7 +181,7 @@ int main()
 			result = cornellBox.addChildObject(Object{
 				"Light",
 				"geoSphere3",
-				"metal",
+				"invisibleLight",
 				Transform(Vec3::zero(), Vec3::one() * 50, Quaternion(-M_PI, Vec3::unitZ())),
 				SurfaceProperty{Color::Bronze} });
 		}

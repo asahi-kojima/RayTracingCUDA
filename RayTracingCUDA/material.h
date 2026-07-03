@@ -14,7 +14,7 @@ struct Material
 	};
 
 	Material() = default;
-	Material(MaterialType type, f32 roughness, f32 metallic, f32 ior, f32 transmission, const Color& emissionColor = Color(0x000000), bool isEmittable = false)
+	Material(MaterialType type, f32 roughness, f32 metallic, f32 ior, f32 transmission, const Color& emissionColor = Color(0x000000), bool isEmittable = false, bool isInvisibleFromCamera = false)
 		: type(type)
 		, roughness(roughness)
 		, metallic(metallic)
@@ -22,6 +22,7 @@ struct Material
 		, transmission(transmission)
 		, emissionColor(emissionColor)
 		, isEmittable(isEmittable)
+		, isInvisibleFromCamera(isInvisibleFromCamera)
 	{ 
 	}
 
@@ -35,4 +36,5 @@ struct Material
 
 	Color emissionColor;
 	bool isEmittable;
+	bool isInvisibleFromCamera;
 };

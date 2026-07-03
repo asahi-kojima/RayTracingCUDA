@@ -480,6 +480,12 @@ __device__ Color tracePath(Ray ray)
 			pathRadiance += (material.emissionColor * pathAttenuation);
 		}
 
+		if (material.isInvisibleFromCamera && bounce == 0)
+		{
+			pathRadiance = Color(0, 0, 0, 1);
+			break;
+		}
+
 		Ray scatteredRay;
 		Vec3 attenuationColor;
 
