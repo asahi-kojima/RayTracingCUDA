@@ -65,6 +65,8 @@ int main()
 	Material highIntensityLight{ Material::MaterialType::EMISSIVE, 1.0f, 0.0, 0.0f, 0.0f, Color::Azure * 10, true };
 	Material invisibleLight{ Material::MaterialType::EMISSIVE, 1.0f, 0.0, 0.0f, 0.0f, Color::Azure * 10, true, true };
 
+	Material emisiveMetal{ Material::MaterialType::METAL, 0.0f, 1.0, 1.0f, 0.0f, Color::Azure, true, false };
+
 	Scene scene;
 	{
 		scene.addMaterial("metal", pureMetal);
@@ -126,9 +128,9 @@ int main()
 	Group objects("CornellBox");
 	{
 
-		for (int i = 0; i < 1000; i++)
+		for (int i = 0; i < 4000; i++)
 		{
-			const f32 range = 5.0f;
+			const f32 range = 3.0f;
 			const f32 r = std::powf(RandomGenerator::uniform_real(0.0f, 1.0f), 1.0f / 3.0f) * range;
 			const f32 phi = RandomGenerator::uniform_real(0.0f, 2.0f * M_PI);
 			const f32 theta = acosf(2 * RandomGenerator::uniform_real() - 1);
@@ -138,7 +140,7 @@ int main()
 			const f32 y = r * cos(theta);
 			Vec3 pos(x, y, z);
 
-			Vec3 scale = Vec3::one() * RandomGenerator::uniform_real(0.1f, 1.0f);
+			Vec3 scale = Vec3::one() * RandomGenerator::uniform_real(0.1f, 1.0f) * 0.4;
 
 			Quaternion rotation = Quaternion(RandomGenerator::uniform_real(0, 5), Vec3::generateRandomUnitVector());
 
