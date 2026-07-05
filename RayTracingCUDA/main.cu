@@ -64,8 +64,9 @@ int main()
 	Material lowIntesityLight{ Material::MaterialType::EMISSIVE, 1.0f, 0.0, 0.0f, 0.0f, Color::Azure * 0.1, true };
 	Material highIntensityLight{ Material::MaterialType::EMISSIVE, 1.0f, 0.0, 0.0f, 0.0f, Color::Azure * 10, true };
 	Material invisibleLight{ Material::MaterialType::EMISSIVE, 1.0f, 0.0, 0.0f, 0.0f, Color::Azure * 10, true, true };
+	Material invisibleWeakLight{ Material::MaterialType::EMISSIVE, 1.0f, 0.0, 0.0f, 0.0f, Color::Azure * 0.1f, true, true };
 
-	Material emisiveMetal{ Material::MaterialType::METAL, 0.0f, 1.0, 1.0f, 0.0f, Color::Azure * 0.1, true, false };
+	Material emissiveMetal{ Material::MaterialType::METAL, 0.0f, 1.0, 1.0f, 0.0f, Color::White * 0.3, true, false };
 
 	Scene scene;
 	{
@@ -79,7 +80,8 @@ int main()
 		scene.addMaterial("lowIntesityLight", lowIntesityLight);
 		scene.addMaterial("highIntensityLight", highIntensityLight);
 		scene.addMaterial("invisibleLight", invisibleLight);
-		scene.addMaterial("emisiveMetal", emisiveMetal);
+		scene.addMaterial("invisibleWeakLight", invisibleWeakLight);
+		scene.addMaterial("emissiveMetal", emissiveMetal);
 
 
 		scene.addMesh("plane", planeMesh);
@@ -129,7 +131,7 @@ int main()
 	Group objects("CornellBox");
 	{
 
-		for (int i = 0; i < 4000; i++)
+		for (int i = 0; i < 1000; i++)
 		{
 			const f32 range = 3.0f;
 			const f32 r = std::powf(RandomGenerator::uniform_real(0.0f, 1.0f), 1.0f / 3.0f) * range;
@@ -141,15 +143,16 @@ int main()
 			const f32 y = r * cos(theta);
 			Vec3 pos(x, y, z);
 
-			Vec3 scale = Vec3::one() * RandomGenerator::uniform_real(0.1f, 1.0f) * 0.4;
+			Vec3 scale = Vec3::one() * RandomGenerator::uniform_real(0.1f, 1.0f) * 0.2;
 
 			Quaternion rotation = Quaternion(RandomGenerator::uniform_real(0, 5), Vec3::generateRandomUnitVector());
+			//Quaternion rotation = Quaternion(0, Vec3::generateRandomUnitVector());
 
 			constexpr f32 LightSizeScale = 0.3f;
 			result = objects.addChildObject(Object{
 				std::to_string(i),
 				"box",
-				"emisiveMetal",
+				"emissiveMetal",
 				Transform(pos, scale, rotation),
 				SurfaceProperty{RandomGenerator::uniform_real() < 0.5f ? Color::Bronze : Color::Blue} });
 		}
@@ -157,20 +160,18 @@ int main()
 
 
 
-		//{
-		//	constexpr f32 LightSizeScale = 0.3f;
+		{
+			Vec3 pos = Vec3::zero();
 
-		//	Vec3 pos = Vec3::zero();
+			Vec3 scale = Vec3::one() * RandomGenerator::uniform_real(0.1f, 1.0f) * 40;
 
-		//	Vec3 scale = Vec3::one() * RandomGenerator::uniform_real(0.1f, 1.0f) * 400;
-
-		//	result = objects.addChildObject(Object{
-		//		"Light",
-		//		"box",
-		//		"invisibleLight",
-		//		Transform(pos, scale, Quaternion(-M_PI, Vec3::unitZ())),
-		//		SurfaceProperty{Color::Bronze} });
-		//}
+			result = objects.addChildObject(Object{
+				"Light",
+				"box",
+				"invisibleWeakLight",
+				Transform(pos, scale, Quaternion(-M_PI, Vec3::unitZ())),
+				SurfaceProperty{Color::Bronze} });
+		}
 	}
 
 	scene.addGroup(objects);
