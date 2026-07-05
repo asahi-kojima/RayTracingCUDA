@@ -65,7 +65,7 @@ int main()
 	Material highIntensityLight{ Material::MaterialType::EMISSIVE, 1.0f, 0.0, 0.0f, 0.0f, Color::Azure * 10, true };
 	Material invisibleLight{ Material::MaterialType::EMISSIVE, 1.0f, 0.0, 0.0f, 0.0f, Color::Azure * 10, true, true };
 
-	Material emisiveMetal{ Material::MaterialType::METAL, 0.0f, 1.0, 1.0f, 0.0f, Color::Azure, true, false };
+	Material emisiveMetal{ Material::MaterialType::METAL, 0.0f, 1.0, 1.0f, 0.0f, Color::Azure * 0.1, true, false };
 
 	Scene scene;
 	{
@@ -79,6 +79,7 @@ int main()
 		scene.addMaterial("lowIntesityLight", lowIntesityLight);
 		scene.addMaterial("highIntensityLight", highIntensityLight);
 		scene.addMaterial("invisibleLight", invisibleLight);
+		scene.addMaterial("emisiveMetal", emisiveMetal);
 
 
 		scene.addMesh("plane", planeMesh);
@@ -148,7 +149,7 @@ int main()
 			result = objects.addChildObject(Object{
 				std::to_string(i),
 				"box",
-				"fuzzyMetal",
+				"emisiveMetal",
 				Transform(pos, scale, rotation),
 				SurfaceProperty{RandomGenerator::uniform_real() < 0.5f ? Color::Bronze : Color::Blue} });
 		}
@@ -156,20 +157,20 @@ int main()
 
 
 
-		{
-			constexpr f32 LightSizeScale = 0.3f;
+		//{
+		//	constexpr f32 LightSizeScale = 0.3f;
 
-			Vec3 pos = Vec3::zero();
+		//	Vec3 pos = Vec3::zero();
 
-			Vec3 scale = Vec3::one() * RandomGenerator::uniform_real(0.1f, 1.0f) * 400;
+		//	Vec3 scale = Vec3::one() * RandomGenerator::uniform_real(0.1f, 1.0f) * 400;
 
-			result = objects.addChildObject(Object{
-				"Light",
-				"box",
-				"invisibleLight",
-				Transform(pos, scale, Quaternion(-M_PI, Vec3::unitZ())),
-				SurfaceProperty{Color::Bronze} });
-		}
+		//	result = objects.addChildObject(Object{
+		//		"Light",
+		//		"box",
+		//		"invisibleLight",
+		//		Transform(pos, scale, Quaternion(-M_PI, Vec3::unitZ())),
+		//		SurfaceProperty{Color::Bronze} });
+		//}
 	}
 
 	scene.addGroup(objects);
