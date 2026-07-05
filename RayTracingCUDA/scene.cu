@@ -10,7 +10,7 @@ namespace
 	constexpr u32 TILE_SIZE_X = 16;
 	constexpr u32 TILE_SIZE_Y = 16;
 
-	constexpr u32 RenderFrameCount = 1000;
+	constexpr u32 RenderFrameCount = 3000;
 }
 
 __constant__ GpuRayTracingLaunchParams gGpuRayTracingLaunchParams = {};
@@ -60,7 +60,7 @@ Result Scene::initLaunchParams()
 	mGpuRayTracingLaunchParamsHostSide.blasCount     = mRayTracingDataOnCPU.blasArray.size();
 	mGpuRayTracingLaunchParamsHostSide.tlasCount     = mRayTracingDataOnCPU.tlasArray.size();
 
-	const int xxx = 2;
+	const int xxx = 1;
 	auto roundUp16 = [](int v) { return ((v + 15) / 16) * 16; };
 	mGpuRayTracingLaunchParamsHostSide.pixelSizeHorizontal = roundUp16(2000 / xxx);
 	mGpuRayTracingLaunchParamsHostSide.pixelSizeVertical = roundUp16(2000 / xxx);

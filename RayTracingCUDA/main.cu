@@ -63,7 +63,7 @@ int main()
 	Material light{ Material::MaterialType::EMISSIVE, 1.0f, 0.0, 0.0f, 0.0f, Color::Azure * 1, true };
 	Material lowIntesityLight{ Material::MaterialType::EMISSIVE, 1.0f, 0.0, 0.0f, 0.0f, Color::Azure * 0.1, true };
 	Material highIntensityLight{ Material::MaterialType::EMISSIVE, 1.0f, 0.0, 0.0f, 0.0f, Color::Azure * 10, true };
-	Material invisibleLight{ Material::MaterialType::EMISSIVE, 1.0f, 0.0, 0.0f, 0.0f, Color::Azure * 10, true, true };
+	Material invisibleLight{ Material::MaterialType::EMISSIVE, 1.0f, 0.0, 0.0f, 0.0f, Color::Azure * 1, true, true };
 	Material invisibleWeakLight{ Material::MaterialType::EMISSIVE, 1.0f, 0.0, 0.0f, 0.0f, Color::Azure * 0.1f, true, true };
 
 	Material emissiveMetal{ Material::MaterialType::METAL, 0.0f, 1.0, 1.0f, 0.0f, Color::White * 0.3, true, false };
@@ -131,10 +131,36 @@ int main()
 	Group objects("CornellBox");
 	{
 
+		for (int i = 0; i < 5000; i++)
+		{
+			const f32 range = 2.0f;
+			const f32 r = 200;//std::powf(RandomGenerator::uniform_real(0.0f, 0.2f), 1.0f / 3.0f)* range;
+			const f32 phi = RandomGenerator::uniform_real(0.0f, 2.0f * M_PI);
+			const f32 theta = acosf(2 * RandomGenerator::uniform_real() - 1);
+
+			const f32 z = r * sin(theta) * cos(phi);
+			const f32 x = r * sin(theta) * sin(phi);
+			const f32 y = r * cos(theta);
+			Vec3 pos(x, y, z);
+
+			Vec3 scale = Vec3::one() * RandomGenerator::uniform_real(0.1f, 1.0f) * 0.3;
+
+			Quaternion rotation = Quaternion(RandomGenerator::uniform_real(0, 5), Vec3::generateRandomUnitVector());
+			//Quaternion rotation = Quaternion(0, Vec3::generateRandomUnitVector());
+
+			constexpr f32 LightSizeScale = 0.3f;
+			result = objects.addChildObject(Object{
+				std::to_string(i),
+				"torus",
+				"invisibleLight",
+				Transform(pos, scale, rotation),
+				SurfaceProperty{Color::White } });
+		}
+	
 		for (int i = 0; i < 1000; i++)
 		{
-			const f32 range = 3.0f;
-			const f32 r = std::powf(RandomGenerator::uniform_real(0.0f, 1.0f), 1.0f / 3.0f) * range;
+			const f32 range = 2.0f;
+			const f32 r = std::powf(RandomGenerator::uniform_real(0.8f, 1.0f), 1.0f / 3.0f) * range;
 			const f32 phi = RandomGenerator::uniform_real(0.0f, 2.0f * M_PI);
 			const f32 theta = acosf(2 * RandomGenerator::uniform_real() - 1);
 
@@ -150,14 +176,12 @@ int main()
 
 			constexpr f32 LightSizeScale = 0.3f;
 			result = objects.addChildObject(Object{
-				std::to_string(i),
-				"box",
-				"emissiveMetal",
+				std::string("out") + std::to_string(i),
+				"geoSphere3",
+				"fuzzyMetal",
 				Transform(pos, scale, rotation),
 				SurfaceProperty{RandomGenerator::uniform_real() < 0.5f ? Color::Bronze : Color::Blue} });
 		}
-	
-
 
 
 		{
@@ -167,8 +191,8 @@ int main()
 
 			result = objects.addChildObject(Object{
 				"Light",
-				"box",
-				"invisibleWeakLight",
+				"torus",
+				"invisibleLight",
 				Transform(pos, scale, Quaternion(-M_PI, Vec3::unitZ())),
 				SurfaceProperty{Color::Bronze} });
 		}
