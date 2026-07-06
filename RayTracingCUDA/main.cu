@@ -40,7 +40,7 @@ int main()
 	setup_gpu << <1, RANDOM_GENERATOR_STATE_COUNT >> > (time(0));
 	KERNEL_ERROR_CHECKER;
 
-	Mesh sphereMesh = GeometryGenerator::sphereGenerator(5, 5);
+	Mesh sphereMesh = GeometryGenerator::sphereGenerator(50, 50);
 	Mesh tetrahedronMesh = GeometryGenerator::tetrahedronGenerator();
 	Mesh octahedronMesh = GeometryGenerator::octahedronGenerator();
 	Mesh boxMesh = GeometryGenerator::boxGenerator();
@@ -130,71 +130,98 @@ int main()
 
 	Group objects("CornellBox");
 	{
+		result = objects.addChildObject(Object{
+			"floor",
+			"plane",
+			"metal",
+			Transform(Vec3::zero(), Vec3(10000, 1, 10000)),
+			SurfaceProperty{Color::Gray } });
 
-		for (int i = 0; i < 5000; i++)
+
+		u32 index = 0;
+		for (auto vertex : geoSphereMesh1.getVertexArray())
 		{
-			const f32 range = 2.0f;
-			const f32 r = 200;//std::powf(RandomGenerator::uniform_real(0.0f, 0.2f), 1.0f / 3.0f)* range;
-			const f32 phi = RandomGenerator::uniform_real(0.0f, 2.0f * M_PI);
-			const f32 theta = acosf(2 * RandomGenerator::uniform_real() - 1);
+			auto pos = vertex.position;
+			pos = pos * 5;
 
-			const f32 z = r * sin(theta) * cos(phi);
-			const f32 x = r * sin(theta) * sin(phi);
-			const f32 y = r * cos(theta);
-			Vec3 pos(x, y, z);
-
-			Vec3 scale = Vec3::one() * RandomGenerator::uniform_real(0.1f, 1.0f) * 0.3;
-
-			Quaternion rotation = Quaternion(RandomGenerator::uniform_real(0, 5), Vec3::generateRandomUnitVector());
-			//Quaternion rotation = Quaternion(0, Vec3::generateRandomUnitVector());
-
-			constexpr f32 LightSizeScale = 0.3f;
+			auto color = Color::Red;
+			
 			result = objects.addChildObject(Object{
-				std::to_string(i),
-				"torus",
-				"invisibleLight",
-				Transform(pos, scale, rotation),
-				SurfaceProperty{Color::White } });
+				std::string("out") + std::to_string(index++),
+				"box",
+				"metal",
+				Transform(pos, Vec3(1000, 0.01, 0.01)),//, Quaternion(RandomGenerator::uniform_real(0, 5), Vec3::generateRandomUnitVector())),
+				SurfaceProperty{color} });
+
+
+			result = objects.addChildObject(Object{
+				std::string("out") + std::to_string(index++),
+				"box",
+				"metal",
+				Transform(pos, Vec3(0.01, 0.01, 1000)),//, Quaternion(RandomGenerator::uniform_real(0, 5), Vec3::generateRandomUnitVector())),
+				SurfaceProperty{color} });
+
+			result = objects.addChildObject(Object{
+				std::string("out") + std::to_string(index++),
+				"box",
+				"metal",
+				Transform(pos, Vec3(0.01, 1000, 0.01)),//, Quaternion(RandomGenerator::uniform_real(0, 5), Vec3::generateRandomUnitVector())),
+				SurfaceProperty{color} });
 		}
+
 	
-		for (int i = 0; i < 1000; i++)
+		for (int i = 0; i < 10; i++)
 		{
-			const f32 range = 2.0f;
-			const f32 r = std::powf(RandomGenerator::uniform_real(0.8f, 1.0f), 1.0f / 3.0f) * range;
-			const f32 phi = RandomGenerator::uniform_real(0.0f, 2.0f * M_PI);
-			const f32 theta = acosf(2 * RandomGenerator::uniform_real() - 1);
+			
+			
 
-			const f32 z = r * sin(theta) * cos(phi);
-			const f32 x = r * sin(theta) * sin(phi);
-			const f32 y = r * cos(theta);
-			Vec3 pos(x, y, z);
 
-			Vec3 scale = Vec3::one() * RandomGenerator::uniform_real(0.1f, 1.0f) * 0.2;
+			//result = objects.addChildObject(Object{
+			//	std::string("out") + std::to_string(i),
+			//	"geoSphere3",
+			//	"diamond",
+			//	Transform(pos, scale * 1.1, Quaternion(RandomGenerator::uniform_real(0, 5), Vec3::generateRandomUnitVector())),
+			//	SurfaceProperty{RandomGenerator::uniform_real() < 0.5f ? Color::White : Color::White} });
 
-			Quaternion rotation = Quaternion(RandomGenerator::uniform_real(0, 5), Vec3::generateRandomUnitVector());
-			//Quaternion rotation = Quaternion(0, Vec3::generateRandomUnitVector());
+			Vec3 pos = Vec3(
+				RandomGenerator::uniform_real(-1, 1) * 5,
+				1,
+				RandomGenerator::uniform_real(-1, 1) * 5
+			);
 
-			constexpr f32 LightSizeScale = 0.3f;
 			result = objects.addChildObject(Object{
 				std::string("out") + std::to_string(i),
-				"geoSphere3",
-				"fuzzyMetal",
-				Transform(pos, scale, rotation),
-				SurfaceProperty{RandomGenerator::uniform_real() < 0.5f ? Color::Bronze : Color::Blue} });
+				"sphere",
+				"metal",
+				Transform(pos, Vec3::one() * 0.5),//, Quaternion(RandomGenerator::uniform_real(0, 5), Vec3::generateRandomUnitVector())),
+				SurfaceProperty{RandomGenerator::uniform_real() < 0.5f ? Color::Blue : Color::Gold} });
+		}
+
+		{
+			Vec3 pos = Vec3::zero();
+
+			Vec3 scale = Vec3::one() * 100;
+
+			result = objects.addChildObject(Object{
+				"1",
+				"sphere",
+				"emissiveMetal",
+				Transform(pos, scale, Quaternion(0, Vec3::unitZ())),
+				SurfaceProperty{Color::White} });
 		}
 
 
 		{
 			Vec3 pos = Vec3::zero();
 
-			Vec3 scale = Vec3::one() * RandomGenerator::uniform_real(0.1f, 1.0f) * 40;
+			Vec3 scale = Vec3::one() * 400;
 
 			result = objects.addChildObject(Object{
 				"Light",
-				"torus",
+				"box",
 				"invisibleLight",
-				Transform(pos, scale, Quaternion(-M_PI, Vec3::unitZ())),
-				SurfaceProperty{Color::Bronze} });
+				Transform(pos, scale, Quaternion(0, Vec3::unitZ())),
+				SurfaceProperty{Color::White} });
 		}
 	}
 

@@ -3,14 +3,12 @@
 #include <iostream>
 #include "scene.h"
 #include "util.h"
-
+#include "config.h"
 
 namespace
 {
 	constexpr u32 TILE_SIZE_X = 16;
 	constexpr u32 TILE_SIZE_Y = 16;
-
-	constexpr u32 RenderFrameCount = 3000;
 }
 
 __constant__ GpuRayTracingLaunchParams gGpuRayTracingLaunchParams = {};
@@ -60,10 +58,9 @@ Result Scene::initLaunchParams()
 	mGpuRayTracingLaunchParamsHostSide.blasCount     = mRayTracingDataOnCPU.blasArray.size();
 	mGpuRayTracingLaunchParamsHostSide.tlasCount     = mRayTracingDataOnCPU.tlasArray.size();
 
-	const int xxx = 1;
-	auto roundUp16 = [](int v) { return ((v + 15) / 16) * 16; };
-	mGpuRayTracingLaunchParamsHostSide.pixelSizeHorizontal = roundUp16(2000 / xxx);
-	mGpuRayTracingLaunchParamsHostSide.pixelSizeVertical = roundUp16(2000 / xxx);
+
+	mGpuRayTracingLaunchParamsHostSide.pixelSizeHorizontal = pixelSizeHorizontal;
+	mGpuRayTracingLaunchParamsHostSide.pixelSizeVertical = pixelSizeVertical;
 
 	mGpuRayTracingLaunchParamsHostSide.invPixelSizeHorizontal = 1.0f / static_cast<f32>(mGpuRayTracingLaunchParamsHostSide.pixelSizeHorizontal);
 	mGpuRayTracingLaunchParamsHostSide.invPixelSizeVertical = 1.0f / static_cast<f32>(mGpuRayTracingLaunchParamsHostSide.pixelSizeVertical);
@@ -78,9 +75,9 @@ Result Scene::initLaunchParams()
 
 	mGpuRayTracingLaunchParamsHostSide.frameCount = 0;
 
-	const f32 aspect = static_cast<f32>(mGpuRayTracingLaunchParamsHostSide.pixelSizeHorizontal) / static_cast<f32>(mGpuRayTracingLaunchParamsHostSide.pixelSizeVertical);
+	const f32 aspect = aspectRatio;
 
-	Camera camera{ Vec3(5, 2, 7), Vec3::zero(), Vec3::unitY(), 40, aspect};
+	Camera camera{ Vec3(13,2,3), Vec3::zero(), Vec3::unitY(), 40, aspect};
 	mGpuRayTracingLaunchParamsHostSide.camera = camera;
 
 	// タイルカウンターの初期化
