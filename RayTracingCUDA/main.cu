@@ -144,7 +144,7 @@ int main()
 			auto pos = vertex.position;
 			pos = pos * 5;
 
-			auto color = Color::Red;
+			auto color = Color::Blue;
 			
 			result = objects.addChildObject(Object{
 				std::string("out") + std::to_string(index++),
@@ -152,7 +152,12 @@ int main()
 				"metal",
 				Transform(pos, Vec3(1000, 0.01, 0.01)),//, Quaternion(RandomGenerator::uniform_real(0, 5), Vec3::generateRandomUnitVector())),
 				SurfaceProperty{color} });
-
+			result = objects.addChildObject(Object{
+				std::string("out") + std::to_string(index++),
+				"box",
+				"diamond",
+				Transform(pos, Vec3(1000, 0.02, 0.02)),//, Quaternion(RandomGenerator::uniform_real(0, 5), Vec3::generateRandomUnitVector())),
+				SurfaceProperty{Color::White} });
 
 			result = objects.addChildObject(Object{
 				std::string("out") + std::to_string(index++),
@@ -160,6 +165,12 @@ int main()
 				"metal",
 				Transform(pos, Vec3(0.01, 0.01, 1000)),//, Quaternion(RandomGenerator::uniform_real(0, 5), Vec3::generateRandomUnitVector())),
 				SurfaceProperty{color} });
+			result = objects.addChildObject(Object{
+				std::string("out") + std::to_string(index++),
+				"box",
+				"diamond",
+				Transform(pos, Vec3(0.02, 0.02, 1000)),//, Quaternion(RandomGenerator::uniform_real(0, 5), Vec3::generateRandomUnitVector())),
+				SurfaceProperty{Color::White} });
 
 			result = objects.addChildObject(Object{
 				std::string("out") + std::to_string(index++),
@@ -167,6 +178,12 @@ int main()
 				"metal",
 				Transform(pos, Vec3(0.01, 1000, 0.01)),//, Quaternion(RandomGenerator::uniform_real(0, 5), Vec3::generateRandomUnitVector())),
 				SurfaceProperty{color} });
+			result = objects.addChildObject(Object{
+				std::string("out") + std::to_string(index++),
+				"box",
+				"diamond",
+				Transform(pos, Vec3(0.02, 1000, 0.02)),//, Quaternion(RandomGenerator::uniform_real(0, 5), Vec3::generateRandomUnitVector())),
+				SurfaceProperty{Color::White} });
 		}
 
 	
@@ -174,7 +191,7 @@ int main()
 		{
 			Vec3 pos = Vec3(
 				RandomGenerator::uniform_real(-1, 1) * 50,
-				1,
+				RandomGenerator::uniform_real(-1, 1) * 50,
 				RandomGenerator::uniform_real(-1, 1) * 50
 			);
 
@@ -186,6 +203,19 @@ int main()
 				SurfaceProperty{RandomGenerator::uniform_real() < 0.5f ? Color::Blue : Color::Gold} });
 		}
 
+
+		{
+			Vec3 pos = Vec3::zero();
+
+			Vec3 scale = Vec3::one() * 50;
+
+			result = objects.addChildObject(Object{
+				"doom",
+				"geoSphere2",
+				"diamond",
+				Transform(pos, scale, Quaternion(RandomGenerator::uniform_real(0, 5), Vec3::generateRandomUnitVector())),
+				SurfaceProperty{Color::White} });
+		}
 		{
 			Vec3 pos = Vec3::zero();
 
