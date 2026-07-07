@@ -187,7 +187,7 @@ int main()
 		}
 
 	
-		for (int i = 0; i < 100; i++)
+		for (int i = 0; i < 1000; i++)
 		{
 			Vec3 pos = Vec3(
 				RandomGenerator::uniform_real(-1, 1) * 50,
@@ -197,10 +197,10 @@ int main()
 
 			result = objects.addChildObject(Object{
 				std::string("obj") + std::to_string(i),
-				"box",
-				"fuzzyMetal",
-				Transform(pos, Vec3::one() * 0.5, Quaternion(RandomGenerator::uniform_real(0, 5), Vec3::generateRandomUnitVector())),
-				SurfaceProperty{RandomGenerator::uniform_real() < 0.5f ? Color::Blue : Color::Gold} });
+				"torus",
+				"water",
+				Transform(pos, Vec3::one(), Quaternion(RandomGenerator::uniform_real(0, 5), Vec3::generateRandomUnitVector())),
+				SurfaceProperty{Color::White} });
 		}
 
 
@@ -243,7 +243,7 @@ int main()
 		{
 			Vec3 pos = Vec3::zero();
 
-			Vec3 scale = Vec3::one() * 200;
+			Vec3 scale = Vec3::one() * 300;
 
 			result = objects.addChildObject(Object{
 				"doom",

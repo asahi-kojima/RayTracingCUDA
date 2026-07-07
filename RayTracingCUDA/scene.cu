@@ -532,7 +532,14 @@ __global__ void raytracingKernel()
 			tileBaseIndexX = (tileIndex % tileCountPerRow) * TILE_SIZE_X;
 			tileBaseIndexY = (tileIndex / tileCountPerRow) * TILE_SIZE_Y;
 
-			//if ()
+			// 代表スレッドのみ進捗表示
+			if (blockIdx.x == 0 && sharedTileIndex % 100 == 0)
+			{
+				printf("[GPU] progress: %u / %u tiles (%.2f%%)\n",
+					sharedTileIndex,
+					totalTileCount * RenderFrameCount,
+					100.0f * float(sharedTileIndex) / float(totalTileCount * RenderFrameCount));
+			}
 		}
 		__syncthreads();
 
