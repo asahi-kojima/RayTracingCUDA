@@ -144,6 +144,8 @@ int main()
 
 		std::vector<std::tuple<u32, u32> > appearedIndexPairs;
 
+
+		const f32 scale = 3.0f;
 		for (u32 i = 0; i < indices.size(); ++i)
 		{
 			const auto& triangle = indices[i];
@@ -156,12 +158,14 @@ int main()
 			if (index1 > index2) std::swap(index1, index2);
 			// ‚±‚ê‚Å index0 <= index1 <= index2 ‚Æ‚È‚é
 
+			Color color = RandomGenerator::uniform_real() > 0.5f ? Color::Blue : Color::Bronze;
+
 			if (std::find(appearedIndexPairs.begin(), appearedIndexPairs.end(), std::make_tuple(index0, index1)) == appearedIndexPairs.end())
 			{
 				appearedIndexPairs.push_back(std::make_tuple(index0, index1));
 
-				Vec3 pos = (vertices[index0].position + vertices[index1].position) * 0.5f * 5;
-				Vec3 diff = (vertices[index1].position - vertices[index0].position) * 5;
+				Vec3 pos = (vertices[index0].position + vertices[index1].position) * 0.5f * scale;
+				Vec3 diff = (vertices[index1].position - vertices[index0].position) * scale;
 
 				auto q = Quaternion::fromToRotation(Vec3::unitY(), diff.normalize());
 
@@ -170,15 +174,15 @@ int main()
 					"cylinder",
 					"diamond",
 					Transform(pos, Vec3(0.1, diff.length(), 0.1),q),
-					SurfaceProperty{Color::White} });
+					SurfaceProperty{color} });
 			}
 
 			if (std::find(appearedIndexPairs.begin(), appearedIndexPairs.end(), std::make_tuple(index0, index2)) == appearedIndexPairs.end())
 			{
 				appearedIndexPairs.push_back(std::make_tuple(index0, index2));
 
-				Vec3 pos = (vertices[index0].position + vertices[index2].position) * 0.5f * 5;
-				Vec3 diff = (vertices[index2].position - vertices[index0].position) * 5;
+				Vec3 pos = (vertices[index0].position + vertices[index2].position) * 0.5f * scale;
+				Vec3 diff = (vertices[index2].position - vertices[index0].position) * scale;
 
 				auto q = Quaternion::fromToRotation(Vec3::unitY(), diff.normalize());
 
@@ -187,15 +191,15 @@ int main()
 					"cylinder",
 					"diamond",
 					Transform(pos, Vec3(0.1, diff.length(), 0.1),q),
-					SurfaceProperty{Color::White} });
+					SurfaceProperty{color} });
 			}
 
 			if (std::find(appearedIndexPairs.begin(), appearedIndexPairs.end(), std::make_tuple(index1, index2)) == appearedIndexPairs.end())
 			{
 				appearedIndexPairs.push_back(std::make_tuple(index1, index2));
 
-				Vec3 pos = (vertices[index1].position + vertices[index2].position) * 0.5f * 5;
-				Vec3 diff = (vertices[index2].position - vertices[index1].position) * 5;
+				Vec3 pos = (vertices[index1].position + vertices[index2].position) * 0.5f * scale;
+				Vec3 diff = (vertices[index2].position - vertices[index1].position) * scale;
 
 				auto q = Quaternion::fromToRotation(Vec3::unitY(), diff.normalize());
 
@@ -204,7 +208,7 @@ int main()
 					"cylinder",
 					"diamond",
 					Transform(pos, Vec3(0.1, diff.length(), 0.1),q),
-					SurfaceProperty{Color::White} });
+					SurfaceProperty{color} });
 			}
 		}
 
@@ -283,9 +287,9 @@ int main()
 			result = objects.addChildObject(Object{
 				"Light",
 				"geoSphere1",
-				"light",
+				"invisibleLight",
 				Transform(pos, scale, Quaternion(0, Vec3::unitZ())),
-				SurfaceProperty{Color::White} });
+				SurfaceProperty{Color::Blue} });
 		}
 
 
