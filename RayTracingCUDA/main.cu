@@ -172,6 +172,40 @@ int main()
 					Transform(pos, Vec3(0.1, diff.length(), 0.1),q),
 					SurfaceProperty{Color::White} });
 			}
+
+			if (std::find(appearedIndexPairs.begin(), appearedIndexPairs.end(), std::make_tuple(index0, index2)) == appearedIndexPairs.end())
+			{
+				appearedIndexPairs.push_back(std::make_tuple(index0, index2));
+
+				Vec3 pos = (vertices[index0].position + vertices[index2].position) * 0.5f * 5;
+				Vec3 diff = (vertices[index2].position - vertices[index0].position) * 5;
+
+				auto q = Quaternion::fromToRotation(Vec3::unitY(), diff.normalize());
+
+				result = objects.addChildObject(Object{
+					std::to_string(i) + "doom",
+					"cylinder",
+					"diamond",
+					Transform(pos, Vec3(0.1, diff.length(), 0.1),q),
+					SurfaceProperty{Color::White} });
+			}
+
+			if (std::find(appearedIndexPairs.begin(), appearedIndexPairs.end(), std::make_tuple(index1, index2)) == appearedIndexPairs.end())
+			{
+				appearedIndexPairs.push_back(std::make_tuple(index1, index2));
+
+				Vec3 pos = (vertices[index1].position + vertices[index2].position) * 0.5f * 5;
+				Vec3 diff = (vertices[index2].position - vertices[index1].position) * 5;
+
+				auto q = Quaternion::fromToRotation(Vec3::unitY(), diff.normalize());
+
+				result = objects.addChildObject(Object{
+					std::to_string(i) + "doom",
+					"cylinder",
+					"diamond",
+					Transform(pos, Vec3(0.1, diff.length(), 0.1),q),
+					SurfaceProperty{Color::White} });
+			}
 		}
 
 	
