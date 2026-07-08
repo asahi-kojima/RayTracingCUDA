@@ -184,6 +184,13 @@ int main()
 				"diamond",
 				Transform(pos, Vec3(0.02, 1000, 0.02)),//, Quaternion(RandomGenerator::uniform_real(0, 5), Vec3::generateRandomUnitVector())),
 				SurfaceProperty{Color::White} });
+
+			result = objects.addChildObject(Object{
+				std::string("out") + std::to_string(index++),
+				"box",
+				"highIntensityLight",
+				Transform(pos, Vec3(0.1, 0.1, 0.1)),//, Quaternion(RandomGenerator::uniform_real(0, 5), Vec3::generateRandomUnitVector())),
+				SurfaceProperty{Color::White} });
 		}
 
 	
@@ -198,74 +205,86 @@ int main()
 			result = objects.addChildObject(Object{
 				std::string("obj") + std::to_string(i),
 				"torus",
-				"water",
+				"light",
 				Transform(pos, Vec3::one(), Quaternion(RandomGenerator::uniform_real(0, 5), Vec3::generateRandomUnitVector())),
-				SurfaceProperty{Color::White} });
+				SurfaceProperty{Color::Azure} });
 		}
 
 
-		{
-			Vec3 pos = Vec3::zero();
+		//{
+		//	Vec3 pos = Vec3::zero();
 
-			Vec3 scale = Vec3::one() * 50;
+		//	Vec3 scale = Vec3::one() * 30;
 
-			result = objects.addChildObject(Object{
-				"doom",
-				"geoSphere2",
-				"diamond",
-				Transform(pos, scale, Quaternion(RandomGenerator::uniform_real(0, 5), Vec3::generateRandomUnitVector())),
-				SurfaceProperty{Color::White} });
-		}
-		{
-			Vec3 pos = Vec3::zero();
+		//	result = objects.addChildObject(Object{
+		//		"doom",
+		//		"geoSphere4",
+		//		"diamond",
+		//		Transform(pos, scale, Quaternion(RandomGenerator::uniform_real(0, 5), Vec3::generateRandomUnitVector())),
+		//		SurfaceProperty{Color::White} });
+		//}
+		//{
+		//	Vec3 pos = Vec3::zero();
 
-			Vec3 scale = Vec3::one() * 100;
+		//	Vec3 scale = Vec3::one() * 50;
 
-			result = objects.addChildObject(Object{
-				"doom",
-				"geoSphere2",
-				"diamond",
-				Transform(pos, scale, Quaternion(RandomGenerator::uniform_real(0, 5), Vec3::generateRandomUnitVector())),
-				SurfaceProperty{Color::White} });
-		}
-		{
-			Vec3 pos = Vec3::zero();
+		//	result = objects.addChildObject(Object{
+		//		"doom",
+		//		"geoSphere4",
+		//		"diamond",
+		//		Transform(pos, scale, Quaternion(RandomGenerator::uniform_real(0, 5), Vec3::generateRandomUnitVector())),
+		//		SurfaceProperty{Color::White} });
+		//}
+		//{
+		//	Vec3 pos = Vec3::zero();
 
-			Vec3 scale = Vec3::one() * 200;
+		//	Vec3 scale = Vec3::one() * 100;
 
-			result = objects.addChildObject(Object{
-				"doom",
-				"geoSphere2",
-				"diamond",
-				Transform(pos, scale, Quaternion(RandomGenerator::uniform_real(0, 5), Vec3::generateRandomUnitVector())),
-				SurfaceProperty{Color::White} });
-		}
-		{
-			Vec3 pos = Vec3::zero();
+		//	result = objects.addChildObject(Object{
+		//		"doom",
+		//		"geoSphere4",
+		//		"diamond",
+		//		Transform(pos, scale, Quaternion(RandomGenerator::uniform_real(0, 5), Vec3::generateRandomUnitVector())),
+		//		SurfaceProperty{Color::White} });
+		//}
+		//{
+		//	Vec3 pos = Vec3::zero();
 
-			Vec3 scale = Vec3::one() * 300;
+		//	Vec3 scale = Vec3::one() * 200;
 
-			result = objects.addChildObject(Object{
-				"doom",
-				"geoSphere2",
-				"diamond",
-				Transform(pos, scale, Quaternion(RandomGenerator::uniform_real(0, 5), Vec3::generateRandomUnitVector())),
-				SurfaceProperty{Color::White} });
-		}
+		//	result = objects.addChildObject(Object{
+		//		"doom",
+		//		"geoSphere4",
+		//		"diamond",
+		//		Transform(pos, scale, Quaternion(RandomGenerator::uniform_real(0, 5), Vec3::generateRandomUnitVector())),
+		//		SurfaceProperty{Color::White} });
+		//}
+		//{
+		//	Vec3 pos = Vec3::zero();
+
+		//	Vec3 scale = Vec3::one() * 300;
+
+		//	result = objects.addChildObject(Object{
+		//		"doom",
+		//		"geoSphere4",
+		//		"diamond",
+		//		Transform(pos, scale, Quaternion(RandomGenerator::uniform_real(0, 5), Vec3::generateRandomUnitVector())),
+		//		SurfaceProperty{Color::White} });
+		//}
 
 
-		{
-			Vec3 pos = Vec3::zero();
+		//{
+		//	Vec3 pos = Vec3::zero();
 
-			Vec3 scale = Vec3::one() * 400;
+		//	Vec3 scale = Vec3::one() * 400;
 
-			result = objects.addChildObject(Object{
-				"Light",
-				"box",
-				"invisibleLight",
-				Transform(pos, scale, Quaternion(0, Vec3::unitZ())),
-				SurfaceProperty{Color::White} });
-		}
+		//	result = objects.addChildObject(Object{
+		//		"Light",
+		//		"box",
+		//		"metal",
+		//		Transform(pos, scale, Quaternion(0, Vec3::unitZ())),
+		//		SurfaceProperty{Color::White} });
+		//}
 	}
 
 	scene.addGroup(objects);

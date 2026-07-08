@@ -3,10 +3,10 @@
 
 namespace
 {
-	constexpr u32 RenderFrameCount = 1000;
+	constexpr u32 RenderFrameCount = 300;
 
 
-	const int xxx = 1;
+	const int xxx = 2;
 	auto roundUp16 = [](int v) { return ((v + 15) / 16) * 16; };
 
 	constexpr u32 pixelSizeHorizontal = roundUp16(3840 / xxx);
