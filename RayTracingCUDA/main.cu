@@ -139,76 +139,42 @@ int main()
 
 
 		u32 index = 0;
-		for (auto vertex : geoSphereMesh2.getVertexArray())
+		const auto& vertices = geoSphereMesh2.getVertexArray();
+		const auto& indices = geoSphereMesh2.getIndexArrayAsUint3();
+
+		std::vector<std::tuple<u32, u32> > appearedIndexPairs;
+
+		for (u32 i = 0; i < indices.size(); ++i)
 		{
-			auto pos = vertex.position;
-			pos = pos * 5;
-
-			auto color = Color::Blue;
+			const auto& triangle = indices[i];
+			auto index0 = triangle.x;
+			auto index1 = triangle.y;
+			auto index2 = triangle.z;
 			
-			result = objects.addChildObject(Object{
-				std::string("out") + std::to_string(index++),
-				"box",
-				"metal",
-				Transform(pos, Vec3(1000, 0.01, 0.01)),//, Quaternion(RandomGenerator::uniform_real(0, 5), Vec3::generateRandomUnitVector())),
-				SurfaceProperty{color} });
-			result = objects.addChildObject(Object{
-				std::string("out") + std::to_string(index++),
-				"box",
-				"diamond",
-				Transform(pos, Vec3(1000, 0.02, 0.02)),//, Quaternion(RandomGenerator::uniform_real(0, 5), Vec3::generateRandomUnitVector())),
-				SurfaceProperty{Color::White} });
+			if (index0 > index1) std::swap(index0, index1);
+			if (index0 > index2) std::swap(index0, index2);
+			if (index1 > index2) std::swap(index1, index2);
+			// ‚±‚ê‚Å index0 <= index1 <= index2 ‚Æ‚È‚é
 
-			result = objects.addChildObject(Object{
-				std::string("out") + std::to_string(index++),
-				"box",
-				"metal",
-				Transform(pos, Vec3(0.01, 0.01, 1000)),//, Quaternion(RandomGenerator::uniform_real(0, 5), Vec3::generateRandomUnitVector())),
-				SurfaceProperty{color} });
-			result = objects.addChildObject(Object{
-				std::string("out") + std::to_string(index++),
-				"box",
-				"diamond",
-				Transform(pos, Vec3(0.02, 0.02, 1000)),//, Quaternion(RandomGenerator::uniform_real(0, 5), Vec3::generateRandomUnitVector())),
-				SurfaceProperty{Color::White} });
+			if (std::find(appearedIndexPairs.begin(), appearedIndexPairs.end(), std::make_tuple(index0, index1)) == appearedIndexPairs.end())
+			{
+				appearedIndexPairs.push_back(std::make_tuple(index0, index1));
 
-			result = objects.addChildObject(Object{
-				std::string("out") + std::to_string(index++),
-				"box",
-				"metal",
-				Transform(pos, Vec3(0.01, 1000, 0.01)),//, Quaternion(RandomGenerator::uniform_real(0, 5), Vec3::generateRandomUnitVector())),
-				SurfaceProperty{color} });
-			result = objects.addChildObject(Object{
-				std::string("out") + std::to_string(index++),
-				"box",
-				"diamond",
-				Transform(pos, Vec3(0.02, 1000, 0.02)),//, Quaternion(RandomGenerator::uniform_real(0, 5), Vec3::generateRandomUnitVector())),
-				SurfaceProperty{Color::White} });
+				Vec3 pos = (vertices[index0].position + vertices[index1].position) * 0.5f * 5;
+				Vec3 diff = (vertices[index1].position - vertices[index0].position) * 5;
 
-			result = objects.addChildObject(Object{
-				std::string("out") + std::to_string(index++),
-				"box",
-				"highIntensityLight",
-				Transform(pos, Vec3(0.1, 0.1, 0.1)),//, Quaternion(RandomGenerator::uniform_real(0, 5), Vec3::generateRandomUnitVector())),
-				SurfaceProperty{Color::White} });
+				auto q = Quaternion::fromToRotation(Vec3::unitY(), diff.normalize());
+
+				result = objects.addChildObject(Object{
+					std::to_string(i) + "doom",
+					"cylinder",
+					"diamond",
+					Transform(pos, Vec3(0.1, diff.length(), 0.1),q),
+					SurfaceProperty{Color::White} });
+			}
 		}
 
 	
-		for (int i = 0; i < 1000; i++)
-		{
-			Vec3 pos = Vec3(
-				RandomGenerator::uniform_real(-1, 1) * 50,
-				RandomGenerator::uniform_real(-1, 1) * 50,
-				RandomGenerator::uniform_real(-1, 1) * 50
-			);
-
-			result = objects.addChildObject(Object{
-				std::string("obj") + std::to_string(i),
-				"torus",
-				"light",
-				Transform(pos, Vec3::one(), Quaternion(RandomGenerator::uniform_real(0, 5), Vec3::generateRandomUnitVector())),
-				SurfaceProperty{Color::Azure} });
-		}
 
 
 		//{
@@ -273,18 +239,34 @@ int main()
 		//}
 
 
-		//{
-		//	Vec3 pos = Vec3::zero();
+		{
+			Vec3 pos = Vec3::zero();
 
-		//	Vec3 scale = Vec3::one() * 400;
+			Vec3 scale = Vec3::one() * 1;
 
-		//	result = objects.addChildObject(Object{
-		//		"Light",
-		//		"box",
-		//		"metal",
-		//		Transform(pos, scale, Quaternion(0, Vec3::unitZ())),
-		//		SurfaceProperty{Color::White} });
-		//}
+
+
+			result = objects.addChildObject(Object{
+				"Light",
+				"geoSphere1",
+				"light",
+				Transform(pos, scale, Quaternion(0, Vec3::unitZ())),
+				SurfaceProperty{Color::White} });
+		}
+
+
+		{
+			Vec3 pos = Vec3::zero();
+
+			Vec3 scale = Vec3::one() * 400;
+
+			result = objects.addChildObject(Object{
+				"Light",
+				"box",
+				"invisibleLight",
+				Transform(pos, scale, Quaternion(0, Vec3::unitZ())),
+				SurfaceProperty{Color::White} });
+		}
 	}
 
 	scene.addGroup(objects);

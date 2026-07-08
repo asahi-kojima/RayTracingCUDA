@@ -75,6 +75,43 @@ public:
 		);
 	}
 
+	// 2つの方向ベクトル v から w への回転を表すクオータニオンを生成する
+	static Quaternion fromToRotation(const Vec3& from, const Vec3& to)
+	{
+		// 1. 正規化
+		Vec3 v = from.normalize();
+		Vec3 w = to.normalize();
+
+		// 内積（cosθ）を計算
+		f32 dot = Vec3::dot(v, w); // ※Vec3にdotメソッドがあると仮定
+
+		// 2. ほぼ同じ向きを向いている場合（回転の必要なし）
+		if (dot > 0.99999f)
+		{
+			return Quaternion(); // 単位クオータニオン
+		}
+
+		// 4. 完全に真逆（180度）を向いている場合の例外処理
+		if (dot < -0.99999f)
+		{
+			// v と直交する適当な軸を探す
+			Vec3 axis = Vec3::cross(Vec3(1.0f, 0.0f, 0.0f), v); // ※Vec3にcrossメソッドがあると仮定
+			if (axis.lengthSquared() < 0.0001f)
+			{
+				// もし (1,0,0) と平行だったら (0,1,0) を使う
+				axis = Vec3::cross(Vec3(0.0f, 1.0f, 0.0f),v);
+			}
+			return Quaternion(M_PI, axis.normalize()); // 180度（πラジアン）回転
+		}
+
+		// 3. 通常の回転（外積から軸を求め、内積から角度を求める）
+		Vec3 axis = Vec3::cross(v, w);
+		f32 angle = std::acos(dot);
+
+		// 既存の「軸と角度」のコンストラクタに渡す
+		return Quaternion(angle, axis);
+	}
+
 private:
 	f32 w;
 	f32 x;
